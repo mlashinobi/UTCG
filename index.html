@@ -212,7 +212,8 @@
     // === CONFIGURAÇÃO SUPABASE ===
 const SUPABASE_URL = 'sb_publishable_tTzgwBUGn02QuN6z2AFRTw_GLdeB2u5';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxsb3VhemN3enZnZ3dpYmdqbGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0ODI5NDUsImV4cCI6MjA5MzA1ODk0NX0.vhA92IJ2n82MSFUEmNtJEIS7Ap2Ox-XSoYP7lt5ic5g';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// No topo do script, substitua por:
+var supabase = supabase.createClient('SUA_URL', 'SUA_KEY');
 
 const canalBatalha = supabase.channel('arena_01');
 
