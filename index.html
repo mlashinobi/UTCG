@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Anime TCG - Boss & Normal Edition</title>
+    <title>UATCG - Beta Edition</title>
     <style>
         :root {
             --bg-arena: url('https://images.alphacoders.com/132/1326442.png');
@@ -109,16 +109,20 @@
 <body>
 
 <audio id="musicaFundo" loop>
-    <source src="https://www.chosic.com/wp-content/uploads/2021/07/The-Epic-Hero-Epic-Cinematic-Music-By-Keys-Of-Moon.mp3" type="audio/mpeg">
+    <source src="https://downloads.khinsider.com/game-soundtracks/album/pok-mon-tcg-online-android-ios-windows-gamerip-2012/01%2520CoreUI.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="musicaBatalha" loop>
+    <source src="https://downloads.khinsider.com/game-soundtracks/album/period-character-song-cd-vol3-rin-kagamiya-monogatari-no-tochuu-2007/02.%2520%25E7%2589%25A9%25E8%25AA%259E%25E3%2582%258A%25E3%2581%25AE%25E9%2580%2594%25E4%25B8%25AD%2520-off%2520vocal%2520ver.-.mp3" type="audio/mpeg">
 </audio>
 
 <div id="main-menu" class="screen">
     <div class="menu-bg"></div>
-    <div class="game-title">ANIME TCG<br><span style="font-size: 24px; color: #ef4444;">ULTIMATE EDITION</span></div>
+    <div class="game-title">UATCG<br><span style="font-size: 24px; color: #ef4444;">BETA EDITION</span></div>
     <div style="margin-bottom: 20px; color: var(--gold); font-weight: bold;">Moedas: <span id="menu-coins">0</span></div>
     <div class="menu-buttons">
-        <button class="btn btn-sec" style="background:#0ea5e9; border-color:#fff;" onclick="showScreen('deck-select', 'normal')">Batalha Normal</button>
-        <button class="btn btn-play" onclick="showScreen('deck-select', 'boss')">Desafiar Boss</button>
+        <button class="btn btn-play" style="background:#0ea5e9; border-color:#fff; box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);" onclick="showScreen('deck-select', 'normal')">Jogar</button>
+        <button class="btn btn-play" onclick="showScreen('deck-select', 'boss')">Boss Raid</button>
         <button class="btn btn-sec" onclick="openEditor()">Meu Deck</button>
         <button class="btn btn-sec" onclick="openStore()">Loja de Cartas</button>
         <button class="btn btn-sec" onclick="saveGame()">Salvar Dados</button>
@@ -222,7 +226,27 @@ let game = { player: {}, enemy: {}, turn: '', energyUsed: false, currentReward: 
 
 const somFundo = document.getElementById('musicaFundo');
 somFundo.volume = 0.35;
-window.addEventListener('click', () => { if (somFundo.paused) somFundo.play().catch(()=>{}); }, { once: true });
+// Função para garantir que o áudio toque após o primeiro clique do usuário
+function desbloquearAudio() {
+    const menuSom = document.getElementById('musicaFundo');
+    const batalhaSom = document.getElementById('musicaBatalha');
+    
+    // Define volumes iniciais
+    menuSom.volume = 0.3;
+    batalhaSom.volume = 0.3;
+
+    // Tenta tocar a música do menu
+    if (menuSom.paused) {
+        menuSom.play().catch(e => console.log("Aguardando interação para áudio..."));
+    }
+    
+    // Remove o evento após o primeiro clique para não ficar repetindo
+    window.removeEventListener('click', desbloquearAudio);
+    window.removeEventListener('keydown', desbloquearAudio);
+}
+
+window.addEventListener('click', desbloquearAudio);
+window.addEventListener('keydown', desbloquearAudio);
 
 function showScreen(id, modeParam) {
     document.querySelectorAll('.screen, #coin-screen').forEach(s => s.style.display = 'none');
@@ -323,6 +347,16 @@ function startGame(lvlIdx, firstTurn) {
     showScreen('game-ui');
     document.getElementById('log').innerHTML = '';
     
+    // Troca a música
+    const mFundo = document.getElementById('musicaFundo');
+    const mBatalha = document.getElementById('musicaBatalha');
+    
+    if(mFundo) mFundo.pause();
+    if(mBatalha) {
+        mBatalha.currentTime = 0;
+        mBatalha.play().catch(e => console.log("Erro ao tocar música de batalha"));
+    }
+    
     game.player = { active: null, bench: [], hand: [], deck: [...user.deck].sort(()=>0.5-Math.random()), energy: 0 };
     
     if(game.mode === 'boss') {
@@ -336,7 +370,6 @@ function startGame(lvlIdx, firstTurn) {
         game.currentReward = lvl.reward;
         game.enemy = { active: null, bench: [], hand: [], deck: [...lvl.deck].sort(()=>0.5-Math.random()), energy: 0 };
         for(let i=0; i<4; i++) { if(game.enemy.deck.length > 0) game.enemy.hand.push({...CARDS_DB[game.enemy.deck.pop()]}); }
-        // Coloca o primeiro ativo pra ele não perder no turno 1
         if(game.enemy.hand.length > 0) {
             game.enemy.active = {...game.enemy.hand[0], curHP: game.enemy.hand[0].hp, attached: 0};
             game.enemy.hand.splice(0,1);
@@ -423,6 +456,9 @@ function render(id, card, isP, type, index) {
     if(type === 'active') div.id = isP ? 'p-card-active' : 'e-card-active';
     div.onclick = () => { if(isP && game.player.energy > 0 && !game.energyUsed) attachEnergy(card); };
     
+    // LINHA ADICIONADA AQUI PRO INSPECIONAR FUNCIONAR!
+    div.onmouseenter = () => inspectCard(card);
+    
     let skillsHTML = "";
     if(type === 'active' && isP) {
         skillsHTML = card.skills.map((s, i) => `
@@ -431,16 +467,11 @@ function render(id, card, isP, type, index) {
             </button>
         `).join('');
     } else if (type === 'active' && !isP) {
-        skillsHTML = card.skills.map(s => `
-             <div class="btn-skill" style="cursor:default; text-align:center">
-                ${s.n} [Dano: ${s.d}]
-             </div>
-        `).join('');
+        skillsHTML = card.skills.map(s => `<div class="btn-skill" style="cursor:default; text-align:center">${s.n} [Dano: ${s.d}]</div>`).join('');
     }
 
     const swapBtn = (type === 'bench' && isP && game.turn === 'player') 
-        ? `<button class="btn-skill" style="background:var(--gold); color:#000; border:none; margin-bottom: 4px;" onclick="event.stopPropagation(); swapCard(${index})">TROCAR</button>` 
-        : '';
+        ? `<button class="btn-skill" style="background:var(--gold); color:#000; border:none; margin-bottom: 4px;" onclick="event.stopPropagation(); swapCard(${index})">TROCAR</button>` : '';
 
     div.innerHTML = `
         <img src="${card.img}">
@@ -448,10 +479,7 @@ function render(id, card, isP, type, index) {
         <div class="energy-tag">${card.attached || 0}</div>
         <div class="card-content">
             <b style="${card.isEx ? 'color:var(--gold); text-align:center;' : 'text-align:center;'} font-size:12px;">${card.name}</b>
-            <div style="flex:1; overflow-y:auto; margin-top:5px;">
-                ${swapBtn}
-                ${skillsHTML}
-            </div>
+            <div style="flex:1; overflow-y:auto; margin-top:5px;">${swapBtn}${skillsHTML}</div>
         </div>
     `;
     area.appendChild(div);
@@ -504,25 +532,23 @@ function triggerAttack(idx, source) {
     
     if(attacker.attached < skill.c) return alert("Energia insuficiente!");
     
-    clearInterval(game.timerInterval); // Pausa tempo durante ataque
+    clearInterval(game.timerInterval); 
     document.getElementById('end-turn-btn').disabled = true;
 
-    // Animação CSS
     const cardEl = document.getElementById(source === 'player' ? 'p-card-active' : 'e-card-active');
     if(cardEl) { cardEl.classList.add('atk-anim'); setTimeout(() => cardEl.classList.remove('atk-anim'), 400); }
     
-    attacker.attached -= skill.c; // Gasta energia
+    // A ENERGIA AGORA FICA PRESA NA CARTA! (Retirei o gasto)
 
     if(attacker.isEx && skill.vid) {
-        // Tem vídeo: Guarda na memória e abre a tela preta
         game.pendingAttack = { attacker, defender, skill, source };
         const v = document.getElementById('ult-video'); v.src = skill.vid;
         document.getElementById('ult-screen').style.display = 'flex'; 
-        v.play().catch(()=> closeUlt()); // Se falhar, pula direto
+        v.play().catch(()=> closeUlt()); 
     } else {
-        // Não tem vídeo: aplica dano imediato
         executeDamage(attacker, defender, skill, source);
     }
+
 }
 
 function closeUlt() {
@@ -634,7 +660,37 @@ function checkKOs() {
     updateUI();
     return gameOver;
 }
+// === SISTEMA DE SAVE / LOAD ===
+function saveGame() {
+    const data = JSON.stringify(user);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([data], {type: 'application/json'}));
+    a.download = 'animetcg_save.json';
+    a.click();
+    alert("Jogo salvo no seu computador!");
+}
 
+function loadGame(input) {
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            user = JSON.parse(e.target.result);
+            document.getElementById('menu-coins').innerText = user.coins;
+            alert("Dados carregados com sucesso!");
+        } catch(err) { alert("Arquivo de save inválido!"); }
+    };
+    reader.readAsText(file);
+}
+
+// === SISTEMA DE INSPECIONAR ===
+function inspectCard(card) {
+    if(!card) return;
+    document.getElementById('ins-name').innerText = card.name;
+    document.getElementById('ins-stats').innerText = `HP: ${card.curHP || card.hp}/${card.hp} | ENERGIA: ${card.attached || 0}`;
+    document.getElementById('ins-desc').innerHTML = card.skills.map(s => `<b style="color:#fff">${s.n}</b> (Dano: ${s.d} | Custo: ${s.c})<br><span style="color:#aaa">${s.desc}</span>`).join('<br><br>');
+}
 </script>
 </body>
 </html>
