@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Ultimate Trading Card Game - Beta</title>
+    <title>Anime TCG - Boss & Normal Edition</title>
     <style>
         :root {
             --bg-arena: url('https://images.alphacoders.com/132/1326442.png');
@@ -73,11 +73,9 @@
         .hp-tag { position: absolute; top: 3px; right: 3px; background: var(--hp-red); padding: 2px 5px; border-radius: 3px; font-size: 11px; font-weight: 900; z-index: 10; border: 1px solid #fff;}
         .energy-tag { position: absolute; top: 3px; left: 3px; background: var(--accent); color: #000; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; z-index: 10; border: 1px solid #fff;}
 
-        /* --- CARTA PADRÃO --- */
         .card:not(.ex) img { width: 100%; height: 50%; object-fit: cover; border-bottom: 2px solid #333; z-index: 1; }
         .card:not(.ex) .card-content { flex: 1; background: #111; padding: 5px; display: flex; flex-direction: column; z-index: 2; }
         
-        /* --- CARTA EX (FULL ART + CROMADO) --- */
         .card.ex { border-color: var(--gold); box-shadow: 0 0 10px var(--gold); }
         .card.ex img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
         .card.ex .card-content { 
@@ -85,7 +83,6 @@
             background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); 
             border-top: 2px solid var(--gold); z-index: 5; display: flex; flex-direction: column;
         }
-        /* Efeito Cromado */
         .card.ex::after {
             content: ''; position: absolute; top: -150%; left: -150%; width: 300%; height: 300%;
             background: linear-gradient(135deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 60%);
@@ -103,19 +100,25 @@
         #ult-screen { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; flex-direction: column; align-items: center; justify-content: center; }
         #ult-video { width: 90%; max-height: 80vh; border: 2px solid var(--gold); }
 
-        /* --- CARA OU COROA --- */
         #coin-screen { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
         .coin-disc { width: 150px; height: 150px; background: var(--gold); border-radius: 50%; border: 8px solid #b45309; display: flex; align-items: center; justify-content: center; font-size: 50px; font-weight: bold; color: #000; transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.3, 1.1); }
+        
+        .timer-box { font-size: 32px; font-weight: 900; color: #fff; text-align: center; background: #b91c1c; border-radius: 8px; padding: 10px; border: 2px solid #f87171; }
     </style>
 </head>
 <body>
 
+<audio id="musicaFundo" loop>
+    <source src="https://www.chosic.com/wp-content/uploads/2021/07/The-Epic-Hero-Epic-Cinematic-Music-By-Keys-Of-Moon.mp3" type="audio/mpeg">
+</audio>
+
 <div id="main-menu" class="screen">
     <div class="menu-bg"></div>
-    <div class="game-title">UTCG<br><span style="font-size: 24px; color: #ef4444;">BETA EDITION</span></div>
+    <div class="game-title">ANIME TCG<br><span style="font-size: 24px; color: #ef4444;">ULTIMATE EDITION</span></div>
     <div style="margin-bottom: 20px; color: var(--gold); font-weight: bold;">Moedas: <span id="menu-coins">0</span></div>
     <div class="menu-buttons">
-        <button class="btn btn-play" onclick="showScreen('deck-select')">Jogar</button>
+        <button class="btn btn-sec" style="background:#0ea5e9; border-color:#fff;" onclick="showScreen('deck-select', 'normal')">Batalha Normal</button>
+        <button class="btn btn-play" onclick="showScreen('deck-select', 'boss')">Desafiar Boss</button>
         <button class="btn btn-sec" onclick="openEditor()">Meu Deck</button>
         <button class="btn btn-sec" onclick="openStore()">Loja de Cartas</button>
         <button class="btn btn-sec" onclick="saveGame()">Salvar Dados</button>
@@ -146,7 +149,7 @@
 </div>
 
 <div id="deck-select" class="screen">
-    <h2>Selecione o Boss</h2>
+    <h2 id="select-title">Selecione o Adversário</h2>
     <div class="level-container" id="level-list"></div>
     <button class="btn btn-sec" style="margin-top:20px; width:250px;" onclick="showScreen('main-menu')">VOLTAR</button>
 </div>
@@ -163,6 +166,7 @@
 
 <div id="game-ui">
     <aside class="sidebar">
+        <div class="timer-box" id="turn-timer">30s</div>
         <div class="terminal" id="log"></div>
         <div class="inspect">
             <b id="ins-name" style="color:var(--gold)">Inspecionar</b>
@@ -173,11 +177,11 @@
             <div style="font-size:11px">Sua Energia</div>
             <div id="energy-pool" style="font-size:28px; font-weight:900; color:var(--gold)">0</div>
         </div>
-        <button class="btn btn-play" id="end-turn-btn" onclick="endTurn()">Passar Turno</button>
+        <button class="btn btn-play" id="end-turn-btn" onclick="endTurn(true)">Passar Turno</button>
     </aside>
 
     <main class="arena">
-        <div style="color: var(--hp-red); font-weight: bold; font-size: 18px; text-transform: uppercase;">ZONA DO BOSS</div>
+        <div class="zone-row" id="e-bench" style="min-height: 110px;"></div>
         <div class="zone-row" id="e-active"></div>
         <hr style="width:90%; opacity:0.1; margin: 5px 0;">
         <div class="zone-row" id="p-active"></div>
@@ -188,51 +192,75 @@
 </div>
 
 <script>
-// "p" representa a Penalidade (efeitos além de dano)
 const CARDS_DB = {
-    'n1': { id: 'n1', name: "Naruto", hp: 70, img: "https://i.imgur.com/MG7FIXN.jpeg", skills: [{n:"Rasengan", d:50, c:2, desc:"Esfera de chakra criada pelo 4 hokage!"}, {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones das sombras para maximizar seus golpes!"}], price: 0 },
-    'n2': { id: 'n2', name: "Naruto Modo Senin EX", hp: 160, isEx:true, evolvesFrom:"Naruto", img: "https://i.imgur.com/uXbwFlO.jpeg", skills: [{n:"Jutsu de invocação!", d:90, c:2, desc:"Invoca o Gamakich! Dá um atque poderoso de um dos sapos mestres!"}, {n:"Rasenshuriken", d:140, c:4, desc:"Um rasengan aprimorado e arremessavel! Causa uma explosão devastadora!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498837879386931310/Naruto_Ultimate_Ninja_Storm_2_-_Rasenshuriken_with_Anime_SFX_-_Soundman_720p_h264_youtube.mp4?ex=69f29d0d&is=69f14b8d&hm=0d4c7dfc8bff58c32a1808601523331fdc33262877ac770130a5fe078cee3282&"}], price: 500 },
-    'g1': { id: 'g1', name: "Goku", hp: 80, img: "https://i.imgur.com/g4H83vJ.jpeg", skills: [{n:"Ki Blast", d:30, c:1, desc:"Uma esfera de Ki destrutiva!"}, {n:"Kamehameha", d:50, c:2, desc:"Um raio concentrado de Ki poderoso!"}], price: 0 },
-    'g2': { id: 'g2', name: "Goku SSJB EX", hp: 210, isEx:true, evolvesFrom:"Goku", img: "https://i.imgur.com/SWcfJrp.jpeg", skills: [{n:"Super Kamehameha", d:80, c:2, desc:"Um raio poderoso de Ki com potencia aumentada!"}, {n:"GENKI DAMA", d:170, c:4, desc:"Força da Terra em forma de KI!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498840319297458256/GOKU_SSJB_SUPER_SPIRIT_BOMB_GENKIDAMA_DBZ_ONLINE_ULTIMATE_ATTACK_KAKAROT.mp4?ex=69f29f53&is=69f14dd3&hm=06244271a30e260cadddb4b2c1af071a40b3cc594edce5d5d9b17d0dd25c5aec&"}], price: 600 },
-    'j1': { id: 'j1', name: "Itadori", hp: 90, img: "https://i.imgur.com/qNxk0Sn.jpeg", skills: [{n:"Kokusen", d:40, c:1, desc:"Impacto carregado de energia amaldiçoada!"}], price: 200 },
-    'j2': { id: 'j2', name: "Sukuna EX", hp: 250, isEx:true, evolvesFrom:"Itadori", img: "https://i.imgur.com/MQKiefi.jpeg", skills: [{n:"Flecha de Fogo", d:90, c:2, desc:"Uma flecha ardente que queima tudo ao seu redor.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498841356179865620/Sukunas_Fuga_Remaster_4K_-_JJK_S2_E17_Bluray_-_Jack_The_Anime_Ripper_720p_h264_youtube.mp4?ex=69f2a04a&is=69f14eca&hm=16d799a1860bde126bfa9b41a2c20adeb770969dfb36a4c13131b7f016029ed5&"}, {n:"Fukuma Mizushi", d:200, c:4, desc:"A expansão de dominio de Ryomen Sukuna, corta tudo com seu acerto garantido.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498845551352090757/expansao_de_dominio_Sukuna_Jujutsu_Kaisen_dublado_Shorts.mp4?ex=69f2a432&is=69f152b2&hm=5dd23eed6b6740033df195c55b3208785ee0165707b4c2e2582c544366763379&"}], price: 1000 },
-    'b1': { id: 'b1', name: "Gojo", hp: 110, img: "https://i.imgur.com/71MfKQb.jpeg", skills: [{n:"Azul", d:50, c:2, desc:"Atrai o oponente para você"}, {n:"Vermelho", d:70, c:2, desc:"Repele o oponente de você"}], price: 350 },
-    'b2': { id: 'b2', name: "Gojo EX", hp: 220, isEx:true, evolvesFrom:"Gojo", img: "https://i.imgur.com/qQ7wAbW.jpeg", skills: [{n:"Vazio Roxo", d:120, c:2, desc:"A junção de azul e vermelho, criação de uma esfera potente e destruitiva.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498846890161209354/satoru_gojo_usa_vazio_roxo_pela_primeira_vez.mp4?ex=69f2a571&is=69f153f1&hm=574c836b790dc71f2cb4cd413c5410136e71c696c40a44cd2c60188abf97ef84&"}, {n:"Muryo Kusho", d:250, c:4, desc:"Expansão de dominio de Satoru Gojo, onde o oponente recebe uma toda informação do universo de uma vez só ficando imóvel.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498847926095577179/Gojo_Satorus_0.2s_Domain_Expansion_in_4K_JJK_Shibuya_Incident_Arc_-_Silver_Clips_Raw_Anime_720p_h264_youtube.mp4?ex=69f2a668&is=69f154e8&hm=950daa8ffa8950984aaf9df61af03b716bfc23556a22e3d0f72109e37d3cdd32&"}], price: 2500 },
-    'a1': { id: 'a1', name: "Dio EX", hp: 230, isEx:true, img: "https://i.imgur.com/L5TnHY4.jpeg", skills: [{n:"Muda Muda Muda!", d:120, c:2, desc:"A barragem de socos do Za Warudo!"}, {n:"Za Warudo! Road Roller Da!", d:190, c:4, desc:"Ao parar o tempo dio joga um rolo compressor no seu inimigo!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498848322704638043/ROAD_ROLLER_DA_-_Hugette_Hikari_480p_h264_youtube.mp4?ex=69f2a6c7&is=69f15547&hm=5fb26a98bff38c07658d15f411f9b7db67be1723bedd680ce976d83a452f333c&"}], price: 1750 }
+    'n1': { id: 'n1', name: "Naruto", hp: 70, img: "https://i.imgur.com/MG7FIXN.jpeg", skills: [{n:"Rasengan", d:50, c:2, desc:"Esfera de chakra!"}, {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones."}], price: 0 },
+    'n2': { id: 'n2', name: "Naruto Modo Senin EX", hp: 160, isEx:true, evolvesFrom:"Naruto", img: "https://i.imgur.com/uXbwFlO.jpeg", skills: [{n:"Jutsu de invocação!", d:90, c:2, desc:"Invoca Gamakich!"}, {n:"Rasenshuriken", d:140, c:4, desc:"Explosão devastadora!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498837879386931310/Naruto_Ultimate_Ninja_Storm_2_-_Rasenshuriken_with_Anime_SFX_-_Soundman_720p_h264_youtube.mp4?ex=69f29d0d&is=69f14b8d&hm=0d4c7dfc8bff58c32a1808601523331fdc33262877ac770130a5fe078cee3282&"}], price: 500 },
+    'g1': { id: 'g1', name: "Goku", hp: 80, img: "https://i.imgur.com/g4H83vJ.jpeg", skills: [{n:"Ki Blast", d:30, c:1, desc:"Uma esfera de Ki!"}, {n:"Kamehameha", d:50, c:2, desc:"Raio concentrado!"}], price: 0 },
+    'g2': { id: 'g2', name: "Goku SSJB EX", hp: 210, isEx:true, evolvesFrom:"Goku", img: "https://i.imgur.com/SWcfJrp.jpeg", skills: [{n:"Super Kamehameha", d:80, c:2, desc:"Potencia aumentada!"}, {n:"GENKI DAMA", d:170, c:4, desc:"Força da Terra!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498840319297458256/GOKU_SSJB_SUPER_SPIRIT_BOMB_GENKIDAMA_DBZ_ONLINE_ULTIMATE_ATTACK_KAKAROT.mp4?ex=69f29f53&is=69f14dd3&hm=06244271a30e260cadddb4b2c1af071a40b3cc594edce5d5d9b17d0dd25c5aec&"}], price: 600 },
+    'j1': { id: 'j1', name: "Itadori", hp: 90, img: "https://i.imgur.com/qNxk0Sn.jpeg", skills: [{n:"Kokusen", d:40, c:1, desc:"Energia amaldiçoada!"}], price: 200 },
+    'j2': { id: 'j2', name: "Sukuna EX", hp: 250, isEx:true, evolvesFrom:"Itadori", img: "https://i.imgur.com/MQKiefi.jpeg", skills: [{n:"Flecha de Fogo", d:90, c:2, desc:"Flecha ardente.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498841356179865620/Sukunas_Fuga_Remaster_4K_-_JJK_S2_E17_Bluray_-_Jack_The_Anime_Ripper_720p_h264_youtube.mp4?ex=69f2a04a&is=69f14eca&hm=16d799a1860bde126bfa9b41a2c20adeb770969dfb36a4c13131b7f016029ed5&"}, {n:"Fukuma Mizushi", d:200, c:4, desc:"Expansão de dominio.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498845551352090757/expansao_de_dominio_Sukuna_Jujutsu_Kaisen_dublado_Shorts.mp4?ex=69f2a432&is=69f152b2&hm=5dd23eed6b6740033df195c55b3208785ee0165707b4c2e2582c544366763379&"}], price: 1000 },
+    'b1': { id: 'b1', name: "Gojo", hp: 110, img: "https://i.imgur.com/71MfKQb.jpeg", skills: [{n:"Azul", d:50, c:2, desc:"Atrai oponente"}, {n:"Vermelho", d:70, c:2, desc:"Repele oponente"}], price: 350 },
+    'b2': { id: 'b2', name: "Gojo EX", hp: 220, isEx:true, evolvesFrom:"Gojo", img: "https://i.imgur.com/qQ7wAbW.jpeg", skills: [{n:"Vazio Roxo", d:120, c:2, desc:"Criação potente.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498846890161209354/satoru_gojo_usa_vazio_roxo_pela_primeira_vez.mp4?ex=69f2a571&is=69f153f1&hm=574c836b790dc71f2cb4cd413c5410136e71c696c40a44cd2c60188abf97ef84&"}, {n:"Muryo Kusho", d:250, c:4, desc:"Expansão de dominio.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498847926095577179/Gojo_Satorus_0.2s_Domain_Expansion_in_4K_JJK_Shibuya_Incident_Arc_-_Silver_Clips_Raw_Anime_720p_h264_youtube.mp4?ex=69f2a668&is=69f154e8&hm=950daa8ffa8950984aaf9df61af03b716bfc23556a22e3d0f72109e37d3cdd32&"}], price: 2500 },
+    'a1': { id: 'a1', name: "Dio EX", hp: 230, isEx:true, img: "https://i.imgur.com/L5TnHY4.jpeg", skills: [{n:"Muda Muda Muda!", d:120, c:2, desc:"Barragem de socos!"}, {n:"Za Warudo! Road Roller Da!", d:190, c:4, desc:"Para o tempo!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498848322704638043/ROAD_ROLLER_DA_-_Hugette_Hikari_480p_h264_youtube.mp4?ex=69f2a6c7&is=69f15547&hm=5fb26a98bff38c07658d15f411f9b7db67be1723bedd680ce976d83a452f333c&"}], price: 1750 }
 };
 
-// Agora os níveis são Chefões Únicos (HP Buffado e sem deck)
-const LEVELS_DB = [
+const LEVELS_BOSS = [
     { name: "Clone de Treino", reward: 100, bossId: 'n2', hpBuff: 350 },
     { name: "Rei das Maldições", reward: 350, bossId: 'j2', hpBuff: 800 },
     { name: "O Ceifeiro", reward: 600, bossId: 'b2', hpBuff: 1200 },
     { name: "Plano Celestial", reward: 1500, bossId: 'a1', hpBuff: 2000 }
 ];
 
-let user = { coins: 500, inventory: ['n1','g1','n1','g1','n1','g1','j1','b1'], deck: ['n1','g1','n1','g1','n1'] };
-let game = { player: {}, enemy: {}, turn: '', energyUsed: false, currentReward: 0, evolutionsThisTurn: 0, hasSwapped: false };
+const LEVELS_NORMAL = [
+    { name: "Iniciante", reward: 50, deck: ['n1','n1','g1','g1','j1'] },
+    { name: "Rival Forte", reward: 150, deck: ['g1','g2','b1','n1','j1'] },
+    { name: "Mestre TCG", reward: 400, deck: ['j1','j2','b1','b2','a1'] }
+];
 
-function showScreen(id) {
+let user = { coins: 500, inventory: ['n1','g1','n1','g1','n1','g1','j1','b1'], deck: ['n1','g1','n1','g1','n1'] };
+let game = { player: {}, enemy: {}, turn: '', energyUsed: false, currentReward: 0, evolutionsThisTurn: 0, hasSwapped: false, mode: '', pendingAttack: null, timerInterval: null, timeLeft: 30 };
+
+const somFundo = document.getElementById('musicaFundo');
+somFundo.volume = 0.35;
+window.addEventListener('click', () => { if (somFundo.paused) somFundo.play().catch(()=>{}); }, { once: true });
+
+function showScreen(id, modeParam) {
     document.querySelectorAll('.screen, #coin-screen').forEach(s => s.style.display = 'none');
     document.getElementById('game-ui').style.display = 'none';
     const el = document.getElementById(id);
     if(el) el.style.display = (id === 'game-ui') ? 'grid' : 'flex';
     document.getElementById('menu-coins').innerText = user.coins;
-    if(id === 'deck-select') renderLevels();
+    
+    if(id === 'deck-select') {
+        game.mode = modeParam;
+        document.getElementById('select-title').innerText = modeParam === 'boss' ? "Selecione o Boss" : "Selecione o Adversário";
+        renderLevels(modeParam);
+    }
 }
 
-function renderLevels() {
+function renderLevels(mode) {
     const list = document.getElementById('level-list'); list.innerHTML = '';
-    LEVELS_DB.forEach((lvl, index) => {
+    const db = mode === 'boss' ? LEVELS_BOSS : LEVELS_NORMAL;
+    db.forEach((lvl, index) => {
         const div = document.createElement('div');
         div.className = 'level-box';
         div.onclick = () => initCoinFlip(index);
-        div.innerHTML = `<div><b style="color:var(--hp-red)">BOSS: ${CARDS_DB[lvl.bossId].name}</b><br><small>HP: ${lvl.hpBuff}</small></div><div style="color:#4ade80">+${lvl.reward} $</div>`;
+        
+        if(mode === 'boss') {
+            div.innerHTML = `<div><b style="color:var(--hp-red)">BOSS: ${CARDS_DB[lvl.bossId].name}</b><br><small>HP: ${lvl.hpBuff}</small></div><div style="color:#4ade80">+${lvl.reward} $</div>`;
+        } else {
+            div.innerHTML = `<div><b style="color:#0ea5e9">NORMAL: ${lvl.name}</b><br><small>Deck com ${lvl.deck.length} cartas</small></div><div style="color:#4ade80">+${lvl.reward} $</div>`;
+        }
         list.appendChild(div);
     });
 }
 
-// --- EDITOR E LOJA ---
+function log(msg) {
+    const term = document.getElementById('log');
+    term.innerHTML = `<div>> ${msg}</div>` + term.innerHTML;
+}
+
+// --- EDITOR E LOJA --- (mantidos iguais)
 function openEditor() { showScreen('deck-editor'); renderEditor(); }
 function renderEditor() {
     const bankEl = document.getElementById('editor-bank'); const deckEl = document.getElementById('editor-deck-list');
@@ -264,7 +292,7 @@ function openStore() {
 }
 function buyCard(id) { if(user.coins >= CARDS_DB[id].price) { user.coins -= CARDS_DB[id].price; user.inventory.push(id); openStore(); } else alert("Sem moedas!"); }
 
-// --- FLUXO DO JOGO E CARA OU COROA ---
+// --- FLUXO DO JOGO ---
 function initCoinFlip(lvlIdx) {
     if(user.deck.length < 5) return alert("Seu deck precisa de pelo menos 5 cartas!");
     
@@ -279,12 +307,10 @@ function initCoinFlip(lvlIdx) {
     coinObj.innerText = "?";
 
     setTimeout(() => {
-        // 50% exato sem beneficiar o player
         const isPlayerFirst = Math.random() < 0.5; 
-        
         coinObj.style.transform = 'rotateY(1800deg)';
         coinObj.innerText = isPlayerFirst ? "C" : "K";
-        coinText.innerText = isPlayerFirst ? "VOCÊ COMEÇA!" : "O BOSS COMEÇA!";
+        coinText.innerText = isPlayerFirst ? "VOCÊ COMEÇA!" : "O INIMIGO COMEÇA!";
         
         setTimeout(() => {
             coinScreen.style.display = 'none';
@@ -294,43 +320,75 @@ function initCoinFlip(lvlIdx) {
 }
 
 function startGame(lvlIdx, firstTurn) {
-    const lvl = LEVELS_DB[lvlIdx];
-    game.currentReward = lvl.reward;
     showScreen('game-ui');
-    document.getElementById('log').innerHTML = ''; // limpa log
-
+    document.getElementById('log').innerHTML = '';
+    
     game.player = { active: null, bench: [], hand: [], deck: [...user.deck].sort(()=>0.5-Math.random()), energy: 0 };
     
-    // Inimigo só tem a carta Boss. Sem Deck, sem reserva.
-    const bossTemplate = JSON.parse(JSON.stringify(CARDS_DB[lvl.bossId]));
-    bossTemplate.hp = lvl.hpBuff;
-    bossTemplate.curHP = lvl.hpBuff;
-    bossTemplate.attached = 0;
-    bossTemplate.name = "BOSS " + bossTemplate.name;
-    game.enemy = { active: bossTemplate };
+    if(game.mode === 'boss') {
+        const lvl = LEVELS_BOSS[lvlIdx];
+        game.currentReward = lvl.reward;
+        const bossTemplate = JSON.parse(JSON.stringify(CARDS_DB[lvl.bossId]));
+        bossTemplate.hp = lvl.hpBuff; bossTemplate.curHP = lvl.hpBuff; bossTemplate.attached = 0; bossTemplate.name = "BOSS " + bossTemplate.name;
+        game.enemy = { active: bossTemplate };
+    } else {
+        const lvl = LEVELS_NORMAL[lvlIdx];
+        game.currentReward = lvl.reward;
+        game.enemy = { active: null, bench: [], hand: [], deck: [...lvl.deck].sort(()=>0.5-Math.random()), energy: 0 };
+        for(let i=0; i<4; i++) { if(game.enemy.deck.length > 0) game.enemy.hand.push({...CARDS_DB[game.enemy.deck.pop()]}); }
+        // Coloca o primeiro ativo pra ele não perder no turno 1
+        if(game.enemy.hand.length > 0) {
+            game.enemy.active = {...game.enemy.hand[0], curHP: game.enemy.hand[0].hp, attached: 0};
+            game.enemy.hand.splice(0,1);
+        }
+    }
 
-    for(let i=0; i<4; i++) drawPlayer();
+    for(let i=0; i<4; i++) drawCard(game.player);
     startTurn(firstTurn);
 }
 
-function drawPlayer() { if(game.player.deck.length > 0) game.player.hand.push({...CARDS_DB[game.player.deck.pop()]}); }
+function drawCard(target) { if(target.deck && target.deck.length > 0) target.hand.push({...CARDS_DB[target.deck.pop()]}); }
+
+function startTimer() {
+    clearInterval(game.timerInterval);
+    game.timeLeft = 30;
+    const timerDisplay = document.getElementById('turn-timer');
+    timerDisplay.innerText = game.timeLeft + 's';
+    timerDisplay.style.background = game.turn === 'player' ? '#b91c1c' : '#0f172a';
+    
+    game.timerInterval = setInterval(() => {
+        game.timeLeft--;
+        timerDisplay.innerText = game.timeLeft + 's';
+        if(game.timeLeft <= 0) {
+            log("O tempo acabou!");
+            endTurn(false);
+        }
+    }, 1000);
+}
 
 function startTurn(who) {
     game.turn = who; 
     game.energyUsed = false; 
-    game.evolutionsThisTurn = 0; // Zera as evoluções do turno
-    game.hasSwapped = false; // Zera o status de troca
+    game.evolutionsThisTurn = 0; 
+    game.hasSwapped = false; 
     
     if(who === 'player') {
         game.player.energy += 1;
-        drawPlayer();
+        drawCard(game.player);
         document.getElementById('end-turn-btn').disabled = false;
+        startTimer();
     } else {
-        // Boss não usa pool de energia, carrega direto na carta
         document.getElementById('end-turn-btn').disabled = true;
+        startTimer();
         setTimeout(enemyAI, 1500);
     }
     updateUI();
+}
+
+function endTurn(isManual) {
+    clearInterval(game.timerInterval);
+    if(game.turn === 'player') startTurn('enemy');
+    else startTurn('player');
 }
 
 function updateUI() {
@@ -339,7 +397,12 @@ function updateUI() {
     render('e-active', game.enemy.active, false, 'active');
     
     const pb = document.getElementById('p-bench'); pb.innerHTML = '';
-    game.player.bench.forEach((c, i) => render('p-bench', c, true, 'bench', i)); // Passando o index "i"
+    game.player.bench.forEach((c, i) => render('p-bench', c, true, 'bench', i));
+    
+    const eb = document.getElementById('e-bench'); eb.innerHTML = '';
+    if(game.mode === 'normal') {
+        game.enemy.bench.forEach((c, i) => render('e-bench', c, false, 'bench', i));
+    }
     
     const hand = document.getElementById('p-hand'); hand.innerHTML = '';
     game.player.hand.forEach((c, i) => {
@@ -350,37 +413,35 @@ function updateUI() {
     });
 }
 
-function render(id, card, isP, type, index) { // Adicionado parametro "index"
+function render(id, card, isP, type, index) {
     const area = document.getElementById(id);
     if(type === 'active') area.innerHTML = '';
     if(!card) { if(type === 'active') area.innerHTML = `<div class="card active" style="border:2px dashed #333; background:none"></div>`; return; }
     
     const div = document.createElement('div');
-    div.id = isP ? `p-card-${type}` : `e-card-${type}`;
     div.className = `card ${type === 'active' ? 'active' : ''} ${card.isEx ? 'ex' : ''}`;
+    if(type === 'active') div.id = isP ? 'p-card-active' : 'e-card-active';
     div.onclick = () => { if(isP && game.player.energy > 0 && !game.energyUsed) attachEnergy(card); };
     
     let skillsHTML = "";
     if(type === 'active' && isP) {
         skillsHTML = card.skills.map((s, i) => `
-            <button class="btn-skill" onmouseover="inspect('${s.n}','${s.desc}','${s.d}','${s.c}')" onclick="event.stopPropagation(); attack(${i})">
+            <button class="btn-skill" onclick="event.stopPropagation(); triggerAttack(${i}, 'player')">
                 ${s.n} ${s.p ? `<br><span class="penalty-txt">${s.p}</span>` : ''}
             </button>
         `).join('');
     } else if (type === 'active' && !isP) {
         skillsHTML = card.skills.map(s => `
              <div class="btn-skill" style="cursor:default; text-align:center">
-                ${s.n} [Dano: ${s.d}] ${s.p ? `<br><span class="penalty-txt">${s.p}</span>` : ''}
+                ${s.n} [Dano: ${s.d}]
              </div>
         `).join('');
     }
 
-    // Adiciona botão "TROCAR" apenas se for carta do banco do player
     const swapBtn = (type === 'bench' && isP && game.turn === 'player') 
         ? `<button class="btn-skill" style="background:var(--gold); color:#000; border:none; margin-bottom: 4px;" onclick="event.stopPropagation(); swapCard(${index})">TROCAR</button>` 
         : '';
 
-    // Estrutura respeitando o layout Padrão / EX
     div.innerHTML = `
         <img src="${card.img}">
         <div class="hp-tag">${card.curHP || card.hp}</div>
@@ -396,172 +457,184 @@ function render(id, card, isP, type, index) { // Adicionado parametro "index"
     area.appendChild(div);
 }
 
-// NOVA FUNÇÃO DE TROCA
 function swapCard(index) {
     if(!game.player.active) return;
     if(game.hasSwapped) return alert("Você já fez uma troca neste turno!");
-    
-    log(`Você recuou ${game.player.active.name} e colocou ${game.player.bench[index].name} em combate!`);
-    
-    const temp = game.player.active;
-    game.player.active = game.player.bench[index];
-    game.player.bench[index] = temp;
-    
-    game.hasSwapped = true;
-    updateUI();
+    log(`Você recuou ${game.player.active.name} e colocou ${game.player.bench[index].name}!`);
+    const temp = game.player.active; game.player.active = game.player.bench[index]; game.player.bench[index] = temp;
+    game.hasSwapped = true; updateUI();
 }
 
 function playCard(i) {
     const c = game.player.hand[i];
-    
-    // Jogar no ativo se estiver vazio
-    if(!game.player.active && !c.evolvesFrom) { 
-        game.player.active = {...c, curHP: c.hp, attached: 0}; 
-        game.player.hand.splice(i,1); 
-    }
-    // NOVA LÓGICA DE EVOLUÇÃO (Busca Ativo ou Banco)
+    if(!game.player.active && !c.evolvesFrom) { game.player.active = {...c, curHP: c.hp, attached: 0}; game.player.hand.splice(i,1); }
     else if(c.evolvesFrom) {
-        if(game.evolutionsThisTurn >= 1) return alert("Você só pode evoluir uma carta por turno!");
-        
+        if(game.evolutionsThisTurn >= 1) return alert("Só uma evolução por turno!");
         let evolved = false;
-        
-        // Tenta evoluir o ativo primeiro
         if(game.player.active && c.evolvesFrom === game.player.active.name) {
             const d = game.player.active.hp - game.player.active.curHP;
             game.player.active = {...c, curHP: c.hp - d, attached: game.player.active.attached};
-            game.player.hand.splice(i,1);
-            game.evolutionsThisTurn++;
-            evolved = true;
-        } 
-        // Se não for o ativo, varre o banco procurando a carta base
-        else {
+            game.player.hand.splice(i,1); game.evolutionsThisTurn++; evolved = true;
+        } else {
             for(let j=0; j < game.player.bench.length; j++) {
                 if(game.player.bench[j].name === c.evolvesFrom) {
-                    const bCard = game.player.bench[j];
-                    const d = bCard.hp - bCard.curHP;
+                    const bCard = game.player.bench[j]; const d = bCard.hp - bCard.curHP;
                     game.player.bench[j] = {...c, curHP: c.hp - d, attached: bCard.attached};
-                    game.player.hand.splice(i,1);
-                    game.evolutionsThisTurn++;
-                    evolved = true;
-                    break; // Evolui só a primeira que encontrar
+                    game.player.hand.splice(i,1); game.evolutionsThisTurn++; evolved = true; break;
                 }
             }
         }
-        
-        if(!evolved) alert(`Você não tem nenhum ${c.evolvesFrom} em campo para evoluir!`);
-    } 
-    // Jogar no banco normal
-    else if(game.player.bench.length < 3 && !c.evolvesFrom) {
-        game.player.bench.push({...c, curHP: c.hp, attached: 0});
-        game.player.hand.splice(i,1);
+        if(!evolved) alert(`Nenhum ${c.evolvesFrom} em campo!`);
+    } else if(game.player.bench.length < 3 && !c.evolvesFrom) {
+        game.player.bench.push({...c, curHP: c.hp, attached: 0}); game.player.hand.splice(i,1);
     }
     updateUI();
 }
 
 function attachEnergy(card) { card.attached = (card.attached || 0) + 1; game.player.energy--; game.energyUsed = true; updateUI(); }
 
-function attack(idx) {
-    if(!game.enemy.active || game.turn !== 'player') return;
+// --- SISTEMA DE DANO E VÍDEOS SINCRONIZADOS ---
+function triggerAttack(idx, source) {
+    if(source === 'player' && (!game.enemy.active || game.turn !== 'player')) return;
+    if(source === 'player' && game.hasSwapped) return alert("Personagem que acabou de entrar não ataca!");
     
-    // BLOQUEIO SE O JOGADOR TROCOU DE CARTA NO TURNO
-    if(game.hasSwapped) return alert("Você já trocou de personagem neste turno. O novo personagem não pode atacar!");
+    const attacker = source === 'player' ? game.player.active : game.enemy.active;
+    const defender = source === 'player' ? game.enemy.active : game.player.active;
+    const skill = attacker.skills[idx];
     
-    const s = game.player.active.skills[idx];
-    if(game.player.active.attached < s.c) return alert("Energia insuficiente na carta!");
+    if(attacker.attached < skill.c) return alert("Energia insuficiente!");
     
-    const cardEl = document.getElementById('p-card-active');
-    cardEl.classList.add('atk-anim'); setTimeout(() => cardEl.classList.remove('atk-anim'), 400);
-    
-    if(game.player.active.isEx && s.vid) {
-        const v = document.getElementById('ult-video'); v.src = s.vid;
-        document.getElementById('ult-screen').style.display = 'flex'; v.play();
-    }
-    
-    // Calcula Dano e Penalidade
-    if(s.d > 0) game.enemy.active.curHP -= s.d;
-    if(s.p && s.p.includes("Drena")) {
-        game.enemy.active.attached = Math.max(0, game.enemy.active.attached - 2);
-    }
-
-    log(`Você usou ${s.n}! Dano: ${s.d}`);
+    clearInterval(game.timerInterval); // Pausa tempo durante ataque
     document.getElementById('end-turn-btn').disabled = true;
+
+    // Animação CSS
+    const cardEl = document.getElementById(source === 'player' ? 'p-card-active' : 'e-card-active');
+    if(cardEl) { cardEl.classList.add('atk-anim'); setTimeout(() => cardEl.classList.remove('atk-anim'), 400); }
     
-    if(!checkKOs()) {
-        updateUI();
-        setTimeout(() => { if(game.turn === 'player') endTurn(); }, 1500);
+    attacker.attached -= skill.c; // Gasta energia
+
+    if(attacker.isEx && skill.vid) {
+        // Tem vídeo: Guarda na memória e abre a tela preta
+        game.pendingAttack = { attacker, defender, skill, source };
+        const v = document.getElementById('ult-video'); v.src = skill.vid;
+        document.getElementById('ult-screen').style.display = 'flex'; 
+        v.play().catch(()=> closeUlt()); // Se falhar, pula direto
+    } else {
+        // Não tem vídeo: aplica dano imediato
+        executeDamage(attacker, defender, skill, source);
     }
 }
 
-function enemyAI() {
-    if(!game.enemy.active) return;
-    const boss = game.enemy.active;
+function closeUlt() {
+    const v = document.getElementById('ult-video');
+    v.pause();
+    document.getElementById('ult-screen').style.display = 'none';
     
-    // Boss carrega 2 energias por turno passivamente por ser muito forte
-    boss.attached += 2; 
-    
-    // Pega as skills que o boss pode pagar e usa a mais forte disponível
-    const usableSkills = boss.skills.filter(s => boss.attached >= s.c);
-    
-    if(usableSkills.length > 0 && game.player.active) {
-        const s = usableSkills[usableSkills.length - 1]; // pega a última (geralmente a mais forte)
-        boss.attached -= s.c; // Boss gasta a energia pra bater
-        
-        game.player.active.curHP -= s.d;
-        
-        if(s.p && s.p.includes("Drena")) {
-            game.player.energy = Math.max(0, game.player.energy - 2);
-        }
-        log(`BOSS usou ${s.n}! Dano: ${s.d}`);
-        
-        const cardEl = document.getElementById('e-card-active');
-        if(cardEl) { cardEl.classList.add('atk-anim'); setTimeout(() => cardEl.classList.remove('atk-anim'), 400); }
-        
-    } else {
-        log(`${boss.name} está acumulando força...`);
+    if (game.pendingAttack) {
+        const { attacker, defender, skill, source } = game.pendingAttack;
+        game.pendingAttack = null;
+        executeDamage(attacker, defender, skill, source);
     }
+}
+
+function executeDamage(attacker, defender, skill, source) {
+    if(skill.d > 0) defender.curHP -= skill.d;
+    
+    log(`[${source.toUpperCase()}] usou ${skill.n}! Dano: ${skill.d}`);
 
     if(!checkKOs()) {
-        startTurn('player');
+        updateUI();
+        setTimeout(() => endTurn(false), 1500); // Passa o turno após ataque
+    }
+}
+
+// --- INTELIGÊNCIA ARTIFICIAL ESTRATÉGICA ---
+function enemyAI() {
+    if(!game.enemy.active || game.turn !== 'enemy') return;
+
+    if(game.mode === 'boss') {
+        game.enemy.active.attached += 2; // Boss passivo
+        decideAndAttack(game.enemy.active);
+    } else {
+        // IA Modo Normal (Usa deck e pensa)
+        game.enemy.energy += 1;
+        drawCard(game.enemy);
+        
+        // 1. Tenta baixar cartas pro banco
+        for(let i=game.enemy.hand.length-1; i>=0; i--) {
+            let c = game.enemy.hand[i];
+            if(!c.evolvesFrom && game.enemy.bench.length < 3) {
+                game.enemy.bench.push({...c, curHP: c.hp, attached: 0});
+                game.enemy.hand.splice(i, 1);
+            }
+        }
+        
+        // 2. Coloca energia no ativo se precisar
+        if(game.enemy.energy > 0) {
+            game.enemy.active.attached += 1;
+            game.enemy.energy--;
+        }
+        
+        setTimeout(() => decideAndAttack(game.enemy.active), 1000); // Pensa 1 segundo
+    }
+    updateUI();
+}
+
+function decideAndAttack(activeCard) {
+    const pHP = game.player.active ? game.player.active.curHP : 999;
+    const usableSkills = activeCard.skills.filter(s => activeCard.attached >= s.c);
+    
+    if(usableSkills.length > 0 && game.player.active) {
+        let bestSkillIdx = 0;
+        let maxDmg = 0;
+        
+        // Procura dano letal ou o ataque mais forte
+        for(let i=0; i<usableSkills.length; i++) {
+            let s = usableSkills[i];
+            let originalIdx = activeCard.skills.indexOf(s);
+            if(s.d >= pHP) { bestSkillIdx = originalIdx; break; } // Letal!
+            if(s.d > maxDmg) { maxDmg = s.d; bestSkillIdx = originalIdx; }
+        }
+        triggerAttack(bestSkillIdx, 'enemy');
+    } else {
+        log(`${activeCard.name} está acumulando força...`);
+        if(!checkKOs()) setTimeout(() => endTurn(false), 1000);
     }
 }
 
 function checkKOs() {
     let gameOver = false;
+    
+    // Checa morte do Inimigo
     if(game.enemy.active && game.enemy.active.curHP <= 0) {
-        log(`O BOSS FOI DERROTADO!`);
-        user.coins += game.currentReward; 
-        alert(`VITÓRIA! +${game.currentReward}$`); 
-        showScreen('main-menu');
-        gameOver = true;
-    }
-    else if(game.player.active && game.player.active.curHP <= 0) {
-        log(`${game.player.active.name} caiu!`);
-        game.player.active = game.player.bench.shift() || null;
-        if(!game.player.active) { 
-            alert("DERROTA! Seu time foi nocauteado pelo Boss."); 
-            showScreen('main-menu'); 
+        log(`${game.enemy.active.name} adversário foi derrotado!`);
+        if(game.mode === 'normal' && game.enemy.bench.length > 0) {
+            game.enemy.active = game.enemy.bench.shift(); // Puxa do banco
+            log(`Adversário enviou ${game.enemy.active.name}!`);
+        } else {
+            user.coins += game.currentReward; 
+            alert(`VITÓRIA! +${game.currentReward}$`); 
+            showScreen('main-menu');
             gameOver = true;
         }
     }
+    // Checa morte do Player
+    else if(game.player.active && game.player.active.curHP <= 0) {
+        log(`Seu ${game.player.active.name} caiu!`);
+        if(game.player.bench.length > 0) {
+            game.player.active = game.player.bench.shift(); // Puxa o primeiro do banco automático
+            log(`Você foi forçado a enviar ${game.player.active.name}!`);
+        } else {
+            alert(`DERROTA! Você ficou sem monstros.`);
+            showScreen('main-menu');
+            gameOver = true;
+        }
+    }
+    
     updateUI();
     return gameOver;
 }
 
-function saveGame() {
-    const blob = new Blob([JSON.stringify(user)], {type: 'application/json'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'tcg_save.json'; a.click();
-}
-function loadGame(input) {
-    const reader = new FileReader();
-    reader.onload = (e) => { user = JSON.parse(e.target.result); showScreen('main-menu'); };
-    reader.readAsText(input.files[0]);
-}
-
-function endTurn() { startTurn(game.turn === 'player' ? 'enemy' : 'player'); }
-function inspect(n, d, dmg, c) { document.getElementById('ins-name').innerText = n; document.getElementById('ins-desc').innerText = d; document.getElementById('ins-stats').innerText = `Dano: ${dmg} | Custo Energia: ${c}`; }
-function log(m) { const l = document.getElementById('log'); const d = document.createElement('div'); d.innerText = `> ${m}`; l.prepend(d); }
-function closeUlt() { document.getElementById('ult-screen').style.display = 'none'; document.getElementById('ult-video').pause(); }
-document.getElementById('menu-coins').innerText = user.coins;
 </script>
 </body>
 </html>
