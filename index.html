@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Anime TCG - Boss Edition</title>
+    <style>
+        :root {
+            --bg-arena: url('https://images.alphacoders.com/132/1326442.png');
+            --glass: rgba(10, 15, 30, 0.95);
+            --accent: #38bdf8;
+            --gold: #fbbf24;
+            --hp-red: #ef4444;
+            --energy-color: #38bdf8;
+        }
+
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; font-family: 'Segoe UI', sans-serif; 
+            background: #000; color: #fff; height: 100vh; overflow: hidden;
+        }
+
+        /* --- TELAS --- */
+        .screen { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; background: #020617; }
+        #main-menu { display: flex; }
+        .menu-bg { position: absolute; inset: -5%; z-index: -1; background: url('https://images.alphacoders.com/133/1330235.png') center/cover; animation: breathe 15s infinite alternate; filter: brightness(0.4); }
+        @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        .game-title { font-size: 60px; font-weight: 900; color: #fff; text-shadow: 0 0 20px var(--gold); margin-bottom: 30px; text-align: center; }
+        .menu-buttons { display: flex; flex-direction: column; gap: 12px; width: 280px; }
+        
+        .btn { 
+            padding: 12px; font-size: 16px; font-weight: bold; text-transform: uppercase;
+            border-radius: 8px; border: none; cursor: pointer; transition: 0.3s; text-align: center;
+        }
+        .btn-play { background: #ef4444; color: white; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+        .btn-play:hover { transform: scale(1.05); background: #dc2626; }
+        .btn-sec { background: #1e293b; color: white; border: 1px solid var(--accent); }
+        .btn-sec:hover { background: #334155; }
+
+        /* --- EDITOR E LOJA --- */
+        .editor-container { display: flex; width: 95%; height: 75vh; gap: 20px; margin-top: 10px; }
+        .editor-column { flex: 1; background: rgba(0,0,0,0.8); border: 2px solid #333; border-radius: 15px; display: flex; flex-direction: column; padding: 15px; }
+        .editor-column h3 { margin-top: 0; color: var(--accent); text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .scroll-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; padding: 10px; }
+        .mini-card { background: #111; border: 1px solid #444; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: center; font-size: 9px; }
+        .mini-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+        .mini-card img { width: 100%; height: 60px; object-fit: cover; border-radius: 4px 4px 0 0; }
+        .mini-card .name { padding: 3px; white-space: nowrap; overflow: hidden; }
+
+        .level-container { width: 450px; display: flex; flex-direction: column; gap: 10px; }
+        .level-box { background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; cursor: pointer; }
+        .level-box:hover { border-color: var(--gold); background: rgba(255,255,255,0.1); }
+        
+        .grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; width: 90%; max-height: 65vh; overflow-y: auto; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 10px; }
+        .item-card { border: 2px solid #333; padding: 10px; text-align: center; border-radius: 8px; background: #111; }
+
+        /* --- UI DO JOGO --- */
+        #game-ui { display: none; grid-template-columns: 260px 1fr; grid-template-rows: 1fr 160px; height: 100vh; width: 100vw; background: var(--bg-arena) center/cover; }
+        .sidebar { grid-row: 1/3; background: rgba(0,0,0,0.95); border-right: 2px solid var(--accent); padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .terminal { flex: 1; background: #000; border: 1px solid #222; padding: 10px; font-family: monospace; font-size: 11px; color: #4ade80; overflow-y: auto; display: flex; flex-direction: column-reverse; }
+        .inspect { height: 140px; background: rgba(255,255,255,0.05); border-radius: 5px; padding: 10px; font-size: 12px; }
+
+        .arena { grid-row: 1; display: flex; flex-direction: column; justify-content: space-around; align-items: center; background: rgba(0,0,0,0.4); padding: 10px; }
+        .zone-row { display: flex; gap: 12px; min-height: 140px; align-items: center; justify-content: center; width: 100%; }
+
+        /* --- CARTAS (BASE) --- */
+        .card { 
+            width: 100px; height: 140px; background: #1e293b; border: 2px solid #444; border-radius: 8px;
+            position: relative; cursor: pointer; transition: 0.2s; overflow: hidden; flex-shrink: 0;
+            display: flex; flex-direction: column;
+        }
+        .card.active { width: 140px; height: 195px; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        .hp-tag { position: absolute; top: 3px; right: 3px; background: var(--hp-red); padding: 2px 5px; border-radius: 3px; font-size: 11px; font-weight: 900; z-index: 10; border: 1px solid #fff;}
+        .energy-tag { position: absolute; top: 3px; left: 3px; background: var(--accent); color: #000; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; z-index: 10; border: 1px solid #fff;}
+
+        /* --- CARTA PADRÃO --- */
+        .card:not(.ex) img { width: 100%; height: 50%; object-fit: cover; border-bottom: 2px solid #333; z-index: 1; }
+        .card:not(.ex) .card-content { flex: 1; background: #111; padding: 5px; display: flex; flex-direction: column; z-index: 2; }
+        
+        /* --- CARTA EX (FULL ART + CROMADO) --- */
+        .card.ex { border-color: var(--gold); box-shadow: 0 0 10px var(--gold); }
+        .card.ex img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+        .card.ex .card-content { 
+            position: absolute; bottom: 0; left: 0; right: 0; padding: 5px; 
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); 
+            border-top: 2px solid var(--gold); z-index: 5; display: flex; flex-direction: column;
+        }
+        /* Efeito Cromado */
+        .card.ex::after {
+            content: ''; position: absolute; top: -150%; left: -150%; width: 300%; height: 300%;
+            background: linear-gradient(135deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 60%);
+            z-index: 3; pointer-events: none; animation: chrome-shine 3s infinite linear;
+        }
+        @keyframes chrome-shine { 0% { transform: translate(0, 0); } 100% { transform: translate(60%, 60%); } }
+
+        .btn-skill { background: #0f172a; border: 1px solid #555; color: #fff; width: 100%; margin-top: 4px; padding: 4px; font-size: 10px; cursor: pointer; border-radius: 3px; font-weight: bold;}
+        .btn-skill:hover { border-color: var(--gold); }
+        .penalty-txt { color: #fb7185; font-size: 9px; font-style: italic; margin-top: 2px; }
+
+        .atk-anim { animation: strike 0.4s ease-in-out; }
+        @keyframes strike { 0% { transform: translateY(0); } 50% { transform: translateY(-30px) scale(1.1); } 100% { transform: translateY(0); } }
+
+        #ult-screen { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; flex-direction: column; align-items: center; justify-content: center; }
+        #ult-video { width: 90%; max-height: 80vh; border: 2px solid var(--gold); }
+
+        /* --- CARA OU COROA --- */
+        #coin-screen { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
+        .coin-disc { width: 150px; height: 150px; background: var(--gold); border-radius: 50%; border: 8px solid #b45309; display: flex; align-items: center; justify-content: center; font-size: 50px; font-weight: bold; color: #000; transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.3, 1.1); }
+    </style>
+</head>
+<body>
+
+<div id="main-menu" class="screen">
+    <div class="menu-bg"></div>
+    <div class="game-title">ANIME TCG<br><span style="font-size: 24px; color: #ef4444;">BOSS EDITION</span></div>
+    <div style="margin-bottom: 20px; color: var(--gold); font-weight: bold;">Moedas: <span id="menu-coins">0</span></div>
+    <div class="menu-buttons">
+        <button class="btn btn-play" onclick="showScreen('deck-select')">Desafiar Boss</button>
+        <button class="btn btn-sec" onclick="openEditor()">Meu Deck</button>
+        <button class="btn btn-sec" onclick="openStore()">Loja de Cartas</button>
+        <button class="btn btn-sec" onclick="saveGame()">Salvar Dados</button>
+        <button class="btn btn-sec" onclick="document.getElementById('load-input').click()">Carregar Dados</button>
+        <input type="file" id="load-input" style="display:none" onchange="loadGame(this)">
+    </div>
+</div>
+
+<div id="deck-editor" class="screen">
+    <h2 style="margin:0">Editor de Deck</h2>
+    <div class="editor-container">
+        <div class="editor-column">
+            <h3>Sua Coleção</h3>
+            <div id="editor-bank" class="scroll-grid"></div>
+        </div>
+        <div class="editor-column">
+            <h3>Seu Deck (<span id="deck-size">0</span>/20)</h3>
+            <div id="editor-deck-list" class="scroll-grid"></div>
+        </div>
+    </div>
+    <button class="btn btn-play" style="margin-top:15px; width:200px" onclick="showScreen('main-menu')">SALVAR E VOLTAR</button>
+</div>
+
+<div id="store-screen" class="screen">
+    <h2>Loja | Moedas: <span id="store-coins" style="color:var(--gold)">0</span></h2>
+    <div class="grid-view" id="store-grid"></div>
+    <button class="btn btn-play" style="margin-top:20px; width:200px" onclick="showScreen('main-menu')">Sair</button>
+</div>
+
+<div id="deck-select" class="screen">
+    <h2>Selecione o Boss</h2>
+    <div class="level-container" id="level-list"></div>
+    <button class="btn btn-sec" style="margin-top:20px; width:250px;" onclick="showScreen('main-menu')">VOLTAR</button>
+</div>
+
+<div id="coin-screen">
+    <div id="coin-obj" class="coin-disc">?</div>
+    <h2 id="coin-text" style="margin-top: 20px; color: var(--gold);">Sorteando quem começa...</h2>
+</div>
+
+<div id="ult-screen">
+    <video id="ult-video" onended="closeUlt()"></video>
+    <button class="btn" style="margin-top:20px; background:red;" onclick="closeUlt()">PULAR [X]</button>
+</div>
+
+<div id="game-ui">
+    <aside class="sidebar">
+        <div class="terminal" id="log"></div>
+        <div class="inspect">
+            <b id="ins-name" style="color:var(--gold)">Inspecionar</b>
+            <p id="ins-desc" style="margin:5px 0"></p>
+            <div id="ins-stats" style="color:var(--accent); font-weight:bold"></div>
+        </div>
+        <div style="text-align:center; padding:8px; border:1px solid var(--gold); border-radius:5px;">
+            <div style="font-size:11px">Sua Energia</div>
+            <div id="energy-pool" style="font-size:28px; font-weight:900; color:var(--gold)">0</div>
+        </div>
+        <button class="btn btn-play" id="end-turn-btn" onclick="endTurn()">Passar Turno</button>
+    </aside>
+
+    <main class="arena">
+        <div style="color: var(--hp-red); font-weight: bold; font-size: 18px; text-transform: uppercase;">ZONA DO BOSS</div>
+        <div class="zone-row" id="e-active"></div>
+        <hr style="width:90%; opacity:0.1; margin: 5px 0;">
+        <div class="zone-row" id="p-active"></div>
+        <div class="zone-row" id="p-bench" style="min-height: 110px;"></div>
+    </main>
+
+    <footer style="background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; overflow-x:auto;" id="p-hand"></footer>
+</div>
+
+<script>
+// "p" representa a Penalidade (efeitos além de dano)
+const CARDS_DB = {
+    'n1': { id: 'n1', name: "Naruto", hp: 70, img: "https://i.pinimg.com/originals/82/81/70/82817094056289b41ef21b742512a849.jpg", skills: [{n:"Soco", d:20, c:1, desc:"Ataque básico."}], price: 0 },
+    'n2': { id: 'n2', name: "Naruto EX", hp: 160, isEx:true, evolvesFrom:"Naruto", img: "https://i.pinimg.com/736x/8d/9b/6c/8d9b6c4b6754045f272a71f008434771.jpg", skills: [{n:"Rasengan", d:70, c:2, desc:"Forte impacto."}, {n:"BIJUU DAMA", d:140, c:4, desc:"Explosão total.", vid:"https://www.w3schools.com/html/mov_bbb.mp4"}], price: 500 },
+    'g1': { id: 'g1', name: "Goku", hp: 80, img: "https://i.pinimg.com/736x/e8/4b/8d/e84b8d7c433362a2251d18204b7b252d.jpg", skills: [{n:"Combo", d:30, c:1, desc:"Golpe físico."}], price: 0 },
+    'g2': { id: 'g2', name: "Goku EX", hp: 180, isEx:true, evolvesFrom:"Goku", img: "https://i.pinimg.com/originals/f3/9d/9c/f39d9c019b9c019b9c019b9c.jpg", skills: [{n:"Kamehameha", d:80, c:2, desc:"Raio de Ki."}, {n:"GENKI DAMA", d:170, c:4, desc:"Força da Terra.", vid:"https://www.w3schools.com/html/mov_bbb.mp4"}], price: 600 },
+    'j1': { id: 'j1', name: "Itadori", hp: 90, img: "https://i.pinimg.com/736x/0a/6e/f3/0a6ef32940656a84c7a6598379057865.jpg", skills: [{n:"Divergent Fist", d:40, c:1, desc:"Impacto atrasado."}], price: 200 },
+    'j2': { id: 'j2', name: "Sukuna EX", hp: 200, isEx:true, evolvesFrom:"Itadori", img: "https://cults3d.com/pt/modelo-3d/arte/sukuna-jujutsu-kaisen-2d-anime-manga-figura-regalo-otaku-maldiciones-yuji-ita", skills: [{n:"Cleave", d:90, c:2, desc:"Corte invisível."}, {n:"FUGA", d:200, c:4, desc:"Flecha de fogo.", vid:"https://www.w3schools.com/html/mov_bbb.mp4"}], price: 1000 },
+    'b1': { id: 'b1', name: "Ichigo", hp: 80, img: "https://i.pinimg.com/736x/6c/f1/6c/6cf16c7038e1a12e2c050a49704c75c8.jpg", skills: [{n:"Corte", d:30, c:1, desc:"Ataque de espada."}], price: 200 },
+    'b2': { id: 'b2', name: "Ichigo EX", hp: 170, isEx:true, evolvesFrom:"Ichigo", img: "https://i.pinimg.com/736x/64/46/82/6446820067644917996c0d60d3c0b06b.jpg", skills: [{n:"Getsuga", d:80, c:2, desc:"Onda de reiatsu."}, {n:"MUGETSU", d:250, c:4, desc:"Forma final.", vid:"https://www.w3schools.com/html/mov_bbb.mp4"}], price: 800 },
+    'a1': { id: 'a1', name: "Aizen EX", hp: 190, isEx:true, img: "https://i.pinimg.com/736x/95/96/97/9596970725597955566.jpg", skills: [{n:"Hado 90", d:100, c:2, desc:"Caixão Negro."}, {n:"Kyoka Suigetsu", d:0, c:2, p: "Drena 2 energias", desc:"O oponente perde energia."}], price: 900 }
+};
+
+// Agora os níveis são Chefões Únicos (HP Buffado e sem deck)
+const LEVELS_DB = [
+    { name: "Clone de Treino", reward: 100, bossId: 'n2', hpBuff: 350 },
+    { name: "Rei das Maldições", reward: 350, bossId: 'j2', hpBuff: 800 },
+    { name: "O Ceifeiro", reward: 600, bossId: 'b2', hpBuff: 1200 },
+    { name: "Plano Celestial", reward: 1500, bossId: 'a1', hpBuff: 2000 }
+];
+
+let user = { coins: 500, inventory: ['n1','g1','n1','g1','n1','g1','j1','b1'], deck: ['n1','g1','n1','g1','n1'] };
+let game = { player: {}, enemy: {}, turn: '', energyUsed: false, currentReward: 0 };
+
+function showScreen(id) {
+    document.querySelectorAll('.screen, #coin-screen').forEach(s => s.style.display = 'none');
+    document.getElementById('game-ui').style.display = 'none';
+    const el = document.getElementById(id);
+    if(el) el.style.display = (id === 'game-ui') ? 'grid' : 'flex';
+    document.getElementById('menu-coins').innerText = user.coins;
+    if(id === 'deck-select') renderLevels();
+}
+
+function renderLevels() {
+    const list = document.getElementById('level-list'); list.innerHTML = '';
+    LEVELS_DB.forEach((lvl, index) => {
+        const div = document.createElement('div');
+        div.className = 'level-box';
+        div.onclick = () => initCoinFlip(index);
+        div.innerHTML = `<div><b style="color:var(--hp-red)">BOSS: ${CARDS_DB[lvl.bossId].name}</b><br><small>HP: ${lvl.hpBuff}</small></div><div style="color:#4ade80">+${lvl.reward} $</div>`;
+        list.appendChild(div);
+    });
+}
+
+// --- EDITOR E LOJA ---
+function openEditor() { showScreen('deck-editor'); renderEditor(); }
+function renderEditor() {
+    const bankEl = document.getElementById('editor-bank'); const deckEl = document.getElementById('editor-deck-list');
+    bankEl.innerHTML = ''; deckEl.innerHTML = '';
+    let tempBank = [...user.inventory];
+    user.deck.forEach(dId => { const idx = tempBank.indexOf(dId); if(idx > -1) tempBank.splice(idx, 1); });
+    tempBank.forEach((cardId) => {
+        const card = CARDS_DB[cardId]; const div = document.createElement('div'); div.className = 'mini-card';
+        div.onclick = () => { if(user.deck.length < 20) { user.deck.push(cardId); renderEditor(); } else alert("Max 20!"); };
+        div.innerHTML = `<img src="${card.img}"><div class="name">${card.name}</div>`; bankEl.appendChild(div);
+    });
+    user.deck.forEach((cardId, index) => {
+        const card = CARDS_DB[cardId]; const div = document.createElement('div'); div.className = 'mini-card'; div.style.borderColor = 'var(--gold)';
+        div.onclick = () => { user.deck.splice(index, 1); renderEditor(); };
+        div.innerHTML = `<img src="${card.img}"><div class="name">${card.name}</div>`; deckEl.appendChild(div);
+    });
+    document.getElementById('deck-size').innerText = user.deck.length;
+}
+
+function openStore() {
+    showScreen('store-screen'); const grid = document.getElementById('store-grid'); grid.innerHTML = '';
+    document.getElementById('store-coins').innerText = user.coins;
+    Object.values(CARDS_DB).forEach(card => {
+        if(card.price === 0) return;
+        const div = document.createElement('div'); div.className = 'item-card';
+        div.innerHTML = `<img src="${card.img}" style="width:100%; height:60px; object-fit:cover;"><div style="font-size:11px;">${card.name}</div><button class="btn-skill" onclick="buyCard('${card.id}')">${card.price} $</button>`;
+        grid.appendChild(div);
+    });
+}
+function buyCard(id) { if(user.coins >= CARDS_DB[id].price) { user.coins -= CARDS_DB[id].price; user.inventory.push(id); openStore(); } else alert("Sem moedas!"); }
+
+// --- FLUXO DO JOGO E CARA OU COROA ---
+function initCoinFlip(lvlIdx) {
+    if(user.deck.length < 5) return alert("Seu deck precisa de pelo menos 5 cartas!");
+    
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    const coinScreen = document.getElementById('coin-screen');
+    const coinObj = document.getElementById('coin-obj');
+    const coinText = document.getElementById('coin-text');
+    
+    coinScreen.style.display = 'flex';
+    coinObj.style.transform = 'rotateY(0deg)';
+    coinText.innerText = "Girando...";
+    coinObj.innerText = "?";
+
+    setTimeout(() => {
+        // 50% exato sem beneficiar o player
+        const isPlayerFirst = Math.random() < 0.5; 
+        
+        coinObj.style.transform = 'rotateY(1800deg)';
+        coinObj.innerText = isPlayerFirst ? "C" : "K";
+        coinText.innerText = isPlayerFirst ? "VOCÊ COMEÇA!" : "O BOSS COMEÇA!";
+        
+        setTimeout(() => {
+            coinScreen.style.display = 'none';
+            startGame(lvlIdx, isPlayerFirst ? 'player' : 'enemy');
+        }, 2000);
+    }, 500);
+}
+
+function startGame(lvlIdx, firstTurn) {
+    const lvl = LEVELS_DB[lvlIdx];
+    game.currentReward = lvl.reward;
+    showScreen('game-ui');
+    document.getElementById('log').innerHTML = ''; // limpa log
+
+    game.player = { active: null, bench: [], hand: [], deck: [...user.deck].sort(()=>0.5-Math.random()), energy: 0 };
+    
+    // Inimigo só tem a carta Boss. Sem Deck, sem reserva.
+    const bossTemplate = JSON.parse(JSON.stringify(CARDS_DB[lvl.bossId]));
+    bossTemplate.hp = lvl.hpBuff;
+    bossTemplate.curHP = lvl.hpBuff;
+    bossTemplate.attached = 0;
+    bossTemplate.name = "BOSS " + bossTemplate.name;
+    game.enemy = { active: bossTemplate };
+
+    for(let i=0; i<4; i++) drawPlayer();
+    startTurn(firstTurn);
+}
+
+function drawPlayer() { if(game.player.deck.length > 0) game.player.hand.push({...CARDS_DB[game.player.deck.pop()]}); }
+
+function startTurn(who) {
+    game.turn = who; 
+    game.energyUsed = false; 
+    
+    if(who === 'player') {
+        game.player.energy += 1;
+        drawPlayer();
+        document.getElementById('end-turn-btn').disabled = false;
+    } else {
+        // Boss não usa pool de energia, carrega direto na carta
+        document.getElementById('end-turn-btn').disabled = true;
+        setTimeout(enemyAI, 1500);
+    }
+    updateUI();
+}
+
+function updateUI() {
+    document.getElementById('energy-pool').innerText = game.player.energy;
+    render('p-active', game.player.active, true, 'active');
+    render('e-active', game.enemy.active, false, 'active');
+    
+    const pb = document.getElementById('p-bench'); pb.innerHTML = '';
+    game.player.bench.forEach((c, i) => render('p-bench', c, true, 'bench', i));
+    
+    const hand = document.getElementById('p-hand'); hand.innerHTML = '';
+    game.player.hand.forEach((c, i) => {
+        const div = document.createElement('div'); div.className = `card ${c.isEx ? 'ex' : ''}`;
+        div.onclick = () => playCard(i);
+        div.innerHTML = `<img src="${c.img}"><div class="card-content" style="align-items:center; justify-content:center"><b style="${c.isEx ? 'color:var(--gold)' : ''}">${c.name}</b></div>`;
+        hand.appendChild(div);
+    });
+}
+
+function render(id, card, isP, type) {
+    const area = document.getElementById(id);
+    if(type === 'active') area.innerHTML = '';
+    if(!card) { if(type === 'active') area.innerHTML = `<div class="card active" style="border:2px dashed #333; background:none"></div>`; return; }
+    
+    const div = document.createElement('div');
+    div.id = isP ? `p-card-${type}` : `e-card-${type}`;
+    div.className = `card ${type === 'active' ? 'active' : ''} ${card.isEx ? 'ex' : ''}`;
+    div.onclick = () => { if(isP && game.player.energy > 0 && !game.energyUsed) attachEnergy(card); };
+    
+    let skillsHTML = "";
+    if(type === 'active' && isP) {
+        skillsHTML = card.skills.map((s, i) => `
+            <button class="btn-skill" onmouseover="inspect('${s.n}','${s.desc}','${s.d}','${s.c}')" onclick="event.stopPropagation(); attack(${i})">
+                ${s.n} ${s.p ? `<br><span class="penalty-txt">${s.p}</span>` : ''}
+            </button>
+        `).join('');
+    } else if (type === 'active' && !isP) {
+        skillsHTML = card.skills.map(s => `
+             <div class="btn-skill" style="cursor:default; text-align:center">
+                ${s.n} [Dano: ${s.d}] ${s.p ? `<br><span class="penalty-txt">${s.p}</span>` : ''}
+             </div>
+        `).join('');
+    }
+
+    // Estrutura respeitando o layout Padrão / EX
+    div.innerHTML = `
+        <img src="${card.img}">
+        <div class="hp-tag">${card.curHP || card.hp}</div>
+        <div class="energy-tag">${card.attached || 0}</div>
+        <div class="card-content">
+            <b style="${card.isEx ? 'color:var(--gold); text-align:center;' : 'text-align:center;'} font-size:12px;">${card.name}</b>
+            <div style="flex:1; overflow-y:auto; margin-top:5px;">${skillsHTML}</div>
+        </div>
+    `;
+    area.appendChild(div);
+}
+
+function playCard(i) {
+    const c = game.player.hand[i];
+    if(!game.player.active && !c.evolvesFrom) { game.player.active = {...c, curHP: c.hp, attached: 0}; game.player.hand.splice(i,1); }
+    else if(game.player.active && c.evolvesFrom === game.player.active.name) {
+        const d = game.player.active.hp - game.player.active.curHP;
+        game.player.active = {...c, curHP: c.hp - d, attached: game.player.active.attached};
+        game.player.hand.splice(i,1);
+    } else if(game.player.bench.length < 3 && !c.evolvesFrom) {
+        game.player.bench.push({...c, curHP: c.hp, attached: 0});
+        game.player.hand.splice(i,1);
+    }
+    updateUI();
+}
+
+function attachEnergy(card) { card.attached = (card.attached || 0) + 1; game.player.energy--; game.energyUsed = true; updateUI(); }
+
+function attack(idx) {
+    if(!game.enemy.active || game.turn !== 'player') return;
+    const s = game.player.active.skills[idx];
+    if(game.player.active.attached < s.c) return alert("Energia insuficiente na carta!");
+    
+    const cardEl = document.getElementById('p-card-active');
+    cardEl.classList.add('atk-anim'); setTimeout(() => cardEl.classList.remove('atk-anim'), 400);
+    
+    if(game.player.active.isEx && s.vid) {
+        const v = document.getElementById('ult-video'); v.src = s.vid;
+        document.getElementById('ult-screen').style.display = 'flex'; v.play();
+    }
+    
+    // Calcula Dano e Penalidade
+    if(s.d > 0) game.enemy.active.curHP -= s.d;
+    if(s.p && s.p.includes("Drena")) {
+        game.enemy.active.attached = Math.max(0, game.enemy.active.attached - 2);
+    }
+
+    log(`Você usou ${s.n}! Dano: ${s.d}`);
+    document.getElementById('end-turn-btn').disabled = true;
+    
+    if(!checkKOs()) {
+        updateUI();
+        setTimeout(() => { if(game.turn === 'player') endTurn(); }, 1500);
+    }
+}
+
+function enemyAI() {
+    if(!game.enemy.active) return;
+    const boss = game.enemy.active;
+    
+    // Boss carrega 2 energias por turno passivamente por ser muito forte
+    boss.attached += 2; 
+    
+    // Pega as skills que o boss pode pagar e usa a mais forte disponível
+    const usableSkills = boss.skills.filter(s => boss.attached >= s.c);
+    
+    if(usableSkills.length > 0 && game.player.active) {
+        const s = usableSkills[usableSkills.length - 1]; // pega a última (geralmente a mais forte)
+        boss.attached -= s.c; // Boss gasta a energia pra bater
+        
+        game.player.active.curHP -= s.d;
+        
+        if(s.p && s.p.includes("Drena")) {
+            game.player.energy = Math.max(0, game.player.energy - 2);
+        }
+        log(`BOSS usou ${s.n}! Dano: ${s.d}`);
+        
+        const cardEl = document.getElementById('e-card-active');
+        if(cardEl) { cardEl.classList.add('atk-anim'); setTimeout(() => cardEl.classList.remove('atk-anim'), 400); }
+        
+    } else {
+        log(`${boss.name} está acumulando força...`);
+    }
+
+    if(!checkKOs()) {
+        startTurn('player');
+    }
+}
+
+function checkKOs() {
+    let gameOver = false;
+    if(game.enemy.active && game.enemy.active.curHP <= 0) {
+        log(`O BOSS FOI DERROTADO!`);
+        user.coins += game.currentReward; 
+        alert(`VITÓRIA! +${game.currentReward}$`); 
+        showScreen('main-menu');
+        gameOver = true;
+    }
+    else if(game.player.active && game.player.active.curHP <= 0) {
+        log(`${game.player.active.name} caiu!`);
+        game.player.active = game.player.bench.shift() || null;
+        if(!game.player.active) { 
+            alert("DERROTA! Seu time foi nocauteado pelo Boss."); 
+            showScreen('main-menu'); 
+            gameOver = true;
+        }
+    }
+    updateUI();
+    return gameOver;
+}
+
+function saveGame() {
+    const blob = new Blob([JSON.stringify(user)], {type: 'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'tcg_save.json'; a.click();
+}
+function loadGame(input) {
+    const reader = new FileReader();
+    reader.onload = (e) => { user = JSON.parse(e.target.result); showScreen('main-menu'); };
+    reader.readAsText(input.files[0]);
+}
+
+function endTurn() { startTurn(game.turn === 'player' ? 'enemy' : 'player'); }
+function inspect(n, d, dmg, c) { document.getElementById('ins-name').innerText = n; document.getElementById('ins-desc').innerText = d; document.getElementById('ins-stats').innerText = `Dano: ${dmg} | Custo Energia: ${c}`; }
+function log(m) { const l = document.getElementById('log'); const d = document.createElement('div'); d.innerText = `> ${m}`; l.prepend(d); }
+function closeUlt() { document.getElementById('ult-screen').style.display = 'none'; document.getElementById('ult-video').pause(); }
+document.getElementById('menu-coins').innerText = user.coins;
+</script>
+</body>
+</html>
