@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta charset="UTF-8">
     <title>UATCG - Beta Edition</title>
     <style>
@@ -196,6 +197,38 @@
 </div>
 
 <script>
+    // === CONFIGURAÇÃO SUPABASE ===
+const SUPABASE_URL = 'sb_publishable_tTzgwBUGn02QuN6z2AFRTw_GLdeB2u5';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxsb3VhemN3enZnZ3dpYmdqbGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0ODI5NDUsImV4cCI6MjA5MzA1ODk0NX0.vhA92IJ2n82MSFUEmNtJEIS7Ap2Ox-XSoYP7lt5ic5g';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Sua variável 'user' global já deve estar por aqui, certo?
+// let user = { coins: 100, deck: [], ... };
+        // === CONFIGURAÇÃO SUPABASE ===
+const SUPABASE_URL = 'SUA_URL_DO_PAINEL';
+const SUPABASE_KEY = 'SUA_KEY_ANON_DO_PAINEL';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Sua variável 'user' global já deve estar por aqui, certo?
+// let user = { coins: 100, deck: [], ... };
+const canalBatalha = supabase.channel('arena_01');
+
+// OUVIR o que o oponente fez
+canalBatalha.on('broadcast', { event: 'comando_ataque' }, (payload) => {
+    console.log("Recebi um ataque do oponente:", payload);
+    
+    // EX: Se o oponente mandou dano, você aplica no seu monstro ativo
+    // triggerAttack(payload.skillIdx, 'enemy'); 
+}).subscribe();
+
+// ENVIAR sua jogada
+function enviarJogada(indexHabilidade) {
+    canalBatalha.send({
+        type: 'broadcast',
+        event: 'comando_ataque',
+        payload: { skillIdx: indexHabilidade }
+    });
+}
 const CARDS_DB = {
     'n1': { id: 'n1', name: "Naruto", hp: 70, img: "https://i.imgur.com/MG7FIXN.jpeg", skills: [{n:"Rasengan", d:50, c:2, desc:"Esfera de chakra!"}, {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones."}], price: 0 },
     'n2': { id: 'n2', name: "Naruto Modo Senin EX", hp: 160, isEx:true, evolvesFrom:"Naruto", img: "https://i.imgur.com/uXbwFlO.jpeg", skills: [{n:"Jutsu de invocação!", d:90, c:2, desc:"Invoca Gamakich!"}, {n:"Rasenshuriken", d:140, c:4, desc:"Explosão devastadora!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498837879386931310/Naruto_Ultimate_Ninja_Storm_2_-_Rasenshuriken_with_Anime_SFX_-_Soundman_720p_h264_youtube.mp4?ex=69f29d0d&is=69f14b8d&hm=0d4c7dfc8bff58c32a1808601523331fdc33262877ac770130a5fe078cee3282&"}], price: 500 },
@@ -548,6 +581,18 @@ function triggerAttack(idx, source) {
     } else {
         executeDamage(attacker, defender, skill, source);
     }
+    if(game.mode === 'pvp' && source === 'player' && game.turn !== 'player') {
+    return alert("Aguarde o turno do oponente!");
+}
+
+// E no final da triggerAttack, se for PvP, você avisa o outro:
+if(game.mode === 'pvp' && source === 'player') {
+    salaAtual.send({
+        type: 'broadcast',
+        event: 'jogada',
+        payload: { skillIdx: idx }
+    });
+}
 
 }
 
@@ -660,28 +705,86 @@ function checkKOs() {
     updateUI();
     return gameOver;
 }
-// === SISTEMA DE SAVE / LOAD ===
-function saveGame() {
-    const data = JSON.stringify(user);
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([data], {type: 'application/json'}));
-    a.download = 'animetcg_save.json';
-    a.click();
-    alert("Jogo salvo no seu computador!");
+// SALVAR NA NUVEM
+async function saveGameCloud(userId) {
+    const { data, error } = await supabase
+        .from('jogadores') // Nome da tabela que você vai criar no Supabase
+        .upsert({ 
+            id: userId, 
+            status_save: user, // Salva todo o seu objeto 'user'
+            updated_at: new Date() 
+        });
+
+    if (error) alert("Erro ao salvar: " + error.message);
+    else console.log("Progresso salvo na nuvem!");
 }
 
-function loadGame(input) {
-    const file = input.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-        try {
-            user = JSON.parse(e.target.result);
-            document.getElementById('menu-coins').innerText = user.coins;
-            alert("Dados carregados com sucesso!");
-        } catch(err) { alert("Arquivo de save inválido!"); }
-    };
-    reader.readAsText(file);
+// CARREGAR DA NUVEM
+async function loadGameCloud(userId) {
+    const { data, error } = await supabase
+        .from('jogadores')
+        .select('status_save')
+        .eq('id', userId)
+        .single();
+
+    if (data) {
+        user = data.status_save;
+        document.getElementById('menu-coins').innerText = user.coins;
+        alert("Bem-vindo de volta! Dados carregados.");
+    } else {
+        console.log("Novo jogador detectado.");
+    }
+}
+    let meuLado = null; // 'player' ou 'enemy' (no PvP, o inimigo é o outro player)
+let salaAtual = null;
+
+async function conectarPvP() {
+    const roomId = document.getElementById('room-id').value;
+    if(!roomId) return alert("Digite um nome para a sala!");
+    
+    salaAtual = supabase.channel(`room_${roomId}`, {
+        config: { broadcast: { self: false } }
+    });
+
+    document.getElementById('status-pvp').innerText = "Conectando na sala...";
+
+    salaAtual
+        .on('broadcast', { event: 'setup' }, (payload) => {
+            // Se recebemos um setup e não temos lado, somos o Player 2
+            if(!meuLado) {
+                meuLado = 'P2';
+                console.log("Sou o Player 2");
+                enviarSetup(); // Devolvemos nossos dados para o P1
+                iniciarPartidaPvP(payload.userStats, 'P2');
+            }
+        })
+        .on('broadcast', { event: 'jogada' }, (payload) => {
+            receberJogadaOponente(payload);
+        })
+        .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                document.getElementById('status-pvp').innerText = "Aguardando oponente...";
+                // O primeiro a chegar tenta ser o Player 1 enviando o setup
+                meuLado = 'P1';
+                enviarSetup();
+            }
+        });
+}
+
+function enviarSetup() {
+    salaAtual.send({
+        type: 'broadcast',
+        event: 'setup',
+        payload: { userStats: user }
+    });
+}
+
+function iniciarPartidaPvP(oponenteStats, lado) {
+    alert(`Duelo Iniciado contra ${oponenteStats.name || 'Adversário'}!`);
+    game.mode = 'pvp';
+    // Aqui você chamaria sua função de startGame adaptada para PvP
+    // Onde o 'game.enemy' seria preenchido com oponenteStats.deck
+    startGame(0, lado === 'P1' ? 'player' : 'enemy');
 }
 
 // === SISTEMA DE INSPECIONAR ===
