@@ -291,7 +291,12 @@ function showScreen(id, modeParam) {
     const el = document.getElementById(id);
     if(el) el.style.display = (id === 'game-ui') ? 'grid' : 'flex';
     document.getElementById('menu-coins').innerText = user.coins;
-    
+    if (id === 'store-screen') {
+        renderStore(); // Garanta que essa função está sendo chamada!
+    }
+    if (id === 'deck-select') {
+        renderLevels(modeParam); // Garanta que as fases aparecem aqui!
+    }
     if(id === 'deck-select') {
         game.mode = modeParam;
         document.getElementById('select-title').innerText = modeParam === 'boss' ? "Selecione o Boss" : "Selecione o Adversário";
