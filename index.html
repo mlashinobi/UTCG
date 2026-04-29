@@ -3,7 +3,7 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta charset="UTF-8">
-    <title>UATCG - Beta Edition</title>
+    <title>Anime TCG - Boss & Normal Edition</title>
     <style>
         :root {
             --bg-arena: url('https://images.alphacoders.com/132/1326442.png');
@@ -110,7 +110,7 @@
 <body>
 
 <audio id="musicaFundo" loop>
-    <source src="https://downloads.khinsider.com/game-soundtracks/album/pok-mon-tcg-online-android-ios-windows-gamerip-2012/01%2520CoreUI.mp3" type="audio/mpeg">
+    <source src="https://www.chosic.com/wp-content/uploads/2021/07/The-Epic-Hero-Epic-Cinematic-Music-By-Keys-Of-Moon.mp3" type="audio/mpeg">
 </audio>
 
 <audio id="musicaBatalha" loop>
@@ -119,15 +119,14 @@
 
 <div id="main-menu" class="screen">
     <div class="menu-bg"></div>
-    <div class="game-title">UATCG<br><span style="font-size: 24px; color: #ef4444;">BETA EDITION</span></div>
+    <div class="game-title">ANIME TCG<br><span style="font-size: 24px; color: #ef4444;">ULTIMATE EDITION</span></div>
     <div style="margin-bottom: 20px; color: var(--gold); font-weight: bold;">Moedas: <span id="menu-coins">0</span></div>
     <div class="menu-buttons">
         <button class="btn btn-play" style="background:#0ea5e9; border-color:#fff; box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);" onclick="showScreen('deck-select', 'normal')">Jogar</button>
         <button class="btn btn-play" onclick="showScreen('deck-select', 'boss')">Boss Raid</button>
+        <button class="btn btn-play" style="background:#8b5cf6; border-color:#fff; box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);" onclick="showScreen('multiplayer-lobby')">MODO PVP (BETA)</button>
         <button class="btn btn-sec" onclick="openEditor()">Meu Deck</button>
         <button class="btn btn-sec" onclick="openStore()">Loja de Cartas</button>
-        <button class="btn btn-sec" onclick="saveGame()">Salvar Dados</button>
-        <button class="btn btn-sec" onclick="document.getElementById('load-input').click()">Carregar Dados</button>
         <input type="file" id="load-input" style="display:none" onchange="loadGame(this)">
     </div>
 </div>
@@ -145,6 +144,18 @@
         </div>
     </div>
     <button class="btn btn-play" style="margin-top:15px; width:200px" onclick="showScreen('main-menu')">SALVAR E VOLTAR</button>
+</div>
+
+<div id="multiplayer-lobby" class="screen" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
+    <h1 style="color:var(--gold); text-shadow: 2px 2px #000;">ARENA PVP</h1>
+    <div style="background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; border: 2px solid var(--gold); text-align:center;">
+        <p>Digite o nome da sala para duelar:</p>
+        <input type="text" id="room-id" placeholder="Ex: sala123" style="padding:10px; border-radius:5px; border:none; width:200px; margin-bottom:15px; text-align:center;">
+        <br>
+        <button class="btn-skill" style="background:var(--gold); color:#000; padding:10px 20px;" onclick="conectarPvP()">ENTRAR NA SALA</button>
+        <button class="btn-skill" style="background:#ef4444; color:#fff; margin-left:10px;" onclick="showScreen('main-menu')">VOLTAR</button>
+    </div>
+    <p id="status-pvp" style="color:#aaa; font-style:italic;"></p>
 </div>
 
 <div id="store-screen" class="screen">
@@ -197,20 +208,12 @@
 </div>
 
 <script>
+    
     // === CONFIGURAÇÃO SUPABASE ===
-const SUPABASE_URL = 'sb_publishable_tTzgwBUGn02QuN6z2AFRTw_GLdeB2u5';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxsb3VhemN3enZnZ3dpYmdqbGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0ODI5NDUsImV4cCI6MjA5MzA1ODk0NX0.vhA92IJ2n82MSFUEmNtJEIS7Ap2Ox-XSoYP7lt5ic5g';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// Sua variável 'user' global já deve estar por aqui, certo?
-// let user = { coins: 100, deck: [], ... };
-        // === CONFIGURAÇÃO SUPABASE ===
 const SUPABASE_URL = 'SUA_URL_DO_PAINEL';
 const SUPABASE_KEY = 'SUA_KEY_ANON_DO_PAINEL';
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Sua variável 'user' global já deve estar por aqui, certo?
-// let user = { coins: 100, deck: [], ... };
 const canalBatalha = supabase.channel('arena_01');
 
 // OUVIR o que o oponente fez
@@ -581,7 +584,8 @@ function triggerAttack(idx, source) {
     } else {
         executeDamage(attacker, defender, skill, source);
     }
-    if(game.mode === 'pvp' && source === 'player' && game.turn !== 'player') {
+    // Dentro da triggerAttack(idx, source):
+if(game.mode === 'pvp' && source === 'player' && game.turn !== 'player') {
     return alert("Aguarde o turno do oponente!");
 }
 
@@ -735,7 +739,7 @@ async function loadGameCloud(userId) {
         console.log("Novo jogador detectado.");
     }
 }
-    let meuLado = null; // 'player' ou 'enemy' (no PvP, o inimigo é o outro player)
+let meuLado = null; // 'player' ou 'enemy' (no PvP, o inimigo é o outro player)
 let salaAtual = null;
 
 async function conectarPvP() {
@@ -786,7 +790,6 @@ function iniciarPartidaPvP(oponenteStats, lado) {
     // Onde o 'game.enemy' seria preenchido com oponenteStats.deck
     startGame(0, lado === 'P1' ? 'player' : 'enemy');
 }
-
 // === SISTEMA DE INSPECIONAR ===
 function inspectCard(card) {
     if(!card) return;
