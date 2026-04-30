@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <audio id="musicaFundo" loop>
+     <audio id="musicaFundo" loop>
     <source src="19. Main Menu (Mega Evolution).mp3" type="audio/mpeg">
 </audio>
 
@@ -199,6 +199,29 @@
 </div>
 
 <script>
+    // === SISTEMA DE ÁUDIO AUTOMÁTICO ===
+function ligarMusica() {
+    const som = document.getElementById('musicaFundo');
+    if (som && som.paused) {
+        som.volume = 0.3;
+        som.play().then(() => {
+            // Se tocar com sucesso, removemos os vigias para não pesar o site
+            window.removeEventListener('click', ligarMusica);
+            window.removeEventListener('mousedown', ligarMusica);
+            window.removeEventListener('keydown', ligarMusica);
+            console.log("Música iniciada com sucesso!");
+        }).catch(err => {
+            console.log("Aguardando interação para soltar o som...");
+        });
+    }
+}
+
+// O site fica "vigiando" qualquer movimento seu para soltar o som
+window.addEventListener('click', ligarMusica);
+window.addEventListener('mousedown', ligarMusica);
+window.addEventListener('keydown', ligarMusica);
+window.onload = ligarMusica; // Tenta ligar assim que carregar (o navegador pode barrar, mas o clique logo em seguida libera)
+
 const CARDS_DB = {
     'n1': { id: 'n1', name: "Naruto", hp: 70, img: "https://i.imgur.com/MG7FIXN.jpeg", skills: [{n:"Rasengan", d:50, c:2, desc:"Esfera de chakra!"}, {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones."}], price: 0 },
     'n2': { id: 'n2', name: "Naruto Modo Senin EX", hp: 160, isEx:true, evolvesFrom:"Naruto", img: "https://i.imgur.com/uXbwFlO.jpeg", skills: [{n:"Jutsu de invocação!", d:90, c:2, desc:"Invoca Gamakich!"}, {n:"Rasenshuriken", d:140, c:4, desc:"Explosão devastadora!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498837879386931310/Naruto_Ultimate_Ninja_Storm_2_-_Rasenshuriken_with_Anime_SFX_-_Soundman_720p_h264_youtube.mp4?ex=69f29d0d&is=69f14b8d&hm=0d4c7dfc8bff58c32a1808601523331fdc33262877ac770130a5fe078cee3282&"}], price: 500 },
@@ -337,12 +360,6 @@ function initCoinFlip(lvlIdx) {
 function startGame(lvlIdx, firstTurn) {
     showScreen('game-ui');
     document.getElementById('log').innerHTML = '';
-    
-    // Troca a música
-    const musicaFundo = document.getElementById('musicaFundo');
-    const musicaBatalha = document.getElementById('musicaBatalha');
-    if(musicaFundo) musicaFundo.pause();
-    if(musicaBatalha) { musicaBatalha.currentTime = 0; musicaBatalha.play().catch(()=>{}); }
     
     game.player = { active: null, bench: [], hand: [], deck: [...user.deck].sort(()=>0.5-Math.random()), energy: 0 };
     
