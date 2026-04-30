@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <audio id="musicaFundo" loop>
+    <source src="19. Main Menu (Mega Evolution).mp3" type="audio/mpeg">
+</audio>
+
+<audio id="musicaBatalha" loop>
+    <source src="02. 物語りの途中 -off vocal ver.-.mp3" type="audio/mpeg">
+</audio>
     <meta charset="UTF-8">
     <title>Anime TCG - Boss & Normal Edition</title>
     <style>
@@ -113,10 +119,6 @@
     <source src="https://www.chosic.com/wp-content/uploads/2021/07/The-Epic-Hero-Epic-Cinematic-Music-By-Keys-Of-Moon.mp3" type="audio/mpeg">
 </audio>
 
-<audio id="musicaBatalha" loop>
-    <source src="https://downloads.khinsider.com/game-soundtracks/album/period-character-song-cd-vol3-rin-kagamiya-monogatari-no-tochuu-2007/02.%2520%25E7%2589%25A9%25E8%25AA%259E%25E3%2582%258A%25E3%2581%25AE%25E9%2580%2594%25E4%25B8%25AD%2520-off%2520vocal%2520ver.-.mp3" type="audio/mpeg">
-</audio>
-
 <div id="main-menu" class="screen">
     <div class="menu-bg"></div>
     <div class="game-title">ANIME TCG<br><span style="font-size: 24px; color: #ef4444;">ULTIMATE EDITION</span></div>
@@ -124,9 +126,10 @@
     <div class="menu-buttons">
         <button class="btn btn-play" style="background:#0ea5e9; border-color:#fff; box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);" onclick="showScreen('deck-select', 'normal')">Jogar</button>
         <button class="btn btn-play" onclick="showScreen('deck-select', 'boss')">Boss Raid</button>
-        <button class="btn btn-play" style="background:#8b5cf6; border-color:#fff; box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);" onclick="showScreen('multiplayer-lobby')">MODO PVP (BETA)</button>
         <button class="btn btn-sec" onclick="openEditor()">Meu Deck</button>
         <button class="btn btn-sec" onclick="openStore()">Loja de Cartas</button>
+        <button class="btn btn-sec" onclick="saveGame()">Salvar Dados</button>
+        <button class="btn btn-sec" onclick="document.getElementById('load-input').click()">Carregar Dados</button>
         <input type="file" id="load-input" style="display:none" onchange="loadGame(this)">
     </div>
 </div>
@@ -144,18 +147,6 @@
         </div>
     </div>
     <button class="btn btn-play" style="margin-top:15px; width:200px" onclick="showScreen('main-menu')">SALVAR E VOLTAR</button>
-</div>
-
-<div id="multiplayer-lobby" class="screen" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
-    <h1 style="color:var(--gold); text-shadow: 2px 2px #000;">ARENA PVP</h1>
-    <div style="background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; border: 2px solid var(--gold); text-align:center;">
-        <p>Digite o nome da sala para duelar:</p>
-        <input type="text" id="room-id" placeholder="Ex: sala123" style="padding:10px; border-radius:5px; border:none; width:200px; margin-bottom:15px; text-align:center;">
-        <br>
-        <button class="btn-skill" style="background:var(--gold); color:#000; padding:10px 20px;" onclick="conectarPvP()">ENTRAR NA SALA</button>
-        <button class="btn-skill" style="background:#ef4444; color:#fff; margin-left:10px;" onclick="showScreen('main-menu')">VOLTAR</button>
-    </div>
-    <p id="status-pvp" style="color:#aaa; font-style:italic;"></p>
 </div>
 
 <div id="store-screen" class="screen">
@@ -208,31 +199,6 @@
 </div>
 
 <script>
-    
-    // === CONFIGURAÇÃO SUPABASE ===
-const SUPABASE_URL = 'sb_publishable_tTzgwBUGn02QuN6z2AFRTw_GLdeB2u5';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxsb3VhemN3enZnZ3dpYmdqbGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0ODI5NDUsImV4cCI6MjA5MzA1ODk0NX0.vhA92IJ2n82MSFUEmNtJEIS7Ap2Ox-XSoYP7lt5ic5g';
-// No topo do script, substitua por:
-var supabase = supabase.createClient('SUA_URL', 'SUA_KEY');
-
-const canalBatalha = supabase.channel('arena_01');
-
-// OUVIR o que o oponente fez
-canalBatalha.on('broadcast', { event: 'comando_ataque' }, (payload) => {
-    console.log("Recebi um ataque do oponente:", payload);
-    
-    // EX: Se o oponente mandou dano, você aplica no seu monstro ativo
-    // triggerAttack(payload.skillIdx, 'enemy'); 
-}).subscribe();
-
-// ENVIAR sua jogada
-function enviarJogada(indexHabilidade) {
-    canalBatalha.send({
-        type: 'broadcast',
-        event: 'comando_ataque',
-        payload: { skillIdx: indexHabilidade }
-    });
-}
 const CARDS_DB = {
     'n1': { id: 'n1', name: "Naruto", hp: 70, img: "https://i.imgur.com/MG7FIXN.jpeg", skills: [{n:"Rasengan", d:50, c:2, desc:"Esfera de chakra!"}, {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones."}], price: 0 },
     'n2': { id: 'n2', name: "Naruto Modo Senin EX", hp: 160, isEx:true, evolvesFrom:"Naruto", img: "https://i.imgur.com/uXbwFlO.jpeg", skills: [{n:"Jutsu de invocação!", d:90, c:2, desc:"Invoca Gamakich!"}, {n:"Rasenshuriken", d:140, c:4, desc:"Explosão devastadora!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498837879386931310/Naruto_Ultimate_Ninja_Storm_2_-_Rasenshuriken_with_Anime_SFX_-_Soundman_720p_h264_youtube.mp4?ex=69f29d0d&is=69f14b8d&hm=0d4c7dfc8bff58c32a1808601523331fdc33262877ac770130a5fe078cee3282&"}], price: 500 },
@@ -263,27 +229,7 @@ let game = { player: {}, enemy: {}, turn: '', energyUsed: false, currentReward: 
 
 const somFundo = document.getElementById('musicaFundo');
 somFundo.volume = 0.35;
-// Função para garantir que o áudio toque após o primeiro clique do usuário
-function desbloquearAudio() {
-    const menuSom = document.getElementById('musicaFundo');
-    const batalhaSom = document.getElementById('musicaBatalha');
-    
-    // Define volumes iniciais
-    menuSom.volume = 0.3;
-    batalhaSom.volume = 0.3;
-
-    // Tenta tocar a música do menu
-    if (menuSom.paused) {
-        menuSom.play().catch(e => console.log("Aguardando interação para áudio..."));
-    }
-    
-    // Remove o evento após o primeiro clique para não ficar repetindo
-    window.removeEventListener('click', desbloquearAudio);
-    window.removeEventListener('keydown', desbloquearAudio);
-}
-
-window.addEventListener('click', desbloquearAudio);
-window.addEventListener('keydown', desbloquearAudio);
+window.addEventListener('click', () => { if (somFundo.paused) somFundo.play().catch(()=>{}); }, { once: true });
 
 function showScreen(id, modeParam) {
     document.querySelectorAll('.screen, #coin-screen').forEach(s => s.style.display = 'none');
@@ -291,12 +237,15 @@ function showScreen(id, modeParam) {
     const el = document.getElementById(id);
     if(el) el.style.display = (id === 'game-ui') ? 'grid' : 'flex';
     document.getElementById('menu-coins').innerText = user.coins;
-    if (id === 'store-screen') {
-        renderStore(); // Garanta que essa função está sendo chamada!
+    
+    // Desliga música de batalha e volta a do Menu
+    if(id === 'main-menu') {
+        const musicaBatalha = document.getElementById('musicaBatalha');
+        const musicaFundo = document.getElementById('musicaFundo');
+        if(musicaBatalha) musicaBatalha.pause();
+        if(musicaFundo && musicaFundo.paused) musicaFundo.play().catch(()=>{});
     }
-    if (id === 'deck-select') {
-        renderLevels(modeParam); // Garanta que as fases aparecem aqui!
-    }
+    
     if(id === 'deck-select') {
         game.mode = modeParam;
         document.getElementById('select-title').innerText = modeParam === 'boss' ? "Selecione o Boss" : "Selecione o Adversário";
@@ -390,14 +339,10 @@ function startGame(lvlIdx, firstTurn) {
     document.getElementById('log').innerHTML = '';
     
     // Troca a música
-    const mFundo = document.getElementById('musicaFundo');
-    const mBatalha = document.getElementById('musicaBatalha');
-    
-    if(mFundo) mFundo.pause();
-    if(mBatalha) {
-        mBatalha.currentTime = 0;
-        mBatalha.play().catch(e => console.log("Erro ao tocar música de batalha"));
-    }
+    const musicaFundo = document.getElementById('musicaFundo');
+    const musicaBatalha = document.getElementById('musicaBatalha');
+    if(musicaFundo) musicaFundo.pause();
+    if(musicaBatalha) { musicaBatalha.currentTime = 0; musicaBatalha.play().catch(()=>{}); }
     
     game.player = { active: null, bench: [], hand: [], deck: [...user.deck].sort(()=>0.5-Math.random()), energy: 0 };
     
@@ -590,20 +535,6 @@ function triggerAttack(idx, source) {
     } else {
         executeDamage(attacker, defender, skill, source);
     }
-    // Dentro da triggerAttack(idx, source):
-if(game.mode === 'pvp' && source === 'player' && game.turn !== 'player') {
-    return alert("Aguarde o turno do oponente!");
-}
-
-// E no final da triggerAttack, se for PvP, você avisa o outro:
-if(game.mode === 'pvp' && source === 'player') {
-    salaAtual.send({
-        type: 'broadcast',
-        event: 'jogada',
-        payload: { skillIdx: idx }
-    });
-}
-
 }
 
 function closeUlt() {
@@ -715,87 +646,30 @@ function checkKOs() {
     updateUI();
     return gameOver;
 }
-// SALVAR NA NUVEM
-async function saveGameCloud(userId) {
-    const { data, error } = await supabase
-        .from('jogadores') // Nome da tabela que você vai criar no Supabase
-        .upsert({ 
-            id: userId, 
-            status_save: user, // Salva todo o seu objeto 'user'
-            updated_at: new Date() 
-        });
-
-    if (error) alert("Erro ao salvar: " + error.message);
-    else console.log("Progresso salvo na nuvem!");
+// === SISTEMA DE SAVE / LOAD ===
+function saveGame() {
+    const data = JSON.stringify(user);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([data], {type: 'application/json'}));
+    a.download = 'animetcg_save.json';
+    a.click();
+    alert("Jogo salvo no seu computador!");
 }
 
-// CARREGAR DA NUVEM
-async function loadGameCloud(userId) {
-    const { data, error } = await supabase
-        .from('jogadores')
-        .select('status_save')
-        .eq('id', userId)
-        .single();
-
-    if (data) {
-        user = data.status_save;
-        document.getElementById('menu-coins').innerText = user.coins;
-        alert("Bem-vindo de volta! Dados carregados.");
-    } else {
-        console.log("Novo jogador detectado.");
-    }
-}
-let meuLado = null; // 'player' ou 'enemy' (no PvP, o inimigo é o outro player)
-let salaAtual = null;
-
-async function conectarPvP() {
-    const roomId = document.getElementById('room-id').value;
-    if(!roomId) return alert("Digite um nome para a sala!");
-    
-    salaAtual = supabase.channel(`room_${roomId}`, {
-        config: { broadcast: { self: false } }
-    });
-
-    document.getElementById('status-pvp').innerText = "Conectando na sala...";
-
-    salaAtual
-        .on('broadcast', { event: 'setup' }, (payload) => {
-            // Se recebemos um setup e não temos lado, somos o Player 2
-            if(!meuLado) {
-                meuLado = 'P2';
-                console.log("Sou o Player 2");
-                enviarSetup(); // Devolvemos nossos dados para o P1
-                iniciarPartidaPvP(payload.userStats, 'P2');
-            }
-        })
-        .on('broadcast', { event: 'jogada' }, (payload) => {
-            receberJogadaOponente(payload);
-        })
-        .subscribe((status) => {
-            if (status === 'SUBSCRIBED') {
-                document.getElementById('status-pvp').innerText = "Aguardando oponente...";
-                // O primeiro a chegar tenta ser o Player 1 enviando o setup
-                meuLado = 'P1';
-                enviarSetup();
-            }
-        });
+function loadGame(input) {
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            user = JSON.parse(e.target.result);
+            document.getElementById('menu-coins').innerText = user.coins;
+            alert("Dados carregados com sucesso!");
+        } catch(err) { alert("Arquivo de save inválido!"); }
+    };
+    reader.readAsText(file);
 }
 
-function enviarSetup() {
-    salaAtual.send({
-        type: 'broadcast',
-        event: 'setup',
-        payload: { userStats: user }
-    });
-}
-
-function iniciarPartidaPvP(oponenteStats, lado) {
-    alert(`Duelo Iniciado contra ${oponenteStats.name || 'Adversário'}!`);
-    game.mode = 'pvp';
-    // Aqui você chamaria sua função de startGame adaptada para PvP
-    // Onde o 'game.enemy' seria preenchido com oponenteStats.deck
-    startGame(0, lado === 'P1' ? 'player' : 'enemy');
-}
 // === SISTEMA DE INSPECIONAR ===
 function inspectCard(card) {
     if(!card) return;
@@ -803,6 +677,7 @@ function inspectCard(card) {
     document.getElementById('ins-stats').innerText = `HP: ${card.curHP || card.hp}/${card.hp} | ENERGIA: ${card.attached || 0}`;
     document.getElementById('ins-desc').innerHTML = card.skills.map(s => `<b style="color:#fff">${s.n}</b> (Dano: ${s.d} | Custo: ${s.c})<br><span style="color:#aaa">${s.desc}</span>`).join('<br><br>');
 }
+
 </script>
 </body>
 </html>
