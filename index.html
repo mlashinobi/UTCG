@@ -232,17 +232,6 @@
 
 <div id="game-ui">
     <aside class="sidebar">
-         <!-- O VÍDEO DEVE SER O PRIMEIRO ITEM AQUI DENTRO -->
-    <video id="video-ultimate" style="
-        display: none; 
-        position: absolute; 
-        top: 0; left: 0; 
-        width: 100%; height: 100%; 
-        z-index: 1; /* Fica atrás das cartas que devem ser z-index: 2 ou mais */
-        opacity: 0.75; 
-        object-fit: cover;
-        pointer-events: none;
-    "></video>
         <div class="timer-box" id="turn-timer">30s</div>
         <div class="terminal" id="log"></div>
         <div class="inspect">
@@ -255,6 +244,16 @@
             <div id="energy-pool" style="font-size:28px; font-weight:900; color:var(--gold)">0</div>
         </div>
         <button class="btn btn-play" id="end-turn-btn" onclick="endTurn(true)">Passar Turno</button>
+         <video id="video-ultimate" playsinline style="
+    display: none; 
+    position: absolute; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    z-index: 10; /* Aumentei para garantir que aparece na frente do fundo */
+    opacity: 0.75; 
+    object-fit: cover;
+    pointer-events: none;
+"></video>
     </aside>
 
     <main class="arena">
@@ -807,27 +806,52 @@ function finalizarLoading() {
     }, 800);
 }
      // === CONTROLE DE ULTIMATE E ÁUDIO ===
+// === CONTROLE DE ULTIMATE À PROVA DE BALAS ===
 function dispararUltimate(urlDoVideo) {
     const bgMusic = document.getElementById('musicaFundo');
     const ultVideo = document.getElementById('video-ultimate');
 
-    if (ultVideo) {
-        // 1. Pausa a música do jogo
-        if (bgMusic) bgMusic.pause();
-
-        // 2. Prepara e mostra o vídeo
-        ultVideo.src = urlDoVideo;
-        ultVideo.style.display = 'block';
-        ultVideo.play();
-
-        // 3. Quando o vídeo terminar, ele se auto-limpa
-        ultVideo.onended = function() {
-            ultVideo.style.display = 'none';
-            ultVideo.src = "";
-            // 4. Volta a música do ponto onde parou
-            if (bgMusic) bgMusic.play();
-        };
+    // TESTE 1: A tag existe?
+    if (!ultVideo) {
+        console.error("❌ ERRO FATAL: O JavaScript não encontrou o id 'video-ultimate' no HTML!");
+        return;
     }
+
+    // TESTE 2: O link do vídeo é válido?
+    if (!urlDoVideo || !urlDoVideo.endsWith('.mp4')) {
+        console.warn("⚠️ AVISO: O link do vídeo não termina com .mp4. Pode não funcionar!");
+    }
+
+    // 1. Pausa a música
+    if (bgMusic && !bgMusic.paused) {
+        bgMusic.pause();
+    }
+
+    // 2. Prepara e mostra o vídeo
+    ultVideo.src = urlDoVideo;
+    ultVideo.style.display = 'block';
+
+    // 3. Tenta rodar o vídeo com tratamento de erro
+    ultVideo.play().then(() => {
+        console.log("✅ Vídeo da Ultimate rodando com sucesso!");
+    }).catch((erro) => {
+        console.error("❌ ERRO DO NAVEGADOR: O vídeo foi bloqueado! Motivo:", erro);
+        // Se o navegador bloquear (geralmente por falta de clique do usuário), esconde o vídeo
+        ultVideo.style.display = 'none';
+        if (bgMusic) bgMusic.play(); 
+    });
+
+    // 4. Quando o vídeo acabar, limpa tudo e volta a música
+    ultVideo.onended = function() {
+        console.log("🎬 Vídeo finalizado.");
+        ultVideo.style.display = 'none';
+        ultVideo.src = "";
+        
+        // Retoma a música
+        if (bgMusic) {
+            bgMusic.play().catch(e => console.log("Erro ao voltar a música:", e));
+        }
+    };
 }
 </script>
 </body>
