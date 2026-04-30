@@ -665,23 +665,20 @@ function triggerAttack(idx, source) {
     
     if(attacker.attached < skill.c) return alert("Energia insuficiente!");
     
-    clearInterval(game.timerInterval); // Pausa tempo durante ataque
+    clearInterval(game.timerInterval); 
     document.getElementById('end-turn-btn').disabled = true;
 
-    // Animação CSS
     const cardEl = document.getElementById(source === 'player' ? 'p-card-active' : 'e-card-active');
     if(cardEl) { cardEl.classList.add('atk-anim'); setTimeout(() => cardEl.classList.remove('atk-anim'), 400); }
     
-    attacker.attached -= skill.c; // Gasta energia
+    // A ENERGIA AGORA FICA PRESA NA CARTA! (Retirei o gasto)
 
     if(attacker.isEx && skill.vid) {
-        // Tem vídeo: Guarda na memória e abre a tela preta
         game.pendingAttack = { attacker, defender, skill, source };
         const v = document.getElementById('ult-video'); v.src = skill.vid;
         document.getElementById('ult-screen').style.display = 'flex'; 
-        v.play().catch(()=> closeUlt()); // Se falhar, pula direto
+        v.play().catch(()=> closeUlt()); 
     } else {
-        // Não tem vídeo: aplica dano imediato
         executeDamage(attacker, defender, skill, source);
     }
 }
