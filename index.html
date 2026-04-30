@@ -11,6 +11,39 @@
     <meta charset="UTF-8">
     <title>Anime TCG - Boss & Normal Edition</title>
     <style>
+        #splash-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #000; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.utcg-logo {
+    width: 350px; /* Aumentei um pouco para dar destaque */
+    filter: drop-shadow(0 0 25px var(--gold));
+    margin-bottom: 40px; /* Espaço generoso acima do loading */
+    animation: pulse 2s infinite;
+}
+
+#percentage-text {
+    color: var(--gold, #ffd700);
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+#loading-bar-container {
+    width: 300px; height: 12px; background: #1e293b;
+    border-radius: 20px; border: 1px solid #334155;
+    overflow: hidden; margin-bottom: 20px;
+}
+
+#loading-bar-progress {
+    width: 0%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    box-shadow: 0 0 15px var(--gold);
+    transition: width 0.2s ease-out;
+}
         :root {
             --bg-arena: url('https://images.alphacoders.com/132/1326442.png');
             --glass: rgba(10, 15, 30, 0.95);
@@ -114,7 +147,21 @@
     </style>
 </head>
 <body>
-
+<div id="splash-screen">
+    <!-- Logo Centralizada -->
+    <img src="https://i.imgur.com/HWERuem.png" alt="UTCG" class="utcg-logo">
+    
+    <!-- Porcentagem em cima da barra -->
+    <div id="percentage-text">0%</div>
+    
+    <!-- Barra de Loading -->
+    <div id="loading-bar-container">
+        <div id="loading-bar-progress"></div>
+    </div>
+    
+    <!-- Botão que só aparece no 100% -->
+    <button id="btn-play-utcg" class="btn btn-play" style="display: none; padding: 15px 80px; font-size: 1.2rem;" onclick="finalizarLoading()">PLAY</button>
+</div>
 <audio id="musicaFundo" loop>
     <source src="https://www.chosic.com/wp-content/uploads/2021/07/The-Epic-Hero-Epic-Cinematic-Music-By-Keys-Of-Moon.mp3" type="audio/mpeg">
 </audio>
@@ -694,7 +741,48 @@ function inspectCard(card) {
     document.getElementById('ins-stats').innerText = `HP: ${card.curHP || card.hp}/${card.hp} | ENERGIA: ${card.attached || 0}`;
     document.getElementById('ins-desc').innerHTML = card.skills.map(s => `<b style="color:#fff">${s.n}</b> (Dano: ${s.d} | Custo: ${s.c})<br><span style="color:#aaa">${s.desc}</span>`).join('<br><br>');
 }
+let progresso = 0;
+const speed = 150; // Velocidade da atualização (ms)
 
+const interval = setInterval(() => {
+    // Incremento aleatório para parecer "real"
+    progresso += Math.random() * 7; 
+    
+    if (progresso > 100) progresso = 100;
+
+    const bar = document.getElementById('loading-bar-progress');
+    const txt = document.getElementById('percentage-text');
+
+    if (bar) bar.style.width = progresso + "%";
+    if (txt) txt.innerText = Math.floor(progresso) + "%";
+
+    if (progresso >= 100) {
+        clearInterval(interval);
+        // Esconde a barra e o número para mostrar o botão
+        document.getElementById('loading-bar-container').style.display = 'none';
+        document.getElementById('percentage-text').style.display = 'none';
+        document.getElementById('btn-play-utcg').style.display = 'block';
+    }
+}, speed);
+
+// Função que você já tem, só para garantir a transição
+function finalizarLoading() {
+    const som = document.getElementById('musicaFundo');
+    if (som) {
+        som.volume = 0.3;
+        som.play().catch(() => {});
+    }
+
+    const splash = document.getElementById('splash-screen');
+    splash.style.transition = "all 0.8s ease";
+    splash.style.opacity = "0";
+    splash.style.transform = "scale(1.1)"; // Efeito de zoom ao entrar
+    
+    setTimeout(() => {
+        splash.style.display = 'none';
+        if(typeof showScreen === 'function') showScreen('main-menu');
+    }, 800);
+}
 </script>
 </body>
 </html>
