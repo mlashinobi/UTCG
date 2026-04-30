@@ -171,11 +171,11 @@
     <button id="btn-play-utcg" class="btn btn-play" style="display: none; padding: 15px 80px; font-size: 1.2rem;" onclick="finalizarLoading()">PLAY</button>
 </div>
 <audio id="musicaFundo" loop>
-    <source src="https://www.chosic.com/wp-content/uploads/2021/07/The-Epic-Hero-Epic-Cinematic-Music-By-Keys-Of-Moon.mp3" type="audio/mpeg">
+    <source src="19. Main Menu (Mega Evolution).mp3" type="audio/mpeg">
 </audio>
 
 <audio id="musicaBatalha" loop>
-    <source src="https://ia801308.us.archive.org/13/items/NarutoShippudenOST1Track0101.Shippuuden/Naruto%20Shippuden%20OST%201%20-%20Track%2001%20-%2001.%20Shippuuden.mp3" type="audio/mpeg">
+    <source src="02. 物語りの途中 -off vocal ver.-.mp3" type="audio/mpeg">
 </audio>
 
 <div id="main-menu" class="screen">
@@ -260,14 +260,14 @@
 <script>
 const CARDS_DB = {
     'n1': { id: 'n1', name: "Naruto", hp: 70, img: "https://i.imgur.com/MG7FIXN.jpeg", skills: [{n:"Rasengan", d:50, c:2, desc:"Esfera de chakra!"}, {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones."}], price: 0 },
-    'n2': { id: 'n2', name: "Naruto Modo Senin EX", hp: 160, isEx:true, evolvesFrom:"Naruto", img: "https://i.imgur.com/uXbwFlO.jpeg", skills: [{n:"Jutsu de invocação!", d:90, c:2, desc:"Invoca Gamakich!"}, {n:"Rasenshuriken", d:140, c:4, desc:"Explosão devastadora!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498837879386931310/Naruto_Ultimate_Ninja_Storm_2_-_Rasenshuriken_with_Anime_SFX_-_Soundman_720p_h264_youtube.mp4?ex=69f29d0d&is=69f14b8d&hm=0d4c7dfc8bff58c32a1808601523331fdc33262877ac770130a5fe078cee3282&"}], price: 500 },
+    'n2': { id: 'n2', name: "Naruto Modo Senin EX", hp: 160, isEx:true, evolvesFrom:"Naruto", img: "https://i.imgur.com/uXbwFlO.jpeg", skills: [{n:"Jutsu de invocação!", d:90, c:2, desc:"Invoca Gamakich!"}, {n:"Rasenshuriken", d:140, c:4, desc:"Explosão devastadora!", vid:"Naruto Ultimate Ninja Storm 2 - Rasenshuriken with Anime SFX - Soundman (720p, h264, youtube).mp4"}], price: 500 },
     'g1': { id: 'g1', name: "Goku", hp: 80, img: "https://i.imgur.com/g4H83vJ.jpeg", skills: [{n:"Ki Blast", d:30, c:1, desc:"Uma esfera de Ki!"}, {n:"Kamehameha", d:50, c:2, desc:"Raio concentrado!"}], price: 0 },
-    'g2': { id: 'g2', name: "Goku SSJB EX", hp: 210, isEx:true, evolvesFrom:"Goku", img: "https://i.imgur.com/SWcfJrp.jpeg", skills: [{n:"Super Kamehameha", d:80, c:2, desc:"Potencia aumentada!"}, {n:"GENKI DAMA", d:170, c:4, desc:"Força da Terra!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498840319297458256/GOKU_SSJB_SUPER_SPIRIT_BOMB_GENKIDAMA_DBZ_ONLINE_ULTIMATE_ATTACK_KAKAROT.mp4?ex=69f29f53&is=69f14dd3&hm=06244271a30e260cadddb4b2c1af071a40b3cc594edce5d5d9b17d0dd25c5aec&"}], price: 600 },
+    'g2': { id: 'g2', name: "Goku SSJB EX", hp: 210, isEx:true, evolvesFrom:"Goku", img: "https://i.imgur.com/SWcfJrp.jpeg", skills: [{n:"Super Kamehameha", d:80, c:2, desc:"Potencia aumentada!"}, {n:"GENKI DAMA", d:170, c:4, desc:"Força da Terra!", vid:"GOKU SSJB SUPER SPIRIT BOMB!!  GENKIDAMA  DBZ ONLINE  ULTIMATE ATTACK  KAKAROT.mp4"}], price: 600 },
     'j1': { id: 'j1', name: "Itadori", hp: 90, img: "https://i.imgur.com/qNxk0Sn.jpeg", skills: [{n:"Kokusen", d:40, c:1, desc:"Energia amaldiçoada!"}], price: 200 },
-    'j2': { id: 'j2', name: "Sukuna EX", hp: 250, isEx:true, evolvesFrom:"Itadori", img: "https://i.imgur.com/MQKiefi.jpeg", skills: [{n:"Flecha de Fogo", d:90, c:2, desc:"Flecha ardente.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498841356179865620/Sukunas_Fuga_Remaster_4K_-_JJK_S2_E17_Bluray_-_Jack_The_Anime_Ripper_720p_h264_youtube.mp4?ex=69f2a04a&is=69f14eca&hm=16d799a1860bde126bfa9b41a2c20adeb770969dfb36a4c13131b7f016029ed5&"}, {n:"Fukuma Mizushi", d:200, c:4, desc:"Expansão de dominio.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498845551352090757/expansao_de_dominio_Sukuna_Jujutsu_Kaisen_dublado_Shorts.mp4?ex=69f2a432&is=69f152b2&hm=5dd23eed6b6740033df195c55b3208785ee0165707b4c2e2582c544366763379&"}], price: 1000 },
+    'j2': { id: 'j2', name: "Sukuna EX", hp: 250, isEx:true, evolvesFrom:"Itadori", img: "https://i.imgur.com/MQKiefi.jpeg", skills: [{n:"Fuga", d:90, c:2, desc:"Flecha ardente.", vid:"Sukuna's Fuga Remaster 4K - JJK S2 E17 Bluray - Jack The Anime Ripper (720p, h264, youtube).mp4"}, {n:"Fukuma Mizushi", d:200, c:4, desc:"Expansão de dominio.", vid:"expansão de domínio, Sukuna [Jujutsu Kaisen dublado] #Shorts.mp4"}], price: 1000 },
     'b1': { id: 'b1', name: "Gojo", hp: 110, img: "https://i.imgur.com/71MfKQb.jpeg", skills: [{n:"Azul", d:50, c:2, desc:"Atrai oponente"}, {n:"Vermelho", d:70, c:2, desc:"Repele oponente"}], price: 350 },
-    'b2': { id: 'b2', name: "Gojo EX", hp: 220, isEx:true, evolvesFrom:"Gojo", img: "https://i.imgur.com/qQ7wAbW.jpeg", skills: [{n:"Vazio Roxo", d:120, c:2, desc:"Criação potente.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498846890161209354/satoru_gojo_usa_vazio_roxo_pela_primeira_vez.mp4?ex=69f2a571&is=69f153f1&hm=574c836b790dc71f2cb4cd413c5410136e71c696c40a44cd2c60188abf97ef84&"}, {n:"Muryo Kusho", d:250, c:4, desc:"Expansão de dominio.", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498847926095577179/Gojo_Satorus_0.2s_Domain_Expansion_in_4K_JJK_Shibuya_Incident_Arc_-_Silver_Clips_Raw_Anime_720p_h264_youtube.mp4?ex=69f2a668&is=69f154e8&hm=950daa8ffa8950984aaf9df61af03b716bfc23556a22e3d0f72109e37d3cdd32&"}], price: 2500 },
-    'a1': { id: 'a1', name: "Dio EX", hp: 230, isEx:true, img: "https://i.imgur.com/L5TnHY4.jpeg", skills: [{n:"Muda Muda Muda!", d:120, c:2, desc:"Barragem de socos!"}, {n:"Za Warudo! Road Roller Da!", d:190, c:4, desc:"Para o tempo!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498848322704638043/ROAD_ROLLER_DA_-_Hugette_Hikari_480p_h264_youtube.mp4?ex=69f2a6c7&is=69f15547&hm=5fb26a98bff38c07658d15f411f9b7db67be1723bedd680ce976d83a452f333c&"}], price: 1750 }
+    'b2': { id: 'b2', name: "Gojo EX", hp: 220, isEx:true, evolvesFrom:"Gojo", img: "https://i.imgur.com/qQ7wAbW.jpeg", skills: [{n:"Vazio Roxo", d:120, c:2, desc:"Criação potente.", vid:"satoru gojo usa vazio roxo pela primeira vez.mp4"}, {n:"Muryo Kusho", d:250, c:4, desc:"Expansão de dominio.", vid:"Gojo Satoru’s 0.2s Domain Expansion in 4K JJK Shibuya Incident Arc - Silver Clips Raw Anime (720p, h264, youtube).mp4"}], price: 2500 },
+    'a1': { id: 'a1', name: "Dio EX", hp: 230, isEx:true, img: "https://i.imgur.com/L5TnHY4.jpeg", skills: [{n:"Muda Muda Muda!", d:120, c:2, desc:"Barragem de socos!"}, {n:"Za Warudo! Road Roller Da!", d:190, c:4, desc:"Para o tempo!", vid:"ROAD ROLLER DA - Hugette Hikari (480p, h264, youtube).mp4"}], price: 1750 }
 };
 
 const LEVELS_BOSS = [
