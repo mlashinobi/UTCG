@@ -1,9 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
     <title>UTCG - Release</title>
     <style>
+        body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Evita scroll lateral */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background-color: #000;
+}
+
+#game-container {
+    transition: transform 0.2s ease; /* Suaviza o redimensionamento */
+    transform-origin: top center;   /* Escala a partir do topo */
+}
         #update-notes {
     position: fixed; 
     bottom: 20px; 
@@ -798,6 +813,36 @@ function finalizarLoading() {
         if(typeof showScreen === 'function') showScreen('main-menu');
     }, 800);
 }
+function adaptToDevice() {
+    const container = document.getElementById('game-container');
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // Largura base do seu jogo no PC (ajuste se necessário)
+    const baseWidth = 1200; 
+    const baseHeight = 850;
+
+    let scale = 1;
+
+    // Se a tela for menor que o jogo (Celulares e Tablets)
+    if (screenWidth < baseWidth || screenHeight < baseHeight) {
+        const scaleX = screenWidth / baseWidth;
+        const scaleY = screenHeight / baseHeight;
+        
+        // Usa a menor escala para garantir que caiba na largura e altura
+        scale = Math.min(scaleX, scaleY) * 0.95; // 0.95 para deixar uma margem
+    }
+
+    // Aplica a escala visualmente
+    container.style.transform = `scale(${scale})`;
+    
+    // Log para você testar no console do navegador
+    console.log(`Dispositivo detectado. Escala aplicada: ${scale.toFixed(2)}`);
+}
+
+// Executa ao carregar e sempre que girar o celular ou mudar o tamanho da aba
+window.addEventListener('resize', adaptToDevice);
+window.addEventListener('load', adaptToDevice);
 </script>
     <div id="update-notes">
         <h4>UTCG - Update Notes v1.0.1</h4>
@@ -806,7 +851,7 @@ function finalizarLoading() {
             <li>Tela de carregamento implementada para melhor desempenho</li>
             <li>Musicas adicionadas!</li>
             <li>Correção de Bugs!</li>
-            <li>caso tenha algum bug, mande uma mesagem no meu instagram:  @dancostx</li>
+            <li>Caso tenha algum bug, mande uma mesagem no meu instagram:  @dancostx</li>
         </ul>
     </div>
 </body>
