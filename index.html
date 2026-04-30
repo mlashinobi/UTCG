@@ -315,6 +315,14 @@ function showScreen(id, modeParam) {
     if(el) el.style.display = (id === 'game-ui') ? 'grid' : 'flex';
     document.getElementById('menu-coins').innerText = user.coins;
     
+    // Desliga música de batalha e volta a do Menu
+    if(id === 'main-menu') {
+        const musicaBatalha = document.getElementById('musicaBatalha');
+        const musicaFundo = document.getElementById('musicaFundo');
+        if(musicaBatalha) musicaBatalha.pause();
+        if(musicaFundo && musicaFundo.paused) musicaFundo.play().catch(()=>{});
+    }
+    
     if(id === 'deck-select') {
         game.mode = modeParam;
         document.getElementById('select-title').innerText = modeParam === 'boss' ? "Selecione o Boss" : "Selecione o Adversário";
@@ -407,6 +415,12 @@ function startGame(lvlIdx, firstTurn) {
     showScreen('game-ui');
     document.getElementById('log').innerHTML = '';
     
+    // Troca a música
+    const musicaFundo = document.getElementById('musicaFundo');
+    const musicaBatalha = document.getElementById('musicaBatalha');
+    if(musicaFundo) musicaFundo.pause();
+    if(musicaBatalha) { musicaBatalha.currentTime = 0; musicaBatalha.play().catch(()=>{}); }
+    
     game.player = { active: null, bench: [], hand: [], deck: [...user.deck].sort(()=>0.5-Math.random()), energy: 0 };
     
     if(game.mode === 'boss') {
@@ -420,19 +434,10 @@ function startGame(lvlIdx, firstTurn) {
         game.currentReward = lvl.reward;
         game.enemy = { active: null, bench: [], hand: [], deck: [...lvl.deck].sort(()=>0.5-Math.random()), energy: 0 };
         for(let i=0; i<4; i++) { if(game.enemy.deck.length > 0) game.enemy.hand.push({...CARDS_DB[game.enemy.deck.pop()]}); }
-        // Coloca o primeiro ativo pra ele não perder no turno 1
         if(game.enemy.hand.length > 0) {
             game.enemy.active = {...game.enemy.hand[0], curHP: game.enemy.hand[0].hp, attached: 0};
             game.enemy.hand.splice(0,1);
         }
-        const mFundo = document.getElementById('musicaFundo');
-    const mBatalha = document.getElementById('musicaBatalha');
-    
-    if(mFundo) mFundo.pause();
-    if(mBatalha) {
-        mBatalha.currentTime = 0;
-        mBatalha.play().catch(e => console.log("Erro ao tocar música de batalha"));
-    }
     }
 
     for(let i=0; i<4; i++) drawCard(game.player);
