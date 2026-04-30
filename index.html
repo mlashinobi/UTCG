@@ -5,6 +5,61 @@
     <meta charset="UTF-8">
     <title>UTCG - Release</title>
     <style>
+        /* Configurações para Celular e Tablet Vertical */
+@media (max-width: 800px) {
+    #game-container {
+        flex-direction: column; /* Empilha o Log e o Tabuleiro */
+        width: 100vw;
+        height: auto;
+        padding: 5px;
+    }
+
+    .side-panel {
+        width: 100%; /* Log ocupa a largura toda em cima ou embaixo */
+        height: 150px;
+        order: 2; /* Joga o log para baixo do tabuleiro */
+    }
+
+    .main-board {
+        width: 100%;
+        order: 1; /* Tabuleiro fica em cima */
+    }
+
+    /* Aumentar botões para o polegar */
+    button {
+        padding: 12px 20px; 
+        font-size: 16px !important;
+        margin: 5px;
+    }
+
+    /* Ajustar a Arena para não cortar as cartas */
+    .arena {
+        flex-direction: column; /* Inimigo em cima, Jogador embaixo */
+        gap: 10px;
+        height: auto;
+    }
+
+    .card {
+        width: 100px; /* Cartas levemente menores para caberem lado a lado */
+        height: 140px;
+    }
+
+    /* Mão do jogador: Scroll horizontal para não apertar as cartas */
+    #p-hand {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        justify-content: flex-start;
+        padding: 10px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 10px;
+    }
+    
+    #p-hand .card {
+        flex: 0 0 auto; /* Impede que a carta encolha */
+        margin-right: 8px;
+    }
+}
         body {
     margin: 0;
     padding: 0;
@@ -813,32 +868,28 @@ function finalizarLoading() {
         if(typeof showScreen === 'function') showScreen('main-menu');
     }, 800);
 }
-function adaptToDevice() {
+function setupMobileOptimized() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const container = document.getElementById('game-container');
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
     
-    // Largura base do seu jogo no PC (ajuste se necessário)
-    const baseWidth = 1200; 
-    const baseHeight = 850;
-
-    let scale = 1;
-
-    // Se a tela for menor que o jogo (Celulares e Tablets)
-    if (screenWidth < baseWidth || screenHeight < baseHeight) {
-        const scaleX = screenWidth / baseWidth;
-        const scaleY = screenHeight / baseHeight;
+    if (isMobile) {
+        // Remove restrições de tamanho fixo para o container fluir no mobile
+        container.style.width = "100%";
+        container.style.maxWidth = "100vw";
+        container.style.transform = "scale(1)"; // Resetamos o scale para usar o CSS Media Query
         
-        // Usa a menor escala para garantir que caiba na largura e altura
-        scale = Math.min(scaleX, scaleY) * 0.95; // 0.95 para deixar uma margem
+        // Adiciona uma classe ao body para ajustes específicos via CSS se precisar
+        document.body.classList.add('mobile-mode');
+        
+        console.log("Modo Mobile Ativado");
+    } else {
+        // Mantém o comportamento de PC
+        adaptToDevice(); // Aquela função de escala que enviamos antes
     }
-
-    // Aplica a escala visualmente
-    container.style.transform = `scale(${scale})`;
-    
-    // Log para você testar no console do navegador
-    console.log(`Dispositivo detectado. Escala aplicada: ${scale.toFixed(2)}`);
 }
+
+// Chame no window.onload
+window.addEventListener('load', setupMobileOptimized);
 
 // Executa ao carregar e sempre que girar o celular ou mudar o tamanho da aba
 window.addEventListener('resize', adaptToDevice);
