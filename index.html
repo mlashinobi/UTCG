@@ -44,6 +44,21 @@
     box-shadow: 0 0 15px var(--gold);
     transition: width 0.2s ease-out;
 }
+         #update-notes {
+    position: fixed; 
+    bottom: 20px; 
+    right: 20px; 
+    z-index: 5000; /* Garantindo que fique visível após o Splash */
+    width: 250px; 
+    background: rgba(15, 23, 42, 0.95); /* Um pouco mais opaco para ler melhor */
+    border: 2px solid var(--gold); 
+    border-radius: 10px;
+    padding: 15px; 
+    font-size: 12px; 
+    color: #e2e8f0;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    pointer-events: none; /* Para não atrapalhar cliques no fundo se necessário */
+}
         :root {
             --bg-arena: url('https://images.alphacoders.com/132/1326442.png');
             --glass: rgba(10, 15, 30, 0.95);
@@ -220,6 +235,17 @@
 
 <div id="game-ui">
     <aside class="sidebar">
+         <!-- O VÍDEO DEVE SER O PRIMEIRO ITEM AQUI DENTRO -->
+    <video id="video-ultimate" style="
+        display: none; 
+        position: absolute; 
+        top: 0; left: 0; 
+        width: 100%; height: 100%; 
+        z-index: 1; /* Fica atrás das cartas que devem ser z-index: 2 ou mais */
+        opacity: 0.75; 
+        object-fit: cover;
+        pointer-events: none;
+    "></video>
         <div class="timer-box" id="turn-timer">30s</div>
         <div class="terminal" id="log"></div>
         <div class="inspect">
@@ -782,6 +808,29 @@ function finalizarLoading() {
         splash.style.display = 'none';
         if(typeof showScreen === 'function') showScreen('main-menu');
     }, 800);
+}
+     // === CONTROLE DE ULTIMATE E ÁUDIO ===
+function dispararUltimate(urlDoVideo) {
+    const bgMusic = document.getElementById('musicaFundo');
+    const ultVideo = document.getElementById('video-ultimate');
+
+    if (ultVideo) {
+        // 1. Pausa a música do jogo
+        if (bgMusic) bgMusic.pause();
+
+        // 2. Prepara e mostra o vídeo
+        ultVideo.src = urlDoVideo;
+        ultVideo.style.display = 'block';
+        ultVideo.play();
+
+        // 3. Quando o vídeo terminar, ele se auto-limpa
+        ultVideo.onended = function() {
+            ultVideo.style.display = 'none';
+            ultVideo.src = "";
+            // 4. Volta a música do ponto onde parou
+            if (bgMusic) bgMusic.play();
+        };
+    }
 }
 </script>
 </body>
