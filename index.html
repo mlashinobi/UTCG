@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-     <audio id="musicaFundo" loop>
-    <source src="19. Main Menu (Mega Evolution).mp3" type="audio/mpeg">
-</audio>
-
-<audio id="musicaBatalha" loop>
-    <source src="02. 物語りの途中 -off vocal ver.-.mp3" type="audio/mpeg">
-</audio>
     <meta charset="UTF-8">
     <title>UTCG - Release</title>
     <style>
+        #update-notes {
+    position: fixed; 
+    bottom: 20px; 
+    right: 20px; 
+    z-index: 5000; /* Garantindo que fique visível após o Splash */
+    width: 250px; 
+    background: rgba(15, 23, 42, 0.95); /* Um pouco mais opaco para ler melhor */
+    border: 2px solid var(--gold); 
+    border-radius: 10px;
+    padding: 15px; 
+    font-size: 12px; 
+    color: #e2e8f0;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    pointer-events: none; /* Para não atrapalhar cliques no fundo se necessário */
+}
         #splash-screen {
     position: fixed; inset: 0; z-index: 9999;
     background: #000; display: flex; flex-direction: column;
@@ -43,21 +51,6 @@
     width: 0%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24);
     box-shadow: 0 0 15px var(--gold);
     transition: width 0.2s ease-out;
-}
-         #update-notes {
-    position: fixed; 
-    bottom: 20px; 
-    right: 20px; 
-    z-index: 5000; /* Garantindo que fique visível após o Splash */
-    width: 250px; 
-    background: rgba(15, 23, 42, 0.95); /* Um pouco mais opaco para ler melhor */
-    border: 2px solid var(--gold); 
-    border-radius: 10px;
-    padding: 15px; 
-    font-size: 12px; 
-    color: #e2e8f0;
-    box-shadow: 0 0 20px rgba(0,0,0,0.8);
-    pointer-events: none; /* Para não atrapalhar cliques no fundo se necessário */
 }
         :root {
             --bg-arena: url('https://images.alphacoders.com/132/1326442.png');
@@ -177,14 +170,21 @@
     <!-- Botão que só aparece no 100% -->
     <button id="btn-play-utcg" class="btn btn-play" style="display: none; padding: 15px 80px; font-size: 1.2rem;" onclick="finalizarLoading()">PLAY</button>
 </div>
+<audio id="musicaFundo" loop>
+    <source src="https://www.chosic.com/wp-content/uploads/2021/07/The-Epic-Hero-Epic-Cinematic-Music-By-Keys-Of-Moon.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="musicaBatalha" loop>
+    <source src="https://ia801308.us.archive.org/13/items/NarutoShippudenOST1Track0101.Shippuuden/Naruto%20Shippuden%20OST%201%20-%20Track%2001%20-%2001.%20Shippuuden.mp3" type="audio/mpeg">
+</audio>
 
 <div id="main-menu" class="screen">
     <div class="menu-bg"></div>
-    <div class="game-title">UTCG<br><span style="font-size: 24px; color: #ef4444;">Release</span></div>
+    <div class="game-title">ANIME TCG<br><span style="font-size: 24px; color: #ef4444;">ULTIMATE EDITION</span></div>
     <div style="margin-bottom: 20px; color: var(--gold); font-weight: bold;">Moedas: <span id="menu-coins">0</span></div>
     <div class="menu-buttons">
-        <button class="btn btn-play" style="background:#0ea5e9; border-color:#fff; box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);" onclick="showScreen('deck-select', 'normal')">Jogar</button>
-        <button class="btn btn-play" onclick="showScreen('deck-select', 'boss')">Boss Raid</button>
+        <button class="btn btn-play" style="background:#0ea5e9; border-color:#fff; box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);" onclick="showScreen('deck-select', 'normal')">Batalhar!</button>
+        <button class="btn btn-play" onclick="showScreen('deck-select', 'boss')">Raid</button>
         <button class="btn btn-sec" onclick="openEditor()">Meu Deck</button>
         <button class="btn btn-sec" onclick="openStore()">Loja de Cartas</button>
         <button class="btn btn-sec" onclick="saveGame()">Salvar Dados</button>
@@ -244,16 +244,6 @@
             <div id="energy-pool" style="font-size:28px; font-weight:900; color:var(--gold)">0</div>
         </div>
         <button class="btn btn-play" id="end-turn-btn" onclick="endTurn(true)">Passar Turno</button>
-         <video id="video-ultimate" playsinline style="
-    display: none; 
-    position: absolute; 
-    top: 0; left: 0; 
-    width: 100%; height: 100%; 
-    z-index: 10; /* Aumentei para garantir que aparece na frente do fundo */
-    opacity: 0.75; 
-    object-fit: cover;
-    pointer-events: none;
-"></video>
     </aside>
 
     <main class="arena">
@@ -268,29 +258,6 @@
 </div>
 
 <script>
-    // === SISTEMA DE ÁUDIO AUTOMÁTICO ===
-function ligarMusica() {
-    const som = document.getElementById('musicaFundo');
-    if (som && som.paused) {
-        som.volume = 0.3;
-        som.play().then(() => {
-            // Se tocar com sucesso, removemos os vigias para não pesar o site
-            window.removeEventListener('click', ligarMusica);
-            window.removeEventListener('mousedown', ligarMusica);
-            window.removeEventListener('keydown', ligarMusica);
-            console.log("Música iniciada com sucesso!");
-        }).catch(err => {
-            console.log("Aguardando interação para soltar o som...");
-        });
-    }
-}
-
-// O site fica "vigiando" qualquer movimento seu para soltar o som
-window.addEventListener('click', ligarMusica);
-window.addEventListener('mousedown', ligarMusica);
-window.addEventListener('keydown', ligarMusica);
-window.onload = ligarMusica; // Tenta ligar assim que carregar (o navegador pode barrar, mas o clique logo em seguida libera)
-
 const CARDS_DB = {
     'n1': { id: 'n1', name: "Naruto", hp: 70, img: "https://i.imgur.com/MG7FIXN.jpeg", skills: [{n:"Rasengan", d:50, c:2, desc:"Esfera de chakra!"}, {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones."}], price: 0 },
     'n2': { id: 'n2', name: "Naruto Modo Senin EX", hp: 160, isEx:true, evolvesFrom:"Naruto", img: "https://i.imgur.com/uXbwFlO.jpeg", skills: [{n:"Jutsu de invocação!", d:90, c:2, desc:"Invoca Gamakich!"}, {n:"Rasenshuriken", d:140, c:4, desc:"Explosão devastadora!", vid:"https://cdn.discordapp.com/attachments/1498836835282194452/1498837879386931310/Naruto_Ultimate_Ninja_Storm_2_-_Rasenshuriken_with_Anime_SFX_-_Soundman_720p_h264_youtube.mp4?ex=69f29d0d&is=69f14b8d&hm=0d4c7dfc8bff58c32a1808601523331fdc33262877ac770130a5fe078cee3282&"}], price: 500 },
@@ -319,9 +286,27 @@ const LEVELS_NORMAL = [
 let user = { coins: 500, inventory: ['n1','g1','n1','g1','n1','g1','j1','b1'], deck: ['n1','g1','n1','g1','n1'] };
 let game = { player: {}, enemy: {}, turn: '', energyUsed: false, currentReward: 0, evolutionsThisTurn: 0, hasSwapped: false, mode: '', pendingAttack: null, timerInterval: null, timeLeft: 30 };
 
-const somFundo = document.getElementById('musicaFundo');
-somFundo.volume = 0.35;
-window.addEventListener('click', () => { if (somFundo.paused) somFundo.play().catch(()=>{}); }, { once: true });
+// Função para garantir que o áudio toque após o primeiro clique do usuário
+function desbloquearAudio() {
+    const menuSom = document.getElementById('musicaFundo');
+    const batalhaSom = document.getElementById('musicaBatalha');
+    
+    // Define volumes iniciais
+    menuSom.volume = 0.3;
+    batalhaSom.volume = 0.3;
+
+    // Tenta tocar a música do menu
+    if (menuSom.paused) {
+        menuSom.play().catch(e => console.log("Aguardando interação para áudio..."));
+    }
+    
+    // Remove o evento após o primeiro clique para não ficar repetindo
+    window.removeEventListener('click', desbloquearAudio);
+    window.removeEventListener('keydown', desbloquearAudio);
+}
+
+window.addEventListener('click', desbloquearAudio);
+window.addEventListener('keydown', desbloquearAudio);
 
 function showScreen(id, modeParam) {
     document.querySelectorAll('.screen, #coin-screen').forEach(s => s.style.display = 'none');
@@ -329,14 +314,6 @@ function showScreen(id, modeParam) {
     const el = document.getElementById(id);
     if(el) el.style.display = (id === 'game-ui') ? 'grid' : 'flex';
     document.getElementById('menu-coins').innerText = user.coins;
-    
-    // Desliga música de batalha e volta a do Menu
-    if(id === 'main-menu') {
-        const musicaBatalha = document.getElementById('musicaBatalha');
-        const musicaFundo = document.getElementById('musicaFundo');
-        if(musicaBatalha) musicaBatalha.pause();
-        if(musicaFundo && musicaFundo.paused) musicaFundo.play().catch(()=>{});
-    }
     
     if(id === 'deck-select') {
         game.mode = modeParam;
@@ -443,10 +420,19 @@ function startGame(lvlIdx, firstTurn) {
         game.currentReward = lvl.reward;
         game.enemy = { active: null, bench: [], hand: [], deck: [...lvl.deck].sort(()=>0.5-Math.random()), energy: 0 };
         for(let i=0; i<4; i++) { if(game.enemy.deck.length > 0) game.enemy.hand.push({...CARDS_DB[game.enemy.deck.pop()]}); }
+        // Coloca o primeiro ativo pra ele não perder no turno 1
         if(game.enemy.hand.length > 0) {
             game.enemy.active = {...game.enemy.hand[0], curHP: game.enemy.hand[0].hp, attached: 0};
             game.enemy.hand.splice(0,1);
         }
+        const mFundo = document.getElementById('musicaFundo');
+    const mBatalha = document.getElementById('musicaBatalha');
+    
+    if(mFundo) mFundo.pause();
+    if(mBatalha) {
+        mBatalha.currentTime = 0;
+        mBatalha.play().catch(e => console.log("Erro ao tocar música de batalha"));
+    }
     }
 
     for(let i=0; i<4; i++) drawCard(game.player);
@@ -557,7 +543,6 @@ function render(id, card, isP, type, index) {
     `;
     area.appendChild(div);
 }
-
 function swapCard(index) {
     if(!game.player.active) return;
     if(game.hasSwapped) return alert("Você já fez uma troca neste turno!");
@@ -605,20 +590,23 @@ function triggerAttack(idx, source) {
     
     if(attacker.attached < skill.c) return alert("Energia insuficiente!");
     
-    clearInterval(game.timerInterval); 
+    clearInterval(game.timerInterval); // Pausa tempo durante ataque
     document.getElementById('end-turn-btn').disabled = true;
 
+    // Animação CSS
     const cardEl = document.getElementById(source === 'player' ? 'p-card-active' : 'e-card-active');
     if(cardEl) { cardEl.classList.add('atk-anim'); setTimeout(() => cardEl.classList.remove('atk-anim'), 400); }
     
-    // A ENERGIA AGORA FICA PRESA NA CARTA! (Retirei o gasto)
+    attacker.attached -= skill.c; // Gasta energia
 
     if(attacker.isEx && skill.vid) {
+        // Tem vídeo: Guarda na memória e abre a tela preta
         game.pendingAttack = { attacker, defender, skill, source };
         const v = document.getElementById('ult-video'); v.src = skill.vid;
         document.getElementById('ult-screen').style.display = 'flex'; 
-        v.play().catch(()=> closeUlt()); 
+        v.play().catch(()=> closeUlt()); // Se falhar, pula direto
     } else {
+        // Não tem vídeo: aplica dano imediato
         executeDamage(attacker, defender, skill, source);
     }
 }
@@ -804,54 +792,6 @@ function finalizarLoading() {
         splash.style.display = 'none';
         if(typeof showScreen === 'function') showScreen('main-menu');
     }, 800);
-}
-     // === CONTROLE DE ULTIMATE E ÁUDIO ===
-// === CONTROLE DE ULTIMATE À PROVA DE BALAS ===
-function dispararUltimate(urlDoVideo) {
-    const bgMusic = document.getElementById('musicaFundo');
-    const ultVideo = document.getElementById('video-ultimate');
-
-    // TESTE 1: A tag existe?
-    if (!ultVideo) {
-        console.error("❌ ERRO FATAL: O JavaScript não encontrou o id 'video-ultimate' no HTML!");
-        return;
-    }
-
-    // TESTE 2: O link do vídeo é válido?
-    if (!urlDoVideo || !urlDoVideo.endsWith('.mp4')) {
-        console.warn("⚠️ AVISO: O link do vídeo não termina com .mp4. Pode não funcionar!");
-    }
-
-    // 1. Pausa a música
-    if (bgMusic && !bgMusic.paused) {
-        bgMusic.pause();
-    }
-
-    // 2. Prepara e mostra o vídeo
-    ultVideo.src = urlDoVideo;
-    ultVideo.style.display = 'block';
-
-    // 3. Tenta rodar o vídeo com tratamento de erro
-    ultVideo.play().then(() => {
-        console.log("✅ Vídeo da Ultimate rodando com sucesso!");
-    }).catch((erro) => {
-        console.error("❌ ERRO DO NAVEGADOR: O vídeo foi bloqueado! Motivo:", erro);
-        // Se o navegador bloquear (geralmente por falta de clique do usuário), esconde o vídeo
-        ultVideo.style.display = 'none';
-        if (bgMusic) bgMusic.play(); 
-    });
-
-    // 4. Quando o vídeo acabar, limpa tudo e volta a música
-    ultVideo.onended = function() {
-        console.log("🎬 Vídeo finalizado.");
-        ultVideo.style.display = 'none';
-        ultVideo.src = "";
-        
-        // Retoma a música
-        if (bgMusic) {
-            bgMusic.play().catch(e => console.log("Erro ao voltar a música:", e));
-        }
-    };
 }
 </script>
 </body>
