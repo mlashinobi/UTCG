@@ -3,7 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
-    <title>UTCG - Release</title>
+    <title>UTCG - Ultimate Trading Card Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-arena: url('https://images.alphacoders.com/132/1326442.png');
@@ -11,793 +12,1276 @@
             --accent: #38bdf8;
             --gold: #fbbf24;
             --hp-red: #ef4444;
-            --energy-color: #38bdf8;
+            --green: #4ade80;
+            /* Energia por tipo */
+            --chakra: #3b82f6;
+            --ki: #f59e0b;
+            --amaldicoada: #a855f7;
+            --stand: #10b981;
+            --haki: #dc2626;
+            --reiatsu: #06b6d4;
+            --nen: #84cc16;
         }
 
-        * { box-sizing: border-box; }
-        
-        body { 
-            margin: 0; 
-            padding: 0;
-            font-family: 'Segoe UI', sans-serif; 
-            background: #000; 
-            color: #fff; 
-            height: 100vh; 
-            overflow: hidden; /* No PC não rola a tela */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* --- TELAS E MODAIS --- */
-        .screen { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; background: #020617; }
+        /* =========================================================
+           TELAS BASE
+        ========================================================= */
+        .screen {
+            position: fixed; inset: 0; z-index: 100;
+            display: none; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: #020617;
+        }
         #main-menu { display: flex; }
-        .menu-bg { position: absolute; inset: -5%; z-index: -1; background: url('https://images.alphacoders.com/133/1330235.png') center/cover; animation: breathe 15s infinite alternate; filter: brightness(0.4); }
-        @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.1); } }
 
-        .game-title { font-size: 60px; font-weight: 900; color: #fff; text-shadow: 0 0 20px var(--gold); margin-bottom: 30px; text-align: center; }
-        .menu-buttons { display: flex; flex-direction: column; gap: 12px; width: 280px; z-index: 10; }
-        
-        .btn { 
-            padding: 12px; font-size: 16px; font-weight: bold; text-transform: uppercase;
-            border-radius: 8px; border: none; cursor: pointer; transition: 0.3s; text-align: center;
-        }
-        .btn-play { background: #ef4444; color: white; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
-        .btn-play:hover { transform: scale(1.05); background: #dc2626; }
-        .btn-sec { background: #1e293b; color: white; border: 1px solid var(--accent); }
-        .btn-sec:hover { background: #334155; }
-
-        /* --- TELA DE LOADING E NOTAS --- */
+        /* =========================================================
+           SPLASH / LOADING
+        ========================================================= */
         #splash-screen {
             position: fixed; inset: 0; z-index: 9999;
-            background: #000; display: flex; flex-direction: column;
+            background: radial-gradient(ellipse at center, #0a0a1a 0%, #000 100%);
+            display: flex; flex-direction: column;
             align-items: center; justify-content: center;
+            gap: 0;
         }
-        .utcg-logo { width: 350px; filter: drop-shadow(0 0 25px var(--gold)); margin-bottom: 40px; animation: pulse 2s infinite; }
-        #percentage-text { color: var(--gold); font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-        #loading-bar-container { width: 300px; height: 12px; background: #1e293b; border-radius: 20px; border: 1px solid #334155; overflow: hidden; margin-bottom: 20px; }
-        #loading-bar-progress { width: 0%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); box-shadow: 0 0 15px var(--gold); transition: width 0.2s ease-out; }
-        
+        .utcg-logo {
+            width: 320px;
+            filter: drop-shadow(0 0 30px var(--gold));
+            animation: pulse-logo 2.5s ease-in-out infinite;
+            margin-bottom: 30px;
+        }
+        @keyframes pulse-logo {
+            0%, 100% { filter: drop-shadow(0 0 20px var(--gold)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 50px var(--gold)) drop-shadow(0 0 80px rgba(251,191,36,0.4)); transform: scale(1.02); }
+        }
+        #percentage-text {
+            color: var(--gold); font-family: 'Orbitron', monospace;
+            font-size: 1.4rem; font-weight: 700;
+            margin-bottom: 12px; letter-spacing: 3px;
+        }
+        #loading-bar-container {
+            width: 320px; height: 8px;
+            background: #1e293b; border-radius: 20px;
+            border: 1px solid #334155; overflow: hidden;
+            margin-bottom: 25px;
+        }
+        #loading-bar-progress {
+            width: 0%; height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #fbbf24, #fde68a);
+            box-shadow: 0 0 20px var(--gold);
+            transition: width 0.2s ease-out;
+        }
+        #loading-tips {
+            color: #64748b; font-size: 13px; font-style: italic;
+            margin-bottom: 25px; text-align: center; max-width: 320px;
+            min-height: 20px; transition: opacity 0.5s;
+        }
+
+        /* =========================================================
+           MENU PRINCIPAL
+        ========================================================= */
+        .menu-bg {
+            position: absolute; inset: -5%; z-index: -1;
+            background: url('https://images.alphacoders.com/133/1330235.png') center/cover;
+            animation: breathe 15s infinite alternate;
+            filter: brightness(0.35);
+        }
+        .menu-overlay {
+            position: absolute; inset: 0; z-index: -1;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
+        }
+        @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.08); } }
+
+        .game-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 56px; font-weight: 900; color: #fff;
+            text-shadow: 0 0 30px var(--gold), 0 0 60px rgba(251,191,36,0.3);
+            margin-bottom: 8px; text-align: center; letter-spacing: 4px;
+        }
+        .game-subtitle {
+            font-size: 13px; color: rgba(255,255,255,0.5);
+            letter-spacing: 6px; text-transform: uppercase;
+            margin-bottom: 35px; text-align: center;
+        }
+        .menu-buttons { display: flex; flex-direction: column; gap: 10px; width: 290px; z-index: 10; }
+
+        .btn {
+            padding: 13px 16px; font-size: 14px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            border-radius: 6px; border: none; cursor: pointer;
+            transition: 0.25s; text-align: center;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .btn-play { background: #ef4444; color: white; box-shadow: 0 0 20px rgba(239,68,68,0.4); }
+        .btn-play:hover { transform: translateY(-2px); background: #dc2626; box-shadow: 0 0 30px rgba(239,68,68,0.6); }
+        .btn-play:active { transform: translateY(0); }
+        .btn-sec { background: rgba(30,41,59,0.9); color: white; border: 1px solid rgba(56,189,248,0.4); }
+        .btn-sec:hover { background: rgba(51,65,85,0.9); border-color: var(--accent); }
+        .btn-gold {
+            background: linear-gradient(135deg, #b45309, #d97706, #fbbf24);
+            color: #000; font-weight: 900;
+            box-shadow: 0 0 20px rgba(251,191,36,0.4);
+        }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 0 35px rgba(251,191,36,0.6); }
+
+        .coins-badge {
+            background: rgba(0,0,0,0.6); border: 1px solid var(--gold);
+            padding: 8px 20px; border-radius: 30px;
+            color: var(--gold); font-weight: 700; font-size: 16px;
+            margin-bottom: 28px; z-index: 10; letter-spacing: 1px;
+        }
+
+        /* =========================================================
+           UPDATE NOTES
+        ========================================================= */
         #update-notes {
             position: fixed; bottom: 20px; right: 20px; z-index: 5000;
-            width: 250px; background: rgba(15, 23, 42, 0.95);
-            border: 2px solid var(--gold); border-radius: 10px;
-            padding: 15px; font-size: 12px; color: #e2e8f0;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8); pointer-events: none;
+            width: 240px; background: rgba(10,20,40,0.97);
+            border: 1px solid rgba(251,191,36,0.5); border-radius: 10px;
+            padding: 14px; font-size: 11px; color: #cbd5e1;
+            box-shadow: 0 0 25px rgba(0,0,0,0.9);
+            pointer-events: none; line-height: 1.6;
+        }
+        #update-notes h4 { color: var(--gold); margin-bottom: 8px; font-size: 12px; }
+        #update-notes ul { padding-left: 15px; }
+        #update-notes li { margin-bottom: 4px; }
+
+        /* =========================================================
+           EDITOR DE DECK E LOJA
+        ========================================================= */
+        .screen-header {
+            font-family: 'Orbitron', monospace;
+            font-size: 22px; font-weight: 900;
+            color: #fff; letter-spacing: 2px;
+            margin-bottom: 15px; text-align: center;
+        }
+        .editor-container { display: flex; width: 95%; height: 72vh; gap: 15px; }
+        .editor-column {
+            flex: 1; background: rgba(2,6,23,0.95);
+            border: 1px solid #1e293b; border-radius: 12px;
+            display: flex; flex-direction: column; padding: 14px;
+        }
+        .editor-column h3 { margin-top: 0; color: var(--accent); text-align: center; border-bottom: 1px solid #1e293b; padding-bottom: 10px; font-family: 'Rajdhani', sans-serif; font-size: 16px; letter-spacing: 1px; }
+        .scroll-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; padding: 8px; }
+        .scroll-grid::-webkit-scrollbar { width: 4px; }
+        .scroll-grid::-webkit-scrollbar-track { background: #111; }
+        .scroll-grid::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+        .mini-card {
+            background: #0f172a; border: 1px solid #334155;
+            border-radius: 6px; cursor: pointer; transition: 0.2s;
+            text-align: center; font-size: 9px; overflow: hidden;
+        }
+        .mini-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .mini-card img { width: 100%; height: 58px; object-fit: cover; }
+        .mini-card .name { padding: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+        .mini-card.support { border-color: var(--green); }
+        .mini-card.support .name { color: var(--green); }
+
+        .level-container { width: 460px; max-width: 92%; display: flex; flex-direction: column; gap: 10px; }
+        .level-box {
+            background: rgba(255,255,255,0.04); border: 1px solid #1e293b;
+            padding: 16px 20px; border-radius: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: 0.2s; cursor: pointer;
+        }
+        .level-box:hover { border-color: var(--gold); background: rgba(251,191,36,0.05); transform: translateX(4px); }
+
+        .grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 14px; width: 90%; max-height: 65vh; overflow-y: auto; padding: 20px; background: rgba(0,0,0,0.6); border-radius: 12px; }
+        .item-card { border: 1px solid #334155; padding: 10px; text-align: center; border-radius: 8px; background: #0f172a; transition: 0.2s; }
+        .item-card:hover { border-color: var(--gold); }
+        .item-card.support-type { border-color: rgba(74,222,128,0.5); }
+        .item-card img { width: 100%; height: 70px; object-fit: cover; border-radius: 4px; margin-bottom: 6px; }
+
+        /* =========================================================
+           COIN FLIP
+        ========================================================= */
+        #coin-screen {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.93); z-index: 1000;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .coin-disc {
+            width: 160px; height: 160px;
+            background: radial-gradient(circle at 35% 35%, #fde68a, #d97706);
+            border-radius: 50%; border: 8px solid #92400e;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 52px; font-weight: 900; color: #000;
+            font-family: 'Orbitron', monospace;
+            transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.3, 1.1);
+            box-shadow: 0 0 40px rgba(251,191,36,0.5), inset 0 -5px 15px rgba(0,0,0,0.3);
         }
 
-        /* --- EDITOR E LOJA --- */
-        .editor-container { display: flex; width: 95%; height: 75vh; gap: 20px; margin-top: 10px; }
-        .editor-column { flex: 1; background: rgba(0,0,0,0.8); border: 2px solid #333; border-radius: 15px; display: flex; flex-direction: column; padding: 15px; }
-        .editor-column h3 { margin-top: 0; color: var(--accent); text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .scroll-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; padding: 10px; }
-        .mini-card { background: #111; border: 1px solid #444; border-radius: 5px; cursor: pointer; transition: 0.2s; text-align: center; font-size: 9px; }
-        .mini-card:hover { border-color: var(--gold); transform: translateY(-3px); }
-        .mini-card img { width: 100%; height: 60px; object-fit: cover; border-radius: 4px 4px 0 0; }
-        .mini-card .name { padding: 3px; white-space: nowrap; overflow: hidden; }
+        /* =========================================================
+           ULTIMATE VIDEO
+        ========================================================= */
+        #ult-screen {
+            display: none; position: fixed; inset: 0;
+            background: #000; z-index: 5000;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        #ult-video { width: 90%; max-height: 80vh; border: 2px solid var(--gold); }
 
-        .level-container { width: 450px; max-width: 90%; display: flex; flex-direction: column; gap: 10px; }
-        .level-box { background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; cursor: pointer; }
-        .level-box:hover { border-color: var(--gold); background: rgba(255,255,255,0.1); }
-        
-        .grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; width: 90%; max-height: 65vh; overflow-y: auto; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 10px; }
-        .item-card { border: 2px solid #333; padding: 10px; text-align: center; border-radius: 8px; background: #111; }
+        /* =========================================================
+           TELA DE RESULTADO (VITÓRIA / DERROTA)
+        ========================================================= */
+        #result-screen {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.92); z-index: 4000;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .result-box {
+            background: linear-gradient(135deg, #0f172a, #020617);
+            border: 3px solid var(--gold); border-radius: 16px;
+            padding: 50px 60px; text-align: center;
+            box-shadow: 0 0 60px rgba(251,191,36,0.3);
+            animation: result-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes result-pop { from { opacity:0; transform:scale(0.5); } to { opacity:1; transform:scale(1); } }
+        .result-title {
+            font-family: 'Orbitron', monospace; font-size: 52px; font-weight: 900;
+            margin-bottom: 12px; text-shadow: 0 0 30px currentColor;
+        }
+        .result-title.win { color: var(--gold); }
+        .result-title.lose { color: var(--hp-red); }
+        .result-coins { font-size: 28px; color: var(--green); font-weight: 700; margin-bottom: 30px; }
 
-        /* --- UI DO JOGO (BASE PC) --- */
-        #game-ui { display: none; grid-template-columns: 260px 1fr; grid-template-rows: 1fr 160px; height: 100vh; width: 100vw; background: var(--bg-arena) center/cover; }
-        .sidebar { grid-row: 1/3; background: rgba(0,0,0,0.95); border-right: 2px solid var(--accent); padding: 10px; display: flex; flex-direction: column; gap: 10px; }
-        .terminal { flex: 1; background: #000; border: 1px solid #222; padding: 10px; font-family: monospace; font-size: 11px; color: #4ade80; overflow-y: auto; display: flex; flex-direction: column-reverse; }
-        .inspect { height: 140px; background: rgba(255,255,255,0.05); border-radius: 5px; padding: 10px; font-size: 12px; overflow-y: auto;}
+        /* =========================================================
+           STATUS EFFECTS BADGES
+        ========================================================= */
+        .status-badge {
+            display: inline-block; padding: 1px 5px;
+            border-radius: 3px; font-size: 8px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 0.5px; margin: 1px;
+        }
+        .status-burn { background: #7c2d12; color: #fb923c; border: 1px solid #fb923c; }
+        .status-stun { background: #1e1b4b; color: #a5b4fc; border: 1px solid #a5b4fc; }
+        .status-dodge { background: #052e16; color: #4ade80; border: 1px solid #4ade80; }
+        .status-shield { background: #1e3a5f; color: #38bdf8; border: 1px solid #38bdf8; }
 
-        .arena { grid-row: 1; display: flex; flex-direction: column; justify-content: space-around; align-items: center; background: rgba(0,0,0,0.4); padding: 10px; }
-        .zone-row { display: flex; gap: 12px; min-height: 140px; align-items: center; justify-content: center; width: 100%; }
+        /* =========================================================
+           CONTADOR DE RODADAS
+        ========================================================= */
+        #round-counter {
+            display: flex; flex-direction: column; align-items: center;
+            background: rgba(0,0,0,0.7); border: 1px solid rgba(251,191,36,0.4);
+            border-radius: 8px; padding: 6px 10px; text-align: center; flex-shrink: 0;
+        }
+        #round-counter .round-label {
+            font-size: 9px; color: #64748b; letter-spacing: 2px; text-transform: uppercase;
+        }
+        #round-counter .round-num {
+            font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900;
+            color: var(--gold); line-height: 1;
+        }
+        #round-counter.bump .round-num {
+            animation: round-bump 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes round-bump {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.6); color: #fff; }
+            100% { transform: scale(1); }
+        }
 
-        /* --- CARTAS --- */
-        .card { 
-            width: 100px; height: 140px; background: #1e293b; border: 2px solid #444; border-radius: 8px;
-            position: relative; cursor: pointer; transition: 0.2s; overflow: hidden; flex-shrink: 0;
+        /* =========================================================
+           NOTIFICAÇÃO DE ENERGIA GANHA (TOAST)
+        ========================================================= */
+        #energy-toast {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 3500; pointer-events: none;
+            background: rgba(2,6,23,0.96);
+            border-radius: 12px; padding: 18px 30px;
+            text-align: center; min-width: 200px;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #energy-toast.show { transform: translate(-50%, -50%) scale(1); }
+        .toast-label { font-size: 11px; color: #64748b; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+        .toast-type { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; }
+        .toast-desc { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+        /* =========================================================
+           PAINEL DE ENERGIA — items inativos ficam escuros
+        ========================================================= */
+        .energy-item.inactive { opacity: 0.25; }
+        .energy-item.active-type { border: 1px solid currentColor; }
+
+        /* =========================================================
+           DAMAGE NUMBERS FLUTUANTES
+        ========================================================= */
+        .dmg-float {
+            position: fixed; font-family: 'Orbitron', monospace;
+            font-size: 26px; font-weight: 900;
+            pointer-events: none; z-index: 9000;
+            animation: float-up 1.2s ease-out forwards;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+        }
+        .dmg-float.dmg { color: #f87171; }
+        .dmg-float.heal { color: #4ade80; }
+        .dmg-float.energy { color: var(--gold); }
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0) scale(0.5); }
+            30% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-70px) scale(0.9); opacity: 0; }
+        }
+
+        /* =========================================================
+           TURN INDICATOR
+        ========================================================= */
+        #turn-indicator {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 3000; pointer-events: none;
+            font-family: 'Orbitron', monospace;
+            font-size: 32px; font-weight: 900; letter-spacing: 4px;
+            padding: 16px 40px; border-radius: 8px;
+            text-align: center;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #turn-indicator.player-turn {
+            background: rgba(14,165,233,0.15);
+            border: 3px solid var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 40px rgba(56,189,248,0.5), inset 0 0 40px rgba(56,189,248,0.05);
+            text-shadow: 0 0 20px var(--accent);
+            animation: neon-pulse-blue 1.5s ease-in-out infinite;
+        }
+        #turn-indicator.enemy-turn {
+            background: rgba(239,68,68,0.15);
+            border: 3px solid var(--hp-red);
+            color: var(--hp-red);
+            box-shadow: 0 0 40px rgba(239,68,68,0.5), inset 0 0 40px rgba(239,68,68,0.05);
+            text-shadow: 0 0 20px var(--hp-red);
+            animation: neon-pulse-red 1.5s ease-in-out infinite;
+        }
+        #turn-indicator.show { transform: translate(-50%, -50%) scale(1); }
+        @keyframes neon-pulse-blue {
+            0%, 100% { box-shadow: 0 0 20px rgba(56,189,248,0.4); }
+            50% { box-shadow: 0 0 50px rgba(56,189,248,0.8), 0 0 80px rgba(56,189,248,0.3); }
+        }
+        @keyframes neon-pulse-red {
+            0%, 100% { box-shadow: 0 0 20px rgba(239,68,68,0.4); }
+            50% { box-shadow: 0 0 50px rgba(239,68,68,0.8), 0 0 80px rgba(239,68,68,0.3); }
+        }
+
+        /* =========================================================
+           GAME UI — LAYOUT
+        ========================================================= */
+        #game-ui {
+            display: none;
+            grid-template-columns: 250px 1fr;
+            grid-template-rows: 1fr 155px;
+            height: 100vh; width: 100vw;
+            background: var(--bg-arena) center/cover;
+        }
+
+        .sidebar {
+            grid-row: 1/3;
+            background: rgba(2,6,23,0.97);
+            border-right: 2px solid rgba(56,189,248,0.3);
+            padding: 10px; display: flex; flex-direction: column; gap: 8px;
+        }
+
+        .timer-box {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px; font-weight: 900; color: #fff;
+            text-align: center; background: #b91c1c;
+            border-radius: 6px; padding: 8px;
+            border: 2px solid #f87171;
+            transition: background 0.5s;
+        }
+        .timer-box.enemy { background: #0f172a; border-color: #334155; }
+        .timer-box.warning { background: #92400e; border-color: #f59e0b; animation: blink-warn 0.5s infinite; }
+        @keyframes blink-warn { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+        .terminal {
+            flex: 1; background: #000;
+            border: 1px solid #0f172a; border-radius: 6px;
+            padding: 8px; font-family: 'Noto Sans JP', monospace;
+            font-size: 10px; color: #4ade80; overflow-y: auto;
+            display: flex; flex-direction: column-reverse;
+            line-height: 1.5;
+        }
+        .terminal::-webkit-scrollbar { width: 3px; }
+        .terminal::-webkit-scrollbar-thumb { background: #1e293b; }
+
+        .inspect {
+            height: 130px; background: rgba(255,255,255,0.03);
+            border: 1px solid #1e293b; border-radius: 6px;
+            padding: 8px; font-size: 11px; overflow-y: auto;
+        }
+
+        /* PAINEL DE ENERGIAS */
+        .energy-panel {
+            border: 1px solid rgba(251,191,36,0.3);
+            border-radius: 8px; padding: 8px;
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+        .energy-item {
+            display: flex; align-items: center; gap: 4px;
+            background: rgba(0,0,0,0.4); border-radius: 4px;
+            padding: 3px 6px; font-size: 11px; font-weight: 700;
+        }
+        .energy-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* =========================================================
+           ARENA
+        ========================================================= */
+        .arena {
+            grid-row: 1;
+            display: flex; flex-direction: column;
+            justify-content: space-around; align-items: center;
+            background: rgba(0,0,0,0.45); padding: 8px;
+            position: relative;
+        }
+        .arena-label {
+            position: absolute; left: 12px;
+            font-size: 10px; color: rgba(255,255,255,0.3);
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+        .arena-label.enemy { top: 12px; }
+        .arena-label.player { bottom: 12px; }
+
+        .zone-row {
+            display: flex; gap: 10px; min-height: 145px;
+            align-items: center; justify-content: center; width: 100%;
+        }
+        .divider {
+            width: 90%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            margin: 2px 0;
+        }
+
+        /* =========================================================
+           CARTAS
+        ========================================================= */
+        .card {
+            width: 100px; height: 142px;
+            background: #0f172a; border: 2px solid #334155;
+            border-radius: 10px; position: relative; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            overflow: hidden; flex-shrink: 0;
             display: flex; flex-direction: column;
         }
-        .card.active { width: 140px; height: 195px; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
-        .hp-tag { position: absolute; top: 3px; right: 3px; background: var(--hp-red); padding: 2px 5px; border-radius: 3px; font-size: 11px; font-weight: 900; z-index: 10; border: 1px solid #fff;}
-        .energy-tag { position: absolute; top: 3px; left: 3px; background: var(--accent); color: #000; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; z-index: 10; border: 1px solid #fff;}
+        .card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+        .card.active { width: 138px; height: 193px; }
 
-        .card:not(.ex) img { width: 100%; height: 50%; object-fit: cover; border-bottom: 2px solid #333; z-index: 1; }
-        .card:not(.ex) .card-content { flex: 1; background: #111; padding: 5px; display: flex; flex-direction: column; z-index: 2; }
-        
-        .card.ex { border-color: var(--gold); box-shadow: 0 0 10px var(--gold); }
+        /* Card hit flash */
+        .card.hit-flash { animation: hit-flash 0.4s ease; }
+        @keyframes hit-flash {
+            0% { filter: brightness(1); }
+            20% { filter: brightness(3) saturate(0) contrast(2); }
+            40% { filter: brightness(1); transform: translateX(-6px); }
+            60% { filter: brightness(2) saturate(0); transform: translateX(6px); }
+            80% { filter: brightness(1); transform: translateX(-3px); }
+            100% { filter: brightness(1); transform: translateX(0); }
+        }
+
+        .card.atk-anim { animation: strike 0.4s ease-in-out; }
+        @keyframes strike {
+            0% { transform: translateY(0); }
+            40% { transform: translateY(-28px) scale(1.08); }
+            100% { transform: translateY(0); }
+        }
+
+        /* HP bar */
+        .hp-tag {
+            position: absolute; top: 4px; right: 4px;
+            background: var(--hp-red); padding: 2px 5px;
+            border-radius: 4px; font-size: 11px; font-weight: 900;
+            z-index: 10; border: 1px solid rgba(255,255,255,0.2);
+            font-family: 'Orbitron', monospace; letter-spacing: 0;
+        }
+        .hp-bar-wrap {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 4px; background: rgba(0,0,0,0.5); z-index: 10;
+        }
+        .hp-bar { height: 100%; background: var(--green); transition: width 0.4s ease, background 0.4s; }
+
+        .energy-tag {
+            position: absolute; top: 4px; left: 4px;
+            width: 22px; height: 22px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 900; z-index: 10;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            font-family: 'Orbitron', monospace;
+        }
+
+        .card:not(.ex) img { width: 100%; height: 50%; object-fit: cover; border-bottom: 1px solid #1e293b; z-index: 1; }
+        .card:not(.ex) .card-content { flex: 1; background: #0f172a; padding: 5px; display: flex; flex-direction: column; z-index: 2; }
+
+        .card.ex { border-color: var(--gold); box-shadow: 0 0 12px rgba(251,191,36,0.4); }
         .card.ex img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-        .card.ex .card-content { 
-            position: absolute; bottom: 0; left: 0; right: 0; padding: 5px; 
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); 
-            border-top: 2px solid var(--gold); z-index: 5; display: flex; flex-direction: column;
+        .card.ex .card-content {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 6px; background: rgba(0,0,0,0.82);
+            backdrop-filter: blur(5px);
+            border-top: 2px solid var(--gold);
+            z-index: 5; display: flex; flex-direction: column;
         }
         .card.ex::after {
-            content: ''; position: absolute; top: -150%; left: -150%; width: 300%; height: 300%;
-            background: linear-gradient(135deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 60%);
-            z-index: 3; pointer-events: none; animation: chrome-shine 3s infinite linear;
+            content: ''; position: absolute; top: -150%; left: -150%;
+            width: 300%; height: 300%;
+            background: linear-gradient(135deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.45) 50%, rgba(255,255,255,0) 60%);
+            z-index: 3; pointer-events: none;
+            animation: chrome-shine 3s infinite linear;
         }
-        @keyframes chrome-shine { 0% { transform: translate(0, 0); } 100% { transform: translate(60%, 60%); } }
+        @keyframes chrome-shine { 0% { transform: translate(0,0); } 100% { transform: translate(60%,60%); } }
 
-        .btn-skill { background: #0f172a; border: 1px solid #555; color: #fff; width: 100%; margin-top: 4px; padding: 4px; font-size: 10px; cursor: pointer; border-radius: 3px; font-weight: bold;}
-        .btn-skill:hover { border-color: var(--gold); }
-        .penalty-txt { color: #fb7185; font-size: 9px; font-style: italic; margin-top: 2px; }
+        /* Carta de suporte */
+        .card.support { border-color: var(--green); box-shadow: 0 0 10px rgba(74,222,128,0.3); }
+        .card.support img { width: 100%; height: 50%; object-fit: cover; }
+        .card.support .card-content { flex: 1; background: rgba(5,46,22,0.9); padding: 5px; display: flex; flex-direction: column; }
 
-        .atk-anim { animation: strike 0.4s ease-in-out; }
-        @keyframes strike { 0% { transform: translateY(0); } 50% { transform: translateY(-30px) scale(1.1); } 100% { transform: translateY(0); } }
+        .btn-skill {
+            background: #0f172a; border: 1px solid #475569;
+            color: #fff; width: 100%; margin-top: 3px;
+            padding: 3px 4px; font-size: 10px; cursor: pointer;
+            border-radius: 3px; font-weight: 700; font-family: 'Rajdhani', sans-serif;
+            transition: 0.15s; letter-spacing: 0.5px;
+        }
+        .btn-skill:hover:not(:disabled) { border-color: var(--gold); background: rgba(251,191,36,0.08); }
+        .btn-skill:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-skill.affordable { border-color: rgba(74,222,128,0.6); }
+        .penalty-txt { color: #fb7185; font-size: 8px; font-style: italic; }
 
-        #ult-screen { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; flex-direction: column; align-items: center; justify-content: center; }
-        #ult-video { width: 90%; max-height: 80vh; border: 2px solid var(--gold); opacity: 0.85; }
+        /* =========================================================
+           HAND FOOTER
+        ========================================================= */
+        footer#p-hand {
+            grid-row: 2; grid-column: 2;
+            display: flex; align-items: center;
+            padding: 10px 14px; gap: 8px;
+            background: rgba(2,6,23,0.95);
+            border-top: 2px solid rgba(56,189,248,0.2);
+            overflow-x: auto;
+        }
+        footer#p-hand::-webkit-scrollbar { height: 4px; }
+        footer#p-hand::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
 
-        #coin-screen { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
-        .coin-disc { width: 150px; height: 150px; background: var(--gold); border-radius: 50%; border: 8px solid #b45309; display: flex; align-items: center; justify-content: center; font-size: 50px; font-weight: bold; color: #000; transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.3, 1.1); }
-        
-        .timer-box { font-size: 32px; font-weight: 900; color: #fff; text-align: center; background: #b91c1c; border-radius: 8px; padding: 10px; border: 2px solid #f87171; }
+        .hand-label {
+            font-size: 9px; color: rgba(255,255,255,0.3); letter-spacing: 2px;
+            writing-mode: vertical-rl; text-orientation: mixed;
+            text-transform: uppercase; flex-shrink: 0;
+        }
 
-        /* =========================================
-           SISTEMA RESPONSIVO DEFINITIVO (MOBILE/TABLET)
-           ========================================= */
+        /* =========================================================
+           STORY SCREEN (Coming Soon melhorada)
+        ========================================================= */
+        .story-box {
+            background: linear-gradient(135deg, #0a0a1a, #000);
+            border: 2px solid rgba(212,175,55,0.5);
+            border-radius: 16px; padding: 40px;
+            max-width: 440px; width: 90%; text-align: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+        }
+        .story-chapter {
+            padding: 12px 16px; border-bottom: 1px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center;
+            border-radius: 6px; transition: 0.2s;
+        }
+        .story-chapter.locked { color: #475569; font-style: italic; }
+        .story-chapter.available { color: #fff; }
+        .story-chapter.available:hover { background: rgba(255,255,255,0.04); }
+
+        /* =========================================================
+           MODAL GENÉRICO
+        ========================================================= */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            z-index: 2000; background: rgba(0,0,0,0.85);
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #0f172a; border: 1px solid #1e293b;
+            border-radius: 14px; padding: 28px; max-width: 480px; width: 90%;
+            animation: result-pop 0.3s ease;
+        }
+
+        /* =========================================================
+           RESPONSIVO MOBILE
+        ========================================================= */
         @media screen and (max-width: 850px) {
-            body {
-                height: auto;
-                min-height: 100vh;
-                overflow-y: auto !important; /* Libera scroll vertical no mobile */
-            }
+            body { height: auto; min-height: 100vh; overflow-y: auto !important; }
 
-            /* Editor de deck no celular */
             .editor-container { flex-direction: column; height: auto; }
-            .editor-column { height: 300px; }
+            .editor-column { height: 280px; }
 
-            /* Transforma o Grid do jogo em Coluna */
             #game-ui {
-                display: flex !important;
-                flex-direction: column;
-                height: auto;
-                min-height: 100vh;
-                width: 100vw;
+                display: flex !important; flex-direction: column;
+                height: auto; min-height: 100vh;
             }
-
-            /* Painel Lateral vai pro topo */
             .sidebar {
-                width: 100%;
-                height: auto;
-                border-right: none;
-                border-bottom: 2px solid var(--accent);
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: space-around;
-                align-items: center;
-                padding: 5px;
-                grid-row: unset;
+                width: 100%; height: auto;
+                border-right: none; border-bottom: 2px solid rgba(56,189,248,0.3);
+                flex-direction: row; flex-wrap: wrap;
+                justify-content: space-around; align-items: center;
+                padding: 6px; grid-row: unset;
             }
+            .energy-panel { display: none; }
+            .terminal { width: 100%; height: 55px; font-size: 9px; }
+            .inspect { width: 45%; height: auto; min-height: 70px; }
+            .timer-box { font-size: 18px; padding: 6px 10px; }
 
-            .terminal { width: 100%; height: 60px; margin-bottom: 5px; }
-            .inspect { width: 45%; height: auto; min-height: 80px; }
-            .timer-box { font-size: 20px; padding: 5px; width: 60px; }
+            .arena { width: 100%; padding: 5px 0; gap: 10px; }
+            .zone-row { min-height: 100px !important; flex-wrap: wrap; gap: 5px; }
 
-            /* Arena e Cartas ajustadas */
-            .arena { width: 100%; padding: 5px 0; gap: 15px; }
-            .zone-row { min-height: 110px !important; flex-wrap: wrap; gap: 5px; }
-            
-            .card { width: 80px; height: 115px; }
-            .card.active { width: 100px; height: 140px; }
-            .btn-skill { font-size: 9px; padding: 4px 2px; }
+            .card { width: 78px; height: 112px; }
+            .card.active { width: 98px; height: 138px; }
+            .btn-skill { font-size: 8px; padding: 3px 2px; }
 
-            /* Mão rolável */
-            footer {
-                width: 100%;
-                padding: 10px 5px;
-                justify-content: flex-start !important;
+            footer#p-hand {
+                width: 100%; padding: 8px 6px;
+                justify-content: flex-start;
                 overflow-x: auto;
-                background: rgba(0,0,0,0.9);
+                writing-mode: initial;
             }
+            footer#p-hand .card { flex-shrink: 0; }
+            .hand-label { writing-mode: initial; }
 
-            #p-hand .card { flex-shrink: 0; margin-right: 8px; }
+            #turn-indicator { font-size: 20px; padding: 10px 24px; }
+
+            .game-title { font-size: 36px; }
         }
     </style>
 </head>
 <body>
+
+<!-- ===================== SPLASH SCREEN ===================== -->
 <div id="splash-screen">
     <img src="https://i.imgur.com/HWERuem.png" alt="UTCG" class="utcg-logo">
     <div id="percentage-text">0%</div>
     <div id="loading-bar-container">
         <div id="loading-bar-progress"></div>
     </div>
-    <button id="btn-play-utcg" class="btn btn-play" style="display: none; padding: 15px 80px; font-size: 1.2rem;" onclick="finalizarLoading()">PLAY</button>
+    <div id="loading-tips">Carregando o universo...</div>
+    <button id="btn-play-utcg" class="btn btn-play" style="display:none; padding:15px 80px; font-size:1.1rem; letter-spacing:3px;" onclick="finalizarLoading()">▶ PLAY</button>
 </div>
 
+<!-- ===================== ÁUDIO ===================== -->
 <audio id="musicaFundo" loop>
     <source src="19. Main Menu (Mega Evolution).mp3" type="audio/mpeg">
 </audio>
 <audio id="musicaBatalha" loop>
     <source src="02. 物語りの途中 -off vocal ver.-.mp3" type="audio/mpeg">
 </audio>
+<audio id="sfxClick" src="click.mp3" preload="auto"></audio>
+<audio id="sfxBuy" src="buy.mp3" preload="auto"></audio>
+<audio id="sfxShuffle" src="shuffle.mp3" preload="auto"></audio>
+<audio id="sfxDamage" src="damage.mp3" preload="auto"></audio>
+<audio id="sfxVictory" src="victory.mp3" preload="auto"></audio>
 
+<!-- ===================== INDICADOR DE TURNO ===================== -->
+<div id="turn-indicator"></div>
+
+<!-- ===================== MENU PRINCIPAL ===================== -->
 <div id="main-menu" class="screen">
     <div class="menu-bg"></div>
-    <div class="game-title">UTCG<br><span style="font-size: 24px; color: #ef4444;"></span></div>
-    <div style="margin-bottom: 20px; color: var(--gold); font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 5px;">Moedas: <span id="menu-coins">0</span></div>
+    <div class="menu-overlay"></div>
+    <div class="game-title">UTCG</div>
+    <div class="game-subtitle">Ultimate Trading Card Game</div>
+    <div class="coins-badge">💰 <span id="menu-coins">0</span> moedas</div>
     <div class="menu-buttons">
-        <button class="btn btn-play" style="background:#0ea5e9; border-color:#fff; box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);" onclick="showScreen('deck-select', 'normal')">Batalhar!</button>
-        <button class="btn btn-play" onclick="showScreen('deck-select', 'boss')">Raid</button>
-        <!-- BOTÃO DE MODO HISTÓRIA ADICIONADO AQUI -->
-        <button class="btn btn-play" style="background: linear-gradient(to right, #d4af37, #aa8a2e); color: #000;" onclick="showScreen('story-modal')">Modo História</button>
-        <button class="btn btn-sec" onclick="openEditor()">Meu Deck</button>
-        <button class="btn btn-sec" onclick="openStore()">Loja de Cartas</button>
-        <button class="btn btn-sec" onclick="saveGame()">Salvar Dados</button>
-        <button class="btn btn-sec" onclick="document.getElementById('load-input').click()">Carregar Dados</button>
+        <button class="btn btn-sec" style="background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(56,189,248,0.1)); border-color:#38bdf8; color:#38bdf8;" onclick="playClick(); showScreen('deck-select', 'normal')">⚔️ Batalhar!</button>
+        <button class="btn btn-play" onclick="playClick(); showScreen('deck-select', 'boss')">☠️ Raid Boss</button>
+        <button class="btn btn-gold" onclick="playClick(); showScreen('story-modal')">📖 Modo História</button>
+        <button class="btn btn-sec" onclick="playClick(); openEditor()">🃏 Meu Deck</button>
+        <button class="btn btn-sec" onclick="playClick(); openStore()">🏪 Loja de Cartas</button>
+        <button class="btn btn-sec" onclick="playClick(); saveGame()">💾 Salvar Dados</button>
+        <button class="btn btn-sec" onclick="playClick(); document.getElementById('load-input').click()">📂 Carregar Dados</button>
         <input type="file" id="load-input" style="display:none" onchange="loadGame(this)">
-        <!-- UPDATE NOTES MOVIDO PARA CÁ -->
-    <div id="update-notes">
-        <h4>UTCG - Update Notes v1.0.3</h4>
-        <ul>
-            <li>Modo mobile totalmente refeito e funcional (Sem bugs de corte na tela).</li>
-            <li>Botão Modo História adicionado ao Menu.</li>
-            <li>Tela Coming Soon adicionada (Sem tela preta ao voltar).</li>
-            <li>Ultimates pausando música corretamente.</li>
-        </ul>
-    </div>
-</div>
-    </div>
-</div>
 
-<!-- TELA DE COMING SOON OFICIAL -->
-<div id="story-modal" class="screen">
-    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); border: 3px solid var(--gold); padding: 30px; border-radius: 15px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);">
-        <h2 style="color: var(--gold); margin-top: 0;">MODO HISTÓRIA</h2>
-        <div style="background: var(--gold); color: #000; font-weight: bold; padding: 5px 15px; display: inline-block; margin: 15px 0; border-radius: 5px;">EM BREVE</div>
-        <p>Prepare-se para uma jornada épica através das dimensões.</p>
-        <div style="margin: 20px 0; text-align: left;">
-            <div style="padding: 10px; border-bottom: 1px solid #333; color: #ccc;">Capítulo 1: O Despertar</div>
-            <div style="padding: 10px; border-bottom: 1px solid #333; color: #666; font-style: italic;">Capítulo 2: Alianças Proibidas (Bloqueado)</div>
+        <div id="update-notes">
+            <h4>🗒 UTCG — Update Notes v2.0</h4>
+            <ul>
+                <li>Floating damage numbers adicionados!</li>
+                <li>Hit-flash e card shake ao receber dano.</li>
+                <li>Cartas de Suporte/Item implementadas.</li>
+                <li>Efeitos de status: Queimado, Atordoado, Esquiva, Escudo.</li>
+                <li>Novas energias: Haki (One Piece), Reiatsu (Bleach), Nen (HxH).</li>
+                <li>Novos personagens: Luffy, Ichigo, Gon.</li>
+                <li>Indicador de turno neon animado.</li>
+                <li>Tela de resultado de vitória/derrota.</li>
+                <li>Custo de habilidades colorido por affordability.</li>
+                <li>HP bar visual nas cartas.</li>
+            </ul>
         </div>
-        <!-- Usa a própria função de voltar do jogo -->
-        <button class="btn btn-play" style="width: 100%; background: #1e293b; color: #fff; border: 1px solid var(--gold);" onclick="showScreen('main-menu')">← VOLTAR AO MENU</button>
     </div>
 </div>
 
+<!-- ===================== MODO HISTÓRIA ===================== -->
+<div id="story-modal" class="screen">
+    <div class="story-box">
+        <h2 style="font-family:'Orbitron',monospace; color:var(--gold); margin-bottom:8px; font-size:22px;">MODO HISTÓRIA</h2>
+        <div style="background:var(--gold); color:#000; font-weight:900; padding:4px 14px; display:inline-block; margin:12px 0; border-radius:4px; font-size:12px; letter-spacing:2px;">EM BREVE</div>
+        <p style="color:#94a3b8; font-size:13px; margin-bottom:20px;">Uma jornada épica através das dimensões dos animes...</p>
+        <div style="text-align:left; margin-bottom:20px;">
+            <div class="story-chapter locked">🔒 Capítulo 0: Prólogo — O Rasgão Dimensional</div>
+            <div class="story-chapter locked" style="padding-left:24px; font-size:13px;">🔒 Capítulo 1: O Despertar (Em Breve)</div>
+            <div class="story-chapter locked" style="padding-left:24px; font-size:13px; color:#1e293b;">🔒 Capítulo 2: Alianças Proibidas</div>
+            <div class="story-chapter locked" style="padding-left:24px; font-size:13px; color:#0f172a;">🔒 Capítulo 3: A Guerra Final</div>
+        </div>
+        <button class="btn btn-sec" style="width:100%; border-color:var(--gold); color:var(--gold);" onclick="playClick(); showScreen('main-menu')">← VOLTAR AO MENU</button>
+    </div>
+</div>
+
+<!-- ===================== EDITOR DE DECK ===================== -->
 <div id="deck-editor" class="screen">
-    <h2 style="margin:0">Editor de Deck</h2>
+    <div class="screen-header">🃏 Editor de Deck</div>
     <div class="editor-container">
         <div class="editor-column">
             <h3>Sua Coleção</h3>
             <div id="editor-bank" class="scroll-grid"></div>
         </div>
         <div class="editor-column">
-            <h3>Seu Deck (<span id="deck-size">0</span>/20)</h3>
+            <h3>Deck Atual (<span id="deck-size">0</span>/20)</h3>
             <div id="editor-deck-list" class="scroll-grid"></div>
         </div>
     </div>
-    <button class="btn btn-play" style="margin-top:15px; width:200px" onclick="showScreen('main-menu')">SALVAR E VOLTAR</button>
+    <button class="btn btn-play" style="margin-top:14px; width:210px; letter-spacing:2px;" onclick="playClick(); showScreen('main-menu')">✔ SALVAR E VOLTAR</button>
 </div>
 
+<!-- ===================== LOJA ===================== -->
 <div id="store-screen" class="screen">
-    <h2>Loja | Moedas: <span id="store-coins" style="color:var(--gold)">0</span></h2>
+    <div class="screen-header">🏪 Loja de Cartas</div>
+    <div style="color:var(--gold); font-size:18px; margin-bottom:16px; font-weight:700;">💰 <span id="store-coins">0</span> moedas</div>
     <div class="grid-view" id="store-grid"></div>
-    <button class="btn btn-play" style="margin-top:20px; width:200px" onclick="showScreen('main-menu')">Sair</button>
+    <button class="btn btn-sec" style="margin-top:16px; width:200px;" onclick="playClick(); showScreen('main-menu')">← Sair</button>
 </div>
 
+<!-- ===================== SELECIONAR ADVERSÁRIO ===================== -->
 <div id="deck-select" class="screen">
-    <h2 id="select-title">Selecione o Adversário</h2>
+    <div class="screen-header" id="select-title">Selecione o Adversário</div>
     <div class="level-container" id="level-list"></div>
-    <button class="btn btn-sec" style="margin-top:20px; width:250px;" onclick="showScreen('main-menu')">VOLTAR</button>
+    <button class="btn btn-sec" style="margin-top:18px; width:250px;" onclick="playClick(); showScreen('main-menu')">← VOLTAR</button>
 </div>
 
+<!-- ===================== COIN FLIP ===================== -->
 <div id="coin-screen">
     <div id="coin-obj" class="coin-disc">?</div>
-    <h2 id="coin-text" style="margin-top: 20px; color: var(--gold);">Sorteando quem começa...</h2>
+    <h2 id="coin-text" style="margin-top:24px; color:var(--gold); font-family:'Orbitron',monospace; font-size:22px;">Sorteando...</h2>
 </div>
 
+<!-- ===================== RESULTADO ===================== -->
+<div id="result-screen">
+    <div class="result-box">
+        <div class="result-title" id="result-title">VITÓRIA!</div>
+        <div class="result-coins" id="result-coins"></div>
+        <button class="btn btn-sec" style="width:220px; border-color:var(--gold); color:var(--gold); font-size:16px;" onclick="playClick(); showScreen('main-menu')">← VOLTAR AO MENU</button>
+    </div>
+</div>
+
+<!-- ===================== ULTIMATE VIDEO ===================== -->
 <div id="ult-screen">
-    <video id="ult-video" onended="closeUlt()"></video>
-    <button class="btn" style="margin-top:20px; background:red;" onclick="closeUlt()">PULAR [X]</button>
+    <video id="ult-video" onended="closeUlt()" playsinline></video>
+    <div id="ult-play-overlay" style="
+        position:absolute; inset:0; display:flex; flex-direction:column;
+        align-items:center; justify-content:center; z-index:10;
+        background:rgba(0,0,0,0.7); cursor:pointer;
+        font-family:'Orbitron',monospace;
+    " onclick="startUltVideo()">
+        <div style="font-size:60px; margin-bottom:16px;">⚡</div>
+        <div style="color:var(--gold); font-size:22px; font-weight:900; letter-spacing:3px; text-shadow:0 0 20px var(--gold);">ULTIMATE!</div>
+        <div style="color:#fff; font-size:13px; margin-top:10px; opacity:0.7;">Toque para ver o ataque</div>
+    </div>
+    <button class="btn" style="margin-top:16px; background:rgba(239,68,68,0.8); letter-spacing:2px; padding:10px 30px; z-index:11;" onclick="closeUlt()">PULAR [X]</button>
 </div>
 
+<!-- ===================== GAME UI ===================== -->
 <div id="game-ui">
     <aside class="sidebar">
-        <div class="timer-box" id="turn-timer">30s</div>
+        <div style="display:flex; gap:8px; align-items:stretch;">
+            <div class="timer-box" id="turn-timer" style="flex:1;">30s</div>
+            <div id="round-counter">
+                <div class="round-label">Rodada</div>
+                <div class="round-num" id="round-num">1</div>
+            </div>
+        </div>
         <div class="terminal" id="log"></div>
         <div class="inspect">
-            <b id="ins-name" style="color:var(--gold)">Inspecionar</b>
-            <p id="ins-desc" style="margin:5px 0; font-size: 11px;"></p>
-            <div id="ins-stats" style="color:var(--accent); font-weight:bold"></div>
+            <b id="ins-name" style="color:var(--gold); font-family:'Rajdhani',sans-serif; font-size:14px;">Inspecionar Carta</b>
+            <p id="ins-stats" style="margin:4px 0; color:var(--accent); font-size:11px; font-weight:700;"></p>
+            <div id="ins-desc" style="color:#94a3b8; font-size:10px; line-height:1.4;"></div>
         </div>
-        <div style="text-align:center; padding:8px; border:1px solid var(--gold); border-radius:5px; flex-shrink: 0;">
-            <div style="font-size:11px">Sua Energia</div>
-            <div id="energy-pool" style="font-size:24px; font-weight:900; color:var(--gold)">0</div>
+        <div class="energy-panel">
+            <div class="energy-item"><div class="energy-dot" style="background:var(--chakra)"></div> <span style="color:var(--chakra)">Chakra</span> <span id="e-chakra" style="margin-left:auto; color:#fff">0</span></div>
+            <div class="energy-item"><div class="energy-dot" style="background:var(--ki)"></div> <span style="color:var(--ki)">Ki</span> <span id="e-ki" style="margin-left:auto; color:#fff">0</span></div>
+            <div class="energy-item"><div class="energy-dot" style="background:var(--amaldicoada)"></div> <span style="color:var(--amaldicoada); font-size:9px">Amal.</span> <span id="e-amaldicoada" style="margin-left:auto; color:#fff">0</span></div>
+            <div class="energy-item"><div class="energy-dot" style="background:var(--stand)"></div> <span style="color:var(--stand)">Stand</span> <span id="e-stand" style="margin-left:auto; color:#fff">0</span></div>
+            <div class="energy-item"><div class="energy-dot" style="background:var(--haki)"></div> <span style="color:var(--haki)">Haki</span> <span id="e-haki" style="margin-left:auto; color:#fff">0</span></div>
+            <div class="energy-item"><div class="energy-dot" style="background:var(--reiatsu)"></div> <span style="color:var(--reiatsu); font-size:9px">Reiat.</span> <span id="e-reiatsu" style="margin-left:auto; color:#fff">0</span></div>
+            <div class="energy-item" style="grid-column:1/3;"><div class="energy-dot" style="background:var(--nen)"></div> <span style="color:var(--nen)">Nen</span> <span id="e-nen" style="margin-left:auto; color:#fff">0</span></div>
         </div>
-        <button class="btn btn-play" id="end-turn-btn" onclick="endTurn(true)" style="padding: 10px;">Passar Turno</button>
+        <button class="btn btn-play" id="end-turn-btn" onclick="playClick(); endTurn(true)" style="padding:10px; letter-spacing:1px;">Passar Turno ▶</button>
     </aside>
 
     <main class="arena">
+        <div class="arena-label enemy">INIMIGO</div>
         <div class="zone-row" id="e-bench"></div>
         <div class="zone-row" id="e-active"></div>
-        <hr style="width:90%; opacity:0.1; margin: 5px 0;">
+        <div class="divider"></div>
         <div class="zone-row" id="p-active"></div>
         <div class="zone-row" id="p-bench"></div>
+        <div class="arena-label player">VOCÊ</div>
     </main>
 
-    <footer id="p-hand" style="display:flex; align-items:center;"></footer>
+    <footer id="p-hand">
+        <span class="hand-label">MÃO</span>
+    </footer>
 </div>
 
+<!-- ===================== ENERGY TOAST ===================== -->
+<div id="energy-toast">
+    <div class="toast-label">Energia Gerada!</div>
+    <div class="toast-type" id="toast-type-name">—</div>
+    <div class="toast-desc" id="toast-type-desc">—</div>
+</div>
+
+<!-- ===================== SCRIPT ===================== -->
 <script>
+// =========================================================
+//  BANCO DE DADOS DE CARTAS
+// =========================================================
 const CARDS_DB = {
-    'n1': { id: 'n1', name: "Naruto", hp: 70, img: "https://i.imgur.com/MG7FIXN.jpeg", skills: [{n:"Rasengan", d:50, c:2, desc:"Esfera de chakra!"}, {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones."}], price: 0 },
-    'n2': { id: 'n2', name: "Naruto Modo Senin EX", hp: 160, isEx:true, evolvesFrom:"Naruto", img: "https://i.imgur.com/uXbwFlO.jpeg", skills: [{n:"Jutsu de invocação!", d:90, c:2, desc:"Invoca Gamakich!"}, {n:"Rasenshuriken", d:140, c:4, desc:"Explosão devastadora!", vid:"Naruto Ultimate Ninja Storm 2 - Rasenshuriken with Anime SFX - Soundman (720p, h264, youtube).mp4"}], price: 500 },
-    'g1': { id: 'g1', name: "Goku", hp: 80, img: "https://i.imgur.com/g4H83vJ.jpeg", skills: [{n:"Ki Blast", d:30, c:1, desc:"Uma esfera de Ki!"}, {n:"Kamehameha", d:50, c:2, desc:"Raio concentrado!"}], price: 0 },
-    'g2': { id: 'g2', name: "Goku SSJB EX", hp: 210, isEx:true, evolvesFrom:"Goku", img: "https://i.imgur.com/SWcfJrp.jpeg", skills: [{n:"Super Kamehameha", d:80, c:2, desc:"Potencia aumentada!"}, {n:"GENKI DAMA", d:170, c:4, desc:"Força da Terra!", vid:"GOKU SSJB SUPER SPIRIT BOMB!!  GENKIDAMA  DBZ ONLINE  ULTIMATE ATTACK  KAKAROT.mp4"}], price: 600 },
-    'j1': { id: 'j1', name: "Itadori", hp: 90, img: "https://i.imgur.com/qNxk0Sn.jpeg", skills: [{n:"Kokusen", d:40, c:1, desc:"Energia amaldiçoada!"}], price: 200 },
-    'j2': { id: 'j2', name: "Sukuna EX", hp: 250, isEx:true, evolvesFrom:"Itadori", img: "https://i.imgur.com/MQKiefi.jpeg", skills: [{n:"Fuga", d:90, c:2, desc:"Flecha ardente.", vid:"Sukuna's Fuga Remaster 4K - JJK S2 E17 Bluray - Jack The Anime Ripper (720p, h264, youtube).mp4"}, {n:"Fukuma Mizushi", d:200, c:4, desc:"Expansão de dominio.", vid:"expansão de domínio, Sukuna [Jujutsu Kaisen dublado] #Shorts.mp4"}], price: 1000 },
-    'b1': { id: 'b1', name: "Gojo", hp: 110, img: "https://i.imgur.com/71MfKQb.jpeg", skills: [{n:"Azul", d:50, c:2, desc:"Atrai oponente"}, {n:"Vermelho", d:70, c:2, desc:"Repele oponente"}], price: 350 },
-    'b2': { id: 'b2', name: "Gojo EX", hp: 220, isEx:true, evolvesFrom:"Gojo", img: "https://i.imgur.com/qQ7wAbW.jpeg", skills: [{n:"Vazio Roxo", d:120, c:2, desc:"Criação potente.", vid:"satoru gojo usa vazio roxo pela primeira vez.mp4"}, {n:"Muryo Kusho", d:250, c:4, desc:"Expansão de dominio.", vid:"Gojo Satoru’s 0.2s Domain Expansion in 4K JJK Shibuya Incident Arc - Silver Clips Raw Anime (720p, h264, youtube).mp4"}], price: 2500 },
-    'a1': { id: 'a1', name: "Dio EX", hp: 230, isEx:true, img: "https://i.imgur.com/L5TnHY4.jpeg", skills: [{n:"Muda Muda Muda!", d:120, c:2, desc:"Barragem de socos!"}, {n:"Za Warudo! Road Roller Da!", d:190, c:4, desc:"Para o tempo!", vid:"ROAD ROLLER DA - Hugette Hikari (480p, h264, youtube).mp4"}], price: 1750 }
+    // ---- NARUTO (Chakra) ----
+    'n1': {
+        id:'n1', name:"Naruto", type:"Chakra", hp:70,
+        img:"https://i.imgur.com/MG7FIXN.jpeg",
+        skills:[
+            {n:"Rasengan", d:50, c:2, desc:"Esfera de chakra concentrada."},
+            {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones de sombra."}
+        ], price:0
+    },
+    'n2': {
+        id:'n2', name:"Naruto Modo Sennin EX", type:"Chakra", hp:160, isEx:true, evolvesFrom:"Naruto",
+        img:"https://i.imgur.com/uXbwFlO.jpeg",
+        skills:[
+            {n:"Invocação de Gamakichi", d:90, c:2, desc:"Invoca o sapo gigante!"},
+            {n:"Rasenshuriken", d:140, c:4, desc:"Explosão devastadora!", vid:"Naruto Ultimate Ninja Storm 2 - Rasenshuriken with Anime SFX - Soundman (720p, h264, youtube).mp4"}
+        ], price:500
+    },
+    // ---- DRAGON BALL (Ki) ----
+    'g1': {
+        id:'g1', name:"Goku", type:"Ki", hp:80,
+        img:"https://i.imgur.com/g4H83vJ.jpeg",
+        skills:[
+            {n:"Ki Blast", d:30, c:1, desc:"Uma esfera de Ki!"},
+            {n:"Kamehameha", d:50, c:2, desc:"Raio concentrado de Ki!"}
+        ], price:0
+    },
+    'g2': {
+        id:'g2', name:"Goku SSJB EX", type:"Ki", hp:210, isEx:true, evolvesFrom:"Goku",
+        img:"https://i.imgur.com/SWcfJrp.jpeg",
+        skills:[
+            {n:"Super Kamehameha", d:80, c:2, desc:"Potência aumentada!"},
+            {n:"GENKI DAMA", d:170, c:4, desc:"Força da Terra inteira!", vid:"GOKU SSJB SUPER SPIRIT BOMB!!  GENKIDAMA  DBZ ONLINE  ULTIMATE ATTACK  KAKAROT.mp4"}
+        ], price:600
+    },
+    // ---- JUJUTSU KAISEN (Amaldiçoada) ----
+    'j1': {
+        id:'j1', name:"Itadori", type:"Amaldiçoada", hp:90,
+        img:"https://i.imgur.com/qNxk0Sn.jpeg",
+        skills:[
+            {n:"Kokusen", d:40, c:1, desc:"Energia amaldiçoada negra!"},
+            {n:"Choku Shiton", d:30, c:1, desc:"Soco amplificado por maldição.", status:{target:'enemy', type:'burn', turns:2}}
+        ], price:200
+    },
+    'j2': {
+        id:'j2', name:"Sukuna EX", type:"Amaldiçoada", hp:250, isEx:true, evolvesFrom:"Itadori",
+        img:"https://i.imgur.com/MQKiefi.jpeg",
+        skills:[
+            {n:"Fuga", d:90, c:2, desc:"Flecha ardente.", vid:"Sukuna's Fuga Remaster 4K - JJK S2 E17 Bluray - Jack The Anime Ripper (720p, h264, youtube).mp4"},
+            {n:"Fukuma Mizushi", d:200, c:4, desc:"Expansão de domínio.", vid:"expansão de domínio, Sukuna [Jujutsu Kaisen dublado] #Shorts.mp4", status:{target:'enemy', type:'stun', turns:1}}
+        ], price:1000
+    },
+    'b1': {
+        id:'b1', name:"Gojo", type:"Amaldiçoada", hp:110,
+        img:"https://i.imgur.com/71MfKQb.jpeg",
+        skills:[
+            {n:"Azul", d:50, c:2, desc:"Atrai e esmaga o oponente."},
+            {n:"Vermelho", d:70, c:2, desc:"Repele com força explosiva.", status:{target:'self', type:'dodge', turns:1}}
+        ], price:350
+    },
+    'b2': {
+        id:'b2', name:"Gojo EX", type:"Amaldiçoada", hp:220, isEx:true, evolvesFrom:"Gojo",
+        img:"https://i.imgur.com/qQ7wAbW.jpeg",
+        skills:[
+            {n:"Vazio Roxo", d:120, c:2, desc:"Criação potente.", vid:"satoru gojo usa vazio roxo pela primeira vez.mp4"},
+            {n:"Muryo Kusho", d:250, c:4, desc:"Expansão de domínio.", vid:"Gojo Satoru's 0.2s Domain Expansion in 4K JJK Shibuya Incident Arc - Silver Clips Raw Anime (720p, h264, youtube).mp4", status:{target:'self', type:'shield', turns:2}}
+        ], price:2500
+    },
+    // ---- JOJO'S (Stand) ----
+    'a1': {
+        id:'a1', name:"Dio EX", type:"Stand", hp:230, isEx:true,
+        img:"https://i.imgur.com/L5TnHY4.jpeg",
+        skills:[
+            {n:"Muda Muda Muda!", d:120, c:2, desc:"Barragem de socos imparáveis!"},
+            {n:"Za Warudo! Road Roller!", d:190, c:4, desc:"Para o tempo!", vid:"ROAD ROLLER DA - Hugette Hikari (480p, h264, youtube).mp4", status:{target:'enemy', type:'stun', turns:1}}
+        ], price:1750
+    },
+    // ---- ONE PIECE (Haki) ----
+    'op1': {
+        id:'op1', name:"Luffy", type:"Haki", hp:100,
+        img:"https://i.imgur.com/qKe0sDN.jpeg",
+        skills:[
+            {n:"Gomu Gomu Pistol", d:35, c:1, desc:"Soco elástico de borracha!"},
+            {n:"Gomu Gomu Rifle", d:60, c:2, desc:"Soco giratório devastador!"}
+        ], price:300
+    },
+    'op2': {
+        id:'op2', name:"Luffy Gear 5 EX", type:"Haki", hp:240, isEx:true, evolvesFrom:"Luffy",
+        img:"https://i.imgur.com/fWyDT2q.jpeg",
+        skills:[
+            {n:"Gomu Gomu Gigant", d:100, c:2, desc:"Soco gigante de borracha!"},
+            {n:"Bajrang Gun", d:180, c:4, desc:"Punho revestido do poder do Sol!", status:{target:'enemy', type:'burn', turns:3}}
+        ], price:1200
+    },
+    // ---- BLEACH (Reiatsu) ----
+    'bl1': {
+        id:'bl1', name:"Ichigo", type:"Reiatsu", hp:95,
+        img:"https://i.imgur.com/RuqS8H0.jpeg",
+        skills:[
+            {n:"Getsuga Tensho", d:55, c:2, desc:"Corte de energia espiritual!"},
+            {n:"Bankai!", d:30, c:1, desc:"Libera o Bankai!", status:{target:'self', type:'shield', turns:1}}
+        ], price:280
+    },
+    'bl2': {
+        id:'bl2', name:"Ichigo Bankai EX", type:"Reiatsu", hp:200, isEx:true, evolvesFrom:"Ichigo",
+        img:"https://i.imgur.com/vRZfTYk.jpeg",
+        skills:[
+            {n:"Kuroi Getsuga", d:110, c:2, desc:"Corte negro de pressão máxima!"},
+            {n:"Mugetsu", d:190, c:4, desc:"O corte final sem lua!", status:{target:'enemy', type:'stun', turns:2}}
+        ], price:1100
+    },
+    // ---- HUNTER X HUNTER (Nen) ----
+    'hxh1': {
+        id:'hxh1', name:"Gon", type:"Nen", hp:85,
+        img:"https://i.imgur.com/PzCbmIM.jpeg",
+        skills:[
+            {n:"Jajaken", d:40, c:1, desc:"Pedra de Nen concentrada!"},
+            {n:"Pedra de Nen Carregada", d:65, c:2, desc:"Carregada por longo tempo!"}
+        ], price:250
+    },
+    'hxh2': {
+        id:'hxh2', name:"Gon Adulto EX", type:"Nen", hp:220, isEx:true, evolvesFrom:"Gon",
+        img:"https://i.imgur.com/dRJSmrv.jpeg",
+        skills:[
+            {n:"Jajaken MAX", d:120, c:2, desc:"Pedra de Nen ao máximo!"},
+            {n:"Nen Liberado", d:200, c:4, desc:"Toda a vida como Nen!", status:{target:'enemy', type:'burn', turns:3}}
+        ], price:1300
+    },
+    // ---- SUPORTE/ITEM (não vão para a arena) ----
+    'sup1': {
+        id:'sup1', name:"Semente dos Deuses", type:"Suporte", isSupport:true, hp:0,
+        img:"https://i.imgur.com/G7rdMgx.jpeg",
+        effect:{type:'heal', value:60, target:'active'},
+        desc:"Cura 60 HP do seu lutador ativo.",
+        price:300
+    },
+    'sup2': {
+        id:'sup2', name:"Pote de Chakra", type:"Suporte", isSupport:true, hp:0,
+        img:"https://i.imgur.com/MG7FIXN.jpeg",
+        effect:{type:'draw', value:2},
+        desc:"Compre 2 cartas extras do deck.",
+        price:250
+    },
+    'sup3': {
+        id:'sup3', name:"Dedo do Sukuna", type:"Suporte", isSupport:true, hp:0,
+        img:"https://i.imgur.com/qNxk0Sn.jpeg",
+        effect:{type:'energyBoost', value:2},
+        desc:"Ganhe +2 de energia imediatamente.",
+        price:350
+    },
+    'sup4': {
+        id:'sup4', name:"Armadura Espiritual", type:"Suporte", isSupport:true, hp:0,
+        img:"https://i.imgur.com/RuqS8H0.jpeg",
+        effect:{type:'status', status:'shield', turns:2, target:'active'},
+        desc:"Aplica Escudo (2 turnos) no ativo.",
+        price:400
+    }
 };
 
+// =========================================================
+//  NÍVEIS
+// =========================================================
 const LEVELS_BOSS = [
-    { name: "Clone de Treino", reward: 100, bossId: 'n2', hpBuff: 350 },
-    { name: "Rei das Maldições", reward: 350, bossId: 'j2', hpBuff: 800 },
-    { name: "O Ceifeiro", reward: 600, bossId: 'b2', hpBuff: 1200 },
-    { name: "Plano Celestial", reward: 1500, bossId: 'a1', hpBuff: 2000 }
+    { name:"Clone de Treino", reward:100, bossId:'n2', hpBuff:350 },
+    { name:"Rei das Maldições", reward:350, bossId:'j2', hpBuff:800 },
+    { name:"O Ceifeiro", reward:600, bossId:'b2', hpBuff:1200 },
+    { name:"Plano Celestial", reward:1500, bossId:'a1', hpBuff:2000 }
 ];
-
 const LEVELS_NORMAL = [
-    { name: "Iniciante", reward: 50, deck: ['n1','n1','g1','g1','j1'] },
-    { name: "Rival Forte", reward: 150, deck: ['g1','g2','b1','n1','j1'] },
-    { name: "Mestre TCG", reward: 400, deck: ['j1','j2','b1','b2','a1'] }
+    { name:"Iniciante", reward:50, deck:['n1','n1','g1','g1','j1'] },
+    { name:"Rival Forte", reward:150, deck:['g1','g2','b1','n1','j1'] },
+    { name:"Mestre TCG", reward:400, deck:['j1','j2','b1','b2','a1'] },
+    { name:"Caçador de Piratas", reward:600, deck:['op1','op2','bl1','hxh1','op1'] },
+    { name:"Lenda Absoluta", reward:1000, deck:['op2','bl2','hxh2','g2','b2'] }
 ];
 
-let user = { coins: 500, inventory: ['n1','g1','n1','g1','n1','g1','j1','b1'], deck: ['n1','g1','n1','g1','n1'] };
-let game = { player: {}, enemy: {}, turn: '', energyUsed: false, currentReward: 0, evolutionsThisTurn: 0, hasSwapped: false, mode: '', pendingAttack: null, timerInterval: null, timeLeft: 30 };
+// =========================================================
+//  ESTADO DO JOGO
+// =========================================================
+let user = {
+    coins: 500,
+    inventory: ['n1','g1','n1','g1','n1','g1','j1','b1','op1','bl1','hxh1','sup1','sup2'],
+    deck: ['n1','g1','n1','g1','n1']
+};
+
+let game = {
+    player:{}, enemy:{},
+    turn:'', energyUsed:false,
+    currentReward:0, evolutionsThisTurn:0,
+    hasSwapped:false, hasAttacked:false, mode:'',
+    pendingAttack:null, timerInterval:null,
+    timeLeft:30,
+    roundCount:1,         // Contador de rodadas (sobe a cada turno do jogador)
+    deckTypes:[],         // Tipos únicos presentes no deck do jogador nesta partida
+    energies:{ Chakra:0, Ki:0, Amaldiçoada:0, Stand:0, Haki:0, Reiatsu:0, Nen:0 }
+};
+
+// =========================================================
+//  AUTO-SAVE
+// =========================================================
+function autoSave() {
+    try { localStorage.setItem('utcg_autosave', JSON.stringify(user)); } catch(e){}
+}
+function autoLoad() {
+    try {
+        const d = localStorage.getItem('utcg_autosave');
+        if(d) { const parsed = JSON.parse(d); if(parsed.coins !== undefined) user = parsed; }
+    } catch(e){}
+}
+autoLoad();
+
+// =========================================================
+//  ÁUDIO UTILS
+// =========================================================
+function playSFX(id) {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.currentTime = 0;
+    el.play().catch(()=>{});
+}
+function playClick() { playSFX('sfxClick'); }
 
 function desbloquearAudio() {
-    const menuSom = document.getElementById('musicaFundo');
-    const batalhaSom = document.getElementById('musicaBatalha');
-    menuSom.volume = 0.3; batalhaSom.volume = 0.3;
-    if (menuSom.paused) menuSom.play().catch(e => console.log("Aguardando interação para áudio..."));
+    const m = document.getElementById('musicaFundo');
+    m.volume = 0.3;
+    if(m.paused) m.play().catch(()=>{});
     window.removeEventListener('click', desbloquearAudio);
     window.removeEventListener('keydown', desbloquearAudio);
 }
-
 window.addEventListener('click', desbloquearAudio);
 window.addEventListener('keydown', desbloquearAudio);
 
-// Exibe as telas e liga/desliga música corretamente
+// =========================================================
+//  FLOATING DAMAGE NUMBERS
+// =========================================================
+function spawnFloat(x, y, text, cls) {
+    const el = document.createElement('div');
+    el.className = `dmg-float ${cls}`;
+    el.innerText = text;
+    el.style.left = (x - 20) + 'px';
+    el.style.top = (y - 20) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1300);
+}
+
+function getCardCenter(elId) {
+    const el = document.getElementById(elId);
+    if(!el) return { x: window.innerWidth/2, y: window.innerHeight/2 };
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width/2, y: r.top + r.height/2 };
+}
+
+// =========================================================
+//  INDICADOR DE TURNO
+// =========================================================
+function showTurnIndicator(who) {
+    const el = document.getElementById('turn-indicator');
+    el.className = who === 'player' ? 'player-turn' : 'enemy-turn';
+    el.innerText = who === 'player' ? 'SEU TURNO' : 'TURNO DO INIMIGO';
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// =========================================================
+//  NAVEGAÇÃO DE TELAS
+// =========================================================
 function showScreen(id, modeParam) {
-    document.querySelectorAll('.screen, #coin-screen').forEach(s => s.style.display = 'none');
-    
-    // Garante que a UI de jogo seja desligada
-    const gameUI = document.getElementById('game-ui');
-    if(gameUI) {
-        // Se for desktop usa grid, se for mobile o CSS Media Query assume com flex
-        gameUI.style.display = 'none'; 
-    }
+    document.querySelectorAll('.screen, #coin-screen, #result-screen').forEach(s => s.style.display = 'none');
+    document.getElementById('game-ui').style.display = 'none';
 
     const el = document.getElementById(id);
-    if(el) {
-        if(id === 'game-ui') {
-            el.style.display = window.innerWidth <= 850 ? 'flex' : 'grid';
-        } else {
-            el.style.display = 'flex';
-        }
+    if(!el) return;
+
+    if(id === 'game-ui') {
+        el.style.display = window.innerWidth <= 850 ? 'flex' : 'grid';
+    } else {
+        el.style.display = 'flex';
     }
-    
+
     document.getElementById('menu-coins').innerText = user.coins;
-    
-    if(id === 'main-menu' || id === 'story-modal' || id === 'deck-select' || id === 'store-screen' || id === 'deck-editor') {
-        const musicaBatalha = document.getElementById('musicaBatalha');
-        const musicaFundo = document.getElementById('musicaFundo');
+
+    // Música
+    const musicaBatalha = document.getElementById('musicaBatalha');
+    const musicaFundo = document.getElementById('musicaFundo');
+    const menuScreens = ['main-menu','story-modal','deck-select','store-screen','deck-editor'];
+    if(menuScreens.includes(id)) {
         if(musicaBatalha) musicaBatalha.pause();
         if(musicaFundo && musicaFundo.paused) musicaFundo.play().catch(()=>{});
     }
-    
+
     if(id === 'deck-select') {
         game.mode = modeParam;
-        document.getElementById('select-title').innerText = modeParam === 'boss' ? "Selecione o Boss" : "Selecione o Adversário";
+        document.getElementById('select-title').innerText = modeParam === 'boss' ? '☠️ Selecione o Boss' : '⚔️ Selecione o Adversário';
         renderLevels(modeParam);
     }
+
+    // Update notes só no menu
+    const notes = document.getElementById('update-notes');
+    if(notes) notes.style.display = (id === 'main-menu') ? 'block' : 'none';
 }
 
+// =========================================================
+//  NÍVEIS
+// =========================================================
 function renderLevels(mode) {
-    const list = document.getElementById('level-list'); list.innerHTML = '';
+    const list = document.getElementById('level-list');
+    list.innerHTML = '';
     const db = mode === 'boss' ? LEVELS_BOSS : LEVELS_NORMAL;
-    db.forEach((lvl, index) => {
+    db.forEach((lvl, i) => {
         const div = document.createElement('div');
         div.className = 'level-box';
-        div.onclick = () => initCoinFlip(index);
-        
+        div.onclick = () => { playClick(); initCoinFlip(i); };
         if(mode === 'boss') {
-            div.innerHTML = `<div><b style="color:var(--hp-red)">BOSS: ${CARDS_DB[lvl.bossId].name}</b><br><small>HP: ${lvl.hpBuff}</small></div><div style="color:#4ade80">+${lvl.reward} $</div>`;
+            const boss = CARDS_DB[lvl.bossId];
+            div.innerHTML = `<div><b style="color:var(--hp-red)">☠ BOSS: ${boss.name}</b><br><small style="color:#94a3b8">HP: ${lvl.hpBuff}</small></div><div style="color:var(--green); font-family:'Orbitron',monospace;">+${lvl.reward}$</div>`;
         } else {
-            div.innerHTML = `<div><b style="color:#0ea5e9">NORMAL: ${lvl.name}</b><br><small>Deck com ${lvl.deck.length} cartas</small></div><div style="color:#4ade80">+${lvl.reward} $</div>`;
+            div.innerHTML = `<div><b style="color:var(--accent)">${lvl.name}</b><br><small style="color:#94a3b8">Deck com ${lvl.deck.length} cartas</small></div><div style="color:var(--green); font-family:'Orbitron',monospace;">+${lvl.reward}$</div>`;
         }
         list.appendChild(div);
     });
 }
 
-function log(msg) {
+// =========================================================
+//  LOG
+// =========================================================
+function log(msg, color) {
     const term = document.getElementById('log');
-    term.innerHTML = `<div>> ${msg}</div>` + term.innerHTML;
+    const c = color || '#4ade80';
+    term.innerHTML = `<div style="color:${c}; border-bottom:1px solid #0f172a; padding-bottom:2px; margin-bottom:2px;">> ${msg}</div>` + term.innerHTML;
 }
 
-function openEditor() { showScreen('deck-editor'); renderEditor(); }
+// =========================================================
+//  EDITOR DE DECK
+// =========================================================
+function openEditor() {
+    showScreen('deck-editor');
+    renderEditor();
+}
 function renderEditor() {
-    const bankEl = document.getElementById('editor-bank'); const deckEl = document.getElementById('editor-deck-list');
-    bankEl.innerHTML = ''; deckEl.innerHTML = '';
+    const bankEl = document.getElementById('editor-bank');
+    const deckEl = document.getElementById('editor-deck-list');
+    bankEl.innerHTML = '';
+    deckEl.innerHTML = '';
+
     let tempBank = [...user.inventory];
-    user.deck.forEach(dId => { const idx = tempBank.indexOf(dId); if(idx > -1) tempBank.splice(idx, 1); });
-    tempBank.forEach((cardId) => {
-        const card = CARDS_DB[cardId]; const div = document.createElement('div'); div.className = 'mini-card';
-        div.onclick = () => { if(user.deck.length < 20) { user.deck.push(cardId); renderEditor(); } else alert("Max 20!"); };
-        div.innerHTML = `<img src="${card.img}"><div class="name">${card.name}</div>`; bankEl.appendChild(div);
+    user.deck.forEach(dId => { const idx = tempBank.indexOf(dId); if(idx > -1) tempBank.splice(idx,1); });
+
+    tempBank.forEach(cardId => {
+        const card = CARDS_DB[cardId];
+        if(!card) return;
+        const div = document.createElement('div');
+        div.className = 'mini-card' + (card.isSupport ? ' support' : '');
+        div.onclick = () => {
+            if(user.deck.length < 20) { user.deck.push(cardId); autoSave(); renderEditor(); }
+            else alert("Máximo 20 cartas!");
+        };
+        const typeColor = getTypeColor(card.type);
+        div.innerHTML = `<img src="${card.img}"><div class="name" style="color:${typeColor}">${card.name}</div>`;
+        bankEl.appendChild(div);
     });
+
     user.deck.forEach((cardId, index) => {
-        const card = CARDS_DB[cardId]; const div = document.createElement('div'); div.className = 'mini-card'; div.style.borderColor = 'var(--gold)';
-        div.onclick = () => { user.deck.splice(index, 1); renderEditor(); };
-        div.innerHTML = `<img src="${card.img}"><div class="name">${card.name}</div>`; deckEl.appendChild(div);
+        const card = CARDS_DB[cardId];
+        if(!card) return;
+        const div = document.createElement('div');
+        div.className = 'mini-card' + (card.isSupport ? ' support' : '');
+        div.style.borderColor = 'var(--gold)';
+        div.onclick = () => { user.deck.splice(index,1); autoSave(); renderEditor(); };
+        div.innerHTML = `<img src="${card.img}"><div class="name">${card.name}</div>`;
+        deckEl.appendChild(div);
     });
+
     document.getElementById('deck-size').innerText = user.deck.length;
 }
 
+// =========================================================
+//  LOJA
+// =========================================================
 function openStore() {
-    showScreen('store-screen'); const grid = document.getElementById('store-grid'); grid.innerHTML = '';
+    showScreen('store-screen');
+    const grid = document.getElementById('store-grid');
+    grid.innerHTML = '';
     document.getElementById('store-coins').innerText = user.coins;
+
     Object.values(CARDS_DB).forEach(card => {
         if(card.price === 0) return;
-        const div = document.createElement('div'); div.className = 'item-card';
-        div.innerHTML = `<img src="${card.img}" style="width:100%; height:60px; object-fit:cover;"><div style="font-size:11px;">${card.name}</div><button class="btn-skill" onclick="buyCard('${card.id}')">${card.price} $</button>`;
+        const div = document.createElement('div');
+        div.className = 'item-card' + (card.isSupport ? ' support-type' : '');
+        const typeColor = getTypeColor(card.type);
+        const typeLabel = card.isEx ? '⭐ EX' : (card.isSupport ? '🌿 Item' : '');
+        div.innerHTML = `
+            <img src="${card.img}">
+            <div style="font-size:11px; font-weight:700; color:${typeColor}; margin-bottom:3px;">${card.name}</div>
+            ${typeLabel ? `<div style="font-size:10px; color:#64748b; margin-bottom:4px;">${typeLabel}</div>` : ''}
+            ${card.isSupport ? `<div style="font-size:9px; color:#4ade80; margin-bottom:4px;">${card.desc}</div>` : ''}
+            <button class="btn-skill" style="border-color:var(--gold); color:var(--gold);" onclick="buyCard('${card.id}')">💰 ${card.price}$</button>
+        `;
         grid.appendChild(div);
     });
 }
-function buyCard(id) { if(user.coins >= CARDS_DB[id].price) { user.coins -= CARDS_DB[id].price; user.inventory.push(id); openStore(); } else alert("Sem moedas!"); }
 
-function initCoinFlip(lvlIdx) {
-    if(user.deck.length < 5) return alert("Seu deck precisa de pelo menos 5 cartas!");
-    
-    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    const coinScreen = document.getElementById('coin-screen');
-    const coinObj = document.getElementById('coin-obj');
-    const coinText = document.getElementById('coin-text');
-    
-    coinScreen.style.display = 'flex';
-    coinObj.style.transform = 'rotateY(0deg)';
-    coinText.innerText = "Girando...";
-    coinObj.innerText = "?";
-
-    setTimeout(() => {
-        const isPlayerFirst = Math.random() < 0.5; 
-        coinObj.style.transform = 'rotateY(1800deg)';
-        coinObj.innerText = isPlayerFirst ? "C" : "K";
-        coinText.innerText = isPlayerFirst ? "VOCÊ COMEÇA!" : "O INIMIGO COMEÇA!";
-        
-        setTimeout(() => {
-            coinScreen.style.display = 'none';
-            startGame(lvlIdx, isPlayerFirst ? 'player' : 'enemy');
-        }, 2000);
-    }, 500);
-}
-
-function startGame(lvlIdx, firstTurn) {
-    showScreen('game-ui');
-    document.getElementById('log').innerHTML = '';
-    
-    const musicaFundo = document.getElementById('musicaFundo');
-    const musicaBatalha = document.getElementById('musicaBatalha');
-    if(musicaFundo) musicaFundo.pause();
-    if(musicaBatalha) { musicaBatalha.currentTime = 0; musicaBatalha.play().catch(()=>{}); }
-    
-    game.player = { active: null, bench: [], hand: [], deck: [...user.deck].sort(()=>0.5-Math.random()), energy: 0 };
-    
-    if(game.mode === 'boss') {
-        const lvl = LEVELS_BOSS[lvlIdx];
-        game.currentReward = lvl.reward;
-        const bossTemplate = JSON.parse(JSON.stringify(CARDS_DB[lvl.bossId]));
-        bossTemplate.hp = lvl.hpBuff; bossTemplate.curHP = lvl.hpBuff; bossTemplate.attached = 0; bossTemplate.name = "BOSS " + bossTemplate.name;
-        game.enemy = { active: bossTemplate };
+function buyCard(id) {
+    const card = CARDS_DB[id];
+    if(user.coins >= card.price) {
+        user.coins -= card.price;
+        user.inventory.push(id);
+        playSFX('sfxBuy');
+        autoSave();
+        openStore();
     } else {
-        const lvl = LEVELS_NORMAL[lvlIdx];
-        game.currentReward = lvl.reward;
-        game.enemy = { active: null, bench: [], hand: [], deck: [...lvl.deck].sort(()=>0.5-Math.random()), energy: 0 };
-        for(let i=0; i<4; i++) { if(game.enemy.deck.length > 0) game.enemy.hand.push({...CARDS_DB[game.enemy.deck.pop()]}); }
-        if(game.enemy.hand.length > 0) {
-            game.enemy.active = {...game.enemy.hand[0], curHP: game.enemy.hand[0].hp, attached: 0};
-            game.enemy.hand.splice(0,1);
-        }
-    }
-
-    for(let i=0; i<4; i++) drawCard(game.player);
-    startTurn(firstTurn);
-}
-
-function drawCard(target) { if(target.deck && target.deck.length > 0) target.hand.push({...CARDS_DB[target.deck.pop()]}); }
-
-function startTimer() {
-    clearInterval(game.timerInterval);
-    game.timeLeft = 30;
-    const timerDisplay = document.getElementById('turn-timer');
-    timerDisplay.innerText = game.timeLeft + 's';
-    timerDisplay.style.background = game.turn === 'player' ? '#b91c1c' : '#0f172a';
-    
-    game.timerInterval = setInterval(() => {
-        game.timeLeft--;
-        timerDisplay.innerText = game.timeLeft + 's';
-        if(game.timeLeft <= 0) {
-            log("O tempo acabou!");
-            endTurn(false);
-        }
-    }, 1000);
-}
-
-function startTurn(who) {
-    game.turn = who; 
-    game.energyUsed = false; 
-    game.evolutionsThisTurn = 0; 
-    game.hasSwapped = false; 
-    
-    if(who === 'player') {
-        game.player.energy += 1;
-        drawCard(game.player);
-        document.getElementById('end-turn-btn').disabled = false;
-        startTimer();
-    } else {
-        document.getElementById('end-turn-btn').disabled = true;
-        startTimer();
-        setTimeout(enemyAI, 1500);
-    }
-    updateUI();
-}
-
-function endTurn(isManual) {
-    clearInterval(game.timerInterval);
-    if(game.turn === 'player') startTurn('enemy');
-    else startTurn('player');
-}
-
-function updateUI() {
-    document.getElementById('energy-pool').innerText = game.player.energy;
-    render('p-active', game.player.active, true, 'active');
-    render('e-active', game.enemy.active, false, 'active');
-    
-    const pb = document.getElementById('p-bench'); pb.innerHTML = '';
-    game.player.bench.forEach((c, i) => render('p-bench', c, true, 'bench', i));
-    
-    const eb = document.getElementById('e-bench'); eb.innerHTML = '';
-    if(game.mode === 'normal') {
-        game.enemy.bench.forEach((c, i) => render('e-bench', c, false, 'bench', i));
-    }
-    
-    const hand = document.getElementById('p-hand'); hand.innerHTML = '';
-    game.player.hand.forEach((c, i) => {
-        const div = document.createElement('div'); div.className = `card ${c.isEx ? 'ex' : ''}`;
-        div.onclick = () => playCard(i);
-        div.onmouseenter = () => inspectCard(c); // Permite inspecionar a mão no PC
-        div.innerHTML = `<img src="${c.img}"><div class="card-content" style="align-items:center; justify-content:center"><b style="${c.isEx ? 'color:var(--gold)' : ''}; font-size:11px;">${c.name}</b></div>`;
-        hand.appendChild(div);
-    });
-}
-
-function render(id, card, isP, type, index) {
-    const area = document.getElementById(id);
-    if(type === 'active') area.innerHTML = '';
-    if(!card) { if(type === 'active') area.innerHTML = `<div class="card active" style="border:2px dashed #333; background:none"></div>`; return; }
-    
-    const div = document.createElement('div');
-    div.className = `card ${type === 'active' ? 'active' : ''} ${card.isEx ? 'ex' : ''}`;
-    if(type === 'active') div.id = isP ? 'p-card-active' : 'e-card-active';
-    
-    div.onclick = () => { 
-        inspectCard(card); // Inspeciona no primeiro clique no Mobile
-        if(isP && game.player.energy > 0 && !game.energyUsed) attachEnergy(card); 
-    };
-    div.onmouseenter = () => inspectCard(card);
-    
-    let skillsHTML = "";
-    if(type === 'active' && isP) {
-        skillsHTML = card.skills.map((s, i) => `
-            <button class="btn-skill" onclick="event.stopPropagation(); triggerAttack(${i}, 'player')">
-                ${s.n} ${s.p ? `<br><span class="penalty-txt">${s.p}</span>` : ''}
-            </button>
-        `).join('');
-    } else if (type === 'active' && !isP) {
-        skillsHTML = card.skills.map(s => `<div class="btn-skill" style="cursor:default; text-align:center">${s.n} [Dano: ${s.d}]</div>`).join('');
-    }
-
-    const swapBtn = (type === 'bench' && isP && game.turn === 'player') 
-        ? `<button class="btn-skill" style="background:var(--gold); color:#000; border:none; margin-bottom: 4px;" onclick="event.stopPropagation(); swapCard(${index})">TROCAR</button>` : '';
-
-    div.innerHTML = `
-        <img src="${card.img}">
-        <div class="hp-tag">${card.curHP || card.hp}</div>
-        <div class="energy-tag">${card.attached || 0}</div>
-        <div class="card-content">
-            <b style="${card.isEx ? 'color:var(--gold); text-align:center;' : 'text-align:center;'} font-size:11px;">${card.name}</b>
-            <div style="flex:1; overflow-y:auto; margin-top:5px;">${swapBtn}${skillsHTML}</div>
-        </div>
-    `;
-    area.appendChild(div);
-}
-
-function swapCard(index) {
-    if(!game.player.active) return;
-    if(game.hasSwapped) return alert("Você já fez uma troca neste turno!");
-    log(`Você recuou ${game.player.active.name} e colocou ${game.player.bench[index].name}!`);
-    const temp = game.player.active; game.player.active = game.player.bench[index]; game.player.bench[index] = temp;
-    game.hasSwapped = true; updateUI();
-}
-
-function playCard(i) {
-    const c = game.player.hand[i];
-    inspectCard(c); // Para Mobile
-    
-    if(!game.player.active && !c.evolvesFrom) { game.player.active = {...c, curHP: c.hp, attached: 0}; game.player.hand.splice(i,1); }
-    else if(c.evolvesFrom) {
-        if(game.evolutionsThisTurn >= 1) return alert("Só uma evolução por turno!");
-        let evolved = false;
-        if(game.player.active && c.evolvesFrom === game.player.active.name) {
-            const d = game.player.active.hp - game.player.active.curHP;
-            game.player.active = {...c, curHP: c.hp - d, attached: game.player.active.attached};
-            game.player.hand.splice(i,1); game.evolutionsThisTurn++; evolved = true;
-        } else {
-            for(let j=0; j < game.player.bench.length; j++) {
-                if(game.player.bench[j].name === c.evolvesFrom) {
-                    const bCard = game.player.bench[j]; const d = bCard.hp - bCard.curHP;
-                    game.player.bench[j] = {...c, curHP: c.hp - d, attached: bCard.attached};
-                    game.player.hand.splice(i,1); game.evolutionsThisTurn++; evolved = true; break;
-                }
-            }
-        }
-        if(!evolved) alert(`Nenhum ${c.evolvesFrom} em campo!`);
-    } else if(game.player.bench.length < 3 && !c.evolvesFrom) {
-        game.player.bench.push({...c, curHP: c.hp, attached: 0}); game.player.hand.splice(i,1);
-    }
-    updateUI();
-}
-
-function attachEnergy(card) { card.attached = (card.attached || 0) + 1; game.player.energy--; game.energyUsed = true; updateUI(); }
-
-function triggerAttack(idx, source) {
-    if(source === 'player' && (!game.enemy.active || game.turn !== 'player')) return;
-    if(source === 'player' && game.hasSwapped) return alert("Personagem que acabou de entrar não ataca!");
-    
-    const attacker = source === 'player' ? game.player.active : game.enemy.active;
-    const defender = source === 'player' ? game.enemy.active : game.player.active;
-    const skill = attacker.skills[idx];
-    
-    if(attacker.attached < skill.c) return alert("Energia insuficiente!");
-    
-    clearInterval(game.timerInterval); 
-    document.getElementById('end-turn-btn').disabled = true;
-
-    const cardEl = document.getElementById(source === 'player' ? 'p-card-active' : 'e-card-active');
-    if(cardEl) { cardEl.classList.add('atk-anim'); setTimeout(() => cardEl.classList.remove('atk-anim'), 400); }
-
-    if(attacker.isEx && skill.vid) {
-        game.pendingAttack = { attacker, defender, skill, source };
-        
-        // Pausa a música ao rodar o vídeo da ult
-        const musicaBatalha = document.getElementById('musicaBatalha');
-        if(musicaBatalha) musicaBatalha.pause();
-
-        const v = document.getElementById('ult-video'); v.src = skill.vid;
-        document.getElementById('ult-screen').style.display = 'flex'; 
-        v.play().catch(()=> closeUlt()); 
-    } else {
-        executeDamage(attacker, defender, skill, source);
+        alert("Moedas insuficientes!");
     }
 }
 
-function closeUlt() {
-    const v = document.getElementById('ult-video');
-    const musicaBatalha = document.getElementById('musicaBatalha');
-    
-    v.pause();
-    v.src = "";
-    document.getElementById('ult-screen').style.display = 'none';
-    
-    // Retoma a música
-    if(musicaBatalha) musicaBatalha.play().catch(()=>{});
-    
-    if (game.pendingAttack) {
-        const { attacker, defender, skill, source } = game.pendingAttack;
-        game.pendingAttack = null;
-        executeDamage(attacker, defender, skill, source);
-    }
-}
-
-function executeDamage(attacker, defender, skill, source) {
-    if(skill.d > 0) defender.curHP -= skill.d;
-    log(`[${source.toUpperCase()}] usou ${skill.n}! Dano: ${skill.d}`);
-    if(!checkKOs()) {
-        updateUI();
-        setTimeout(() => endTurn(false), 1500); 
-    }
-}
-
-function enemyAI() {
-    if(!game.enemy.active || game.turn !== 'enemy') return;
-
-    if(game.mode === 'boss') {
-        game.enemy.active.attached += 2; 
-        decideAndAttack(game.enemy.active);
-    } else {
-        game.enemy.energy += 1;
-        drawCard(game.enemy);
-        
-        for(let i=game.enemy.hand.length-1; i>=0; i--) {
-            let c = game.enemy.hand[i];
-            if(!c.evolvesFrom && game.enemy.bench.length < 3) {
-                game.enemy.bench.push({...c, curHP: c.hp, attached: 0});
-                game.enemy.hand.splice(i, 1);
-            }
-        }
-        
-        if(game.enemy.energy > 0) {
-            game.enemy.active.attached += 1;
-            game.enemy.energy--;
-        }
-        
-        setTimeout(() => decideAndAttack(game.enemy.active), 1000);
-    }
-    updateUI();
-}
-
-function decideAndAttack(activeCard) {
-    const pHP = game.player.active ? game.player.active.curHP : 999;
-    const usableSkills = activeCard.skills.filter(s => activeCard.attached >= s.c);
-    
-    if(usableSkills.length > 0 && game.player.active) {
-        let bestSkillIdx = 0;
-        let maxDmg = 0;
-        
-        for(let i=0; i<usableSkills.length; i++) {
-            let s = usableSkills[i];
-            let originalIdx = activeCard.skills.indexOf(s);
-            if(s.d >= pHP) { bestSkillIdx = originalIdx; break; } 
-            if(s.d > maxDmg) { maxDmg = s.d; bestSkillIdx = originalIdx; }
-        }
-        triggerAttack(bestSkillIdx, 'enemy');
-    } else {
-        log(`${activeCard.name} está acumulando força...`);
-        if(!checkKOs()) setTimeout(() => endTurn(false), 1000);
-    }
-}
-
-function checkKOs() {
-    let gameOver = false;
-    
-    if(game.enemy.active && game.enemy.active.curHP <= 0) {
-        log(`${game.enemy.active.name} adversário foi derrotado!`);
-        if(game.mode === 'normal' && game.enemy.bench.length > 0) {
-            game.enemy.active = game.enemy.bench.shift(); 
-            log(`Adversário enviou ${game.enemy.active.name}!`);
-        } else {
-            user.coins += game.currentReward; 
-            alert(`VITÓRIA! +${game.currentReward}$`); 
-            showScreen('main-menu');
-            gameOver = true;
-        }
-    }
-    else if(game.player.active && game.player.active.curHP <= 0) {
-        log(`Seu ${game.player.active.name} caiu!`);
-        if(game.player.bench.length > 0) {
-            game.player.active = game.player.bench.shift(); 
-            log(`Você foi forçado a enviar ${game.player.active.name}!`);
-        } else {
-            alert(`DERROTA! Você ficou sem monstros.`);
-            showScreen('main-menu');
-            gameOver = true;
-        }
-    }
-    
-    updateUI();
-    return gameOver;
-}
-
+// =========================================================
+//  SAVE / LOAD MANUAL
+// =========================================================
 function saveGame() {
     const data = JSON.stringify(user);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([data], {type: 'application/json'}));
+    a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
     a.download = 'utcg_save.json';
     a.click();
-    alert("Jogo salvo no seu computador!");
+    alert("Jogo salvo!");
 }
-
 function loadGame(input) {
     const file = input.files[0];
     if(!file) return;
@@ -806,53 +1290,915 @@ function loadGame(input) {
         try {
             user = JSON.parse(e.target.result);
             document.getElementById('menu-coins').innerText = user.coins;
-            alert("Dados carregados com sucesso!");
-        } catch(err) { alert("Arquivo de save inválido!"); }
+            alert("Dados carregados!");
+        } catch(err) { alert("Arquivo inválido!"); }
     };
     reader.readAsText(file);
 }
 
+// =========================================================
+//  COIN FLIP
+// =========================================================
+function initCoinFlip(lvlIdx) {
+    if(user.deck.length < 5) return alert("Deck precisa de pelo menos 5 cartas!");
+
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    const cs = document.getElementById('coin-screen');
+    const co = document.getElementById('coin-obj');
+    const ct = document.getElementById('coin-text');
+
+    cs.style.display = 'flex';
+    co.style.transform = 'rotateY(0deg)';
+    ct.innerText = "Girando...";
+    co.innerText = "?";
+
+    setTimeout(() => {
+        const isPlayerFirst = Math.random() < 0.5;
+        co.style.transform = 'rotateY(1800deg)';
+        co.innerText = isPlayerFirst ? "C" : "K";
+        ct.innerText = isPlayerFirst ? "🎉 VOCÊ COMEÇA!" : "😈 O INIMIGO COMEÇA!";
+        setTimeout(() => {
+            cs.style.display = 'none';
+            startGame(lvlIdx, isPlayerFirst ? 'player' : 'enemy');
+        }, 2000);
+    }, 500);
+}
+
+// =========================================================
+//  INICIAR JOGO
+// =========================================================
+function startGame(lvlIdx, firstTurn) {
+    showScreen('game-ui');
+    document.getElementById('log').innerHTML = '';
+
+    const musicaFundo = document.getElementById('musicaFundo');
+    const musicaBatalha = document.getElementById('musicaBatalha');
+    if(musicaFundo) musicaFundo.pause();
+    if(musicaBatalha) { musicaBatalha.currentTime = 0; musicaBatalha.play().catch(()=>{}); }
+
+    // Zerar energias e rodadas
+    game.energies = { Chakra:0, Ki:0, Amaldiçoada:0, Stand:0, Haki:0, Reiatsu:0, Nen:0 };
+    game.roundCount = 1;
+    game._roundStarted = false;
+
+    // Descobrir quais TIPOS de energia estão presentes no deck do jogador
+    // (apenas personagens — ignora cartas de suporte)
+    const typesSet = new Set();
+    user.deck.forEach(id => {
+        const c = CARDS_DB[id];
+        if(c && c.type && c.type !== 'Suporte') typesSet.add(c.type);
+    });
+    game.deckTypes = [...typesSet];
+    console.log('[UTCG] Tipos no deck:', game.deckTypes);
+
+    game.player = {
+        active:null, bench:[], hand:[],
+        deck: [...user.deck].sort(()=>0.5-Math.random()),
+        energy:0
+    };
+
+    if(game.mode === 'boss') {
+        const lvl = LEVELS_BOSS[lvlIdx];
+        game.currentReward = lvl.reward;
+        const boss = JSON.parse(JSON.stringify(CARDS_DB[lvl.bossId]));
+        boss.hp = lvl.hpBuff; boss.curHP = lvl.hpBuff; boss.attached = 0;
+        boss.name = "👑 BOSS " + boss.name;
+        boss.statuses = [];
+        game.enemy = { active:boss };
+    } else {
+        const lvl = LEVELS_NORMAL[lvlIdx];
+        game.currentReward = lvl.reward;
+        game.enemy = {
+            active:null, bench:[], hand:[],
+            deck:[...lvl.deck].sort(()=>0.5-Math.random()),
+            energy:0
+        };
+        for(let i=0;i<4;i++) drawCard(game.enemy);
+        if(game.enemy.hand.length > 0) {
+            game.enemy.active = {...game.enemy.hand[0], curHP:game.enemy.hand[0].hp, attached:0, statuses:[]};
+            game.enemy.hand.splice(0,1);
+        }
+    }
+
+    for(let i=0;i<4;i++) drawCard(game.player);
+    playSFX('sfxShuffle');
+    startTurn(firstTurn);
+}
+
+function drawCard(target) {
+    if(target.deck && target.deck.length > 0) {
+        const id = target.deck.pop();
+        const card = CARDS_DB[id];
+        if(card) target.hand.push({...card});
+    }
+}
+
+// =========================================================
+//  ENERGIAS POR TIPO DO DECK (SISTEMA NOVO)
+// =========================================================
+const TYPE_ENERGY_MAP = {
+    Chakra:'Chakra', Ki:'Ki', Amaldiçoada:'Amaldiçoada', Stand:'Stand',
+    Haki:'Haki', Reiatsu:'Reiatsu', Nen:'Nen'
+};
+
+// Sorteia 1 energia aleatória entre os tipos que existem no deck do jogador
+function gainEnergy(who) {
+    if(who !== 'player') return;
+
+    // Se não detectou nenhum tipo (deck vazio ou só suporte), dá energia genérica
+    if(game.deckTypes.length === 0) {
+        game.player.energy++;
+        return;
+    }
+
+    // Sorteio: qualquer tipo do deck tem chance igual
+    const chosen = game.deckTypes[Math.floor(Math.random() * game.deckTypes.length)];
+    game.energies[chosen] = (game.energies[chosen] || 0) + 1;
+    game.player.energy++;
+
+    // Mostrar toast de energia ganha
+    showEnergyToast(chosen);
+}
+
+// Toast visual que aparece no centro da tela brevemente
+function showEnergyToast(type) {
+    const typeColor = getTypeColor(type);
+    const typeAnime = {
+        Chakra:'Naruto', Ki:'Dragon Ball', Amaldiçoada:'Jujutsu Kaisen',
+        Stand:"JoJo's", Haki:'One Piece', Reiatsu:'Bleach', Nen:'HxH'
+    };
+    const toast = document.getElementById('energy-toast');
+    const namEl = document.getElementById('toast-type-name');
+    const descEl = document.getElementById('toast-type-desc');
+
+    toast.style.border = `2px solid ${typeColor}`;
+    toast.style.boxShadow = `0 0 30px ${typeColor}44`;
+    namEl.style.color = typeColor;
+    namEl.innerText = `+1 ${type}`;
+    descEl.innerText = typeAnime[type] || type;
+
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1400);
+}
+
+// Retorna quantas energias do tipo certo o personagem tem disponíveis para gastar
+function getAffordableEnergy(card) {
+    if(!card) return 0;
+    const type = card.type;
+    if(type && game.energies[type] !== undefined) {
+        return game.energies[type];
+    }
+    return game.player.energy; // fallback genérico
+}
+
+// Anexa 1 energia do tipo correto do personagem
+function attachEnergyTyped(card) {
+    if(game.energyUsed) return;
+    const type = card.type;
+    if(type && game.energies[type] !== undefined) {
+        if(game.energies[type] <= 0) {
+            log(`⚠️ Sem ${type} disponível! Espere a sorte trazer.`, '#f59e0b');
+            return;
+        }
+        game.energies[type]--;
+        game.player.energy--;
+    } else {
+        if(game.player.energy <= 0) return;
+        game.player.energy--;
+    }
+    card.attached = (card.attached || 0) + 1;
+    game.energyUsed = true;
+    const pos = getCardCenter('p-card-active');
+    spawnFloat(pos.x, pos.y, `+${type||'EN'}`, 'energy');
+    log(`⚡ +1 ${type} anexado a ${card.name}.`, getTypeColor(type));
+    updateUI();
+}
+
+function getTypeColor(type) {
+    const map = {
+        Chakra:'#3b82f6', Ki:'#f59e0b', Amaldiçoada:'#a855f7',
+        Stand:'#10b981', Haki:'#dc2626', Reiatsu:'#06b6d4',
+        Nen:'#84cc16', Suporte:'#4ade80'
+    };
+    return map[type] || '#94a3b8';
+}
+
+function getEnergyStyle(type) {
+    const col = getTypeColor(type);
+    return `background:${col}; color:#000;`;
+}
+
+// Atualiza o painel lateral de energias: destaca só os tipos do deck atual
+function updateEnergyPanel() {
+    const allTypes = ['Chakra','Ki','Amaldiçoada','Stand','Haki','Reiatsu','Nen'];
+    allTypes.forEach(t => {
+        const key = t.toLowerCase().replace('amaldiçoada','amaldicoada');
+        const el = document.getElementById('e-' + key);
+        if(!el) return;
+        const row = el.closest('.energy-item');
+        if(!row) return;
+        if(game.deckTypes.includes(t)) {
+            row.classList.remove('inactive');
+            row.classList.add('active-type');
+            row.style.borderColor = getTypeColor(t);
+        } else {
+            row.classList.add('inactive');
+            row.classList.remove('active-type');
+            row.style.borderColor = 'transparent';
+        }
+    });
+}
+
+// =========================================================
+//  TIMER
+// =========================================================
+function startTimer() {
+    clearInterval(game.timerInterval);
+    game.timeLeft = 30;
+    const td = document.getElementById('turn-timer');
+    td.className = 'timer-box' + (game.turn === 'enemy' ? ' enemy' : '');
+    td.innerText = game.timeLeft + 's';
+
+    game.timerInterval = setInterval(() => {
+        game.timeLeft--;
+        td.innerText = game.timeLeft + 's';
+        if(game.timeLeft <= 5) td.classList.add('warning');
+        if(game.timeLeft <= 0) { log("⏰ Tempo esgotado!", '#f59e0b'); endTurn(false); }
+    }, 1000);
+}
+
+// =========================================================
+//  TURNOS
+// =========================================================
+function startTurn(who) {
+    game.turn = who;
+    game.energyUsed = false;
+    game.hasAttacked = false;
+    game.evolutionsThisTurn = 0;
+    game.hasSwapped = false;
+
+    const td = document.getElementById('turn-timer');
+    td.classList.remove('warning');
+
+    // Rodada sobe a cada turno do jogador (1 rodada = 1 turno seu)
+    if(who === 'player' && game.roundCount !== undefined) {
+        // Não incrementa na primeira vez (já começa em 1)
+        const firstTurn = !game._roundStarted;
+        if(!firstTurn) {
+            game.roundCount++;
+            // Animação de bump no número
+            const rEl = document.getElementById('round-counter');
+            if(rEl) { rEl.classList.remove('bump'); void rEl.offsetWidth; rEl.classList.add('bump'); }
+        }
+        game._roundStarted = true;
+        const rNum = document.getElementById('round-num');
+        if(rNum) rNum.innerText = game.roundCount;
+    }
+
+    showTurnIndicator(who);
+    updateEnergyPanel(); // atualiza visibilidade dos tipos
+
+    if(who === 'player') {
+        gainEnergy('player');
+        drawCard(game.player);
+        processBurnDamage('player');
+        processStunCheck('player');
+        document.getElementById('end-turn-btn').disabled = false;
+        startTimer();
+        log(`─── Rodada ${game.roundCount} — Seu turno ───`, '#38bdf8');
+    } else {
+        document.getElementById('end-turn-btn').disabled = true;
+        gainEnergy('enemy');
+        processBurnDamage('enemy');
+        startTimer();
+        setTimeout(enemyAI, 1500);
+        log("─── Turno do inimigo ───", '#ef4444');
+    }
+    updateUI();
+}
+
+function endTurn(isManual) {
+    clearInterval(game.timerInterval);
+    decrementStatuses(game.turn === 'player' ? game.player : game.enemy);
+    if(game.turn === 'player') startTurn('enemy');
+    else startTurn('player');
+}
+
+// =========================================================
+//  STATUS EFFECTS
+// =========================================================
+function applyStatus(card, statusType, turns) {
+    if(!card.statuses) card.statuses = [];
+    const existing = card.statuses.find(s => s.type === statusType);
+    if(existing) { existing.turns = Math.max(existing.turns, turns); }
+    else { card.statuses.push({ type:statusType, turns }); }
+}
+
+function hasStatus(card, statusType) {
+    if(!card || !card.statuses) return false;
+    return card.statuses.some(s => s.type === statusType && s.turns > 0);
+}
+
+function processBurnDamage(who) {
+    const side = who === 'player' ? game.player : game.enemy;
+    const card = side.active;
+    if(!card) return;
+    if(hasStatus(card, 'burn')) {
+        const dmg = 20;
+        card.curHP -= dmg;
+        log(`🔥 ${card.name} sofreu ${dmg} de dano por Queimadura!`, '#fb923c');
+        flashCard(who === 'player' ? 'p-card-active' : 'e-card-active', card.curHP);
+    }
+}
+
+function processStunCheck(who) {
+    const side = who === 'player' ? game.player : game.enemy;
+    const card = side.active;
+    if(!card) return;
+    if(hasStatus(card, 'stun')) {
+        log(`💫 ${card.name} está Atordoado e perdeu este turno!`, '#a5b4fc');
+        if(who === 'player') {
+            setTimeout(() => endTurn(false), 1200);
+        }
+    }
+}
+
+function decrementStatuses(side) {
+    const card = side.active;
+    if(!card || !card.statuses) return;
+    card.statuses = card.statuses
+        .map(s => ({ ...s, turns: s.turns - 1 }))
+        .filter(s => s.turns > 0);
+}
+
+function getStatusHTML(card) {
+    if(!card || !card.statuses || card.statuses.length === 0) return '';
+    return card.statuses.map(s => {
+        const labels = { burn:'🔥 Queimado', stun:'💫 Atordoado', dodge:'💨 Esquiva', shield:'🛡 Escudo' };
+        const classes = { burn:'status-burn', stun:'status-stun', dodge:'status-dodge', shield:'status-shield' };
+        return `<span class="status-badge ${classes[s.type]}">${labels[s.type]}(${s.turns})</span>`;
+    }).join('');
+}
+
+// =========================================================
+//  ATAQUE / DANO
+// =========================================================
+function triggerAttack(idx, source) {
+    if(source === 'player' && (!game.enemy.active || game.turn !== 'player')) return;
+    if(source === 'player' && game.hasSwapped) return alert("Troca recente — não pode atacar!");
+    if(source === 'player' && game.hasAttacked) return alert("Você já atacou neste turno!");
+    if(source === 'player' && hasStatus(game.player.active, 'stun')) return alert("Seu lutador está Atordoado!");
+
+    const attacker = source === 'player' ? game.player.active : game.enemy.active;
+    const defender = source === 'player' ? game.enemy.active : game.player.active;
+    const skill = attacker.skills[idx];
+
+    if(!skill) return;
+    if(attacker.attached < skill.c) { if(source === 'player') alert("Energia insuficiente!"); return; }
+
+    // Escudo: bloqueia dano
+    if(hasStatus(defender, 'shield')) {
+        log(`🛡 ${defender.name} bloqueou o ataque com Escudo!`, '#38bdf8');
+        applyStatus(defender, 'shield', -1); // decrementa manualmente
+        defender.statuses = defender.statuses.filter(s => s.turns > 0);
+        clearInterval(game.timerInterval);
+        document.getElementById('end-turn-btn').disabled = true;
+        updateUI();
+        setTimeout(() => endTurn(false), 1200);
+        return;
+    }
+
+    clearInterval(game.timerInterval);
+    document.getElementById('end-turn-btn').disabled = true;
+    if(source === 'player') game.hasAttacked = true;
+
+    // Animação de ataque
+    const atkEl = document.getElementById(source === 'player' ? 'p-card-active' : 'e-card-active');
+    if(atkEl) { atkEl.classList.add('atk-anim'); setTimeout(()=>atkEl.classList.remove('atk-anim'), 400); }
+
+    if(attacker.isEx && skill.vid) {
+        game.pendingAttack = { attacker, defender, skill, source };
+        const musicaBatalha = document.getElementById('musicaBatalha');
+        if(musicaBatalha) musicaBatalha.pause();
+        const v = document.getElementById('ult-video');
+        v.src = skill.vid;
+        v.load();
+        // Mostrar overlay de clique (necessário por autoplay policy do navegador)
+        const overlay = document.getElementById('ult-play-overlay');
+        if(overlay) overlay.style.display = 'flex';
+        document.getElementById('ult-screen').style.display = 'flex';
+    } else {
+        executeDamage(attacker, defender, skill, source);
+    }
+}
+
+function startUltVideo() {
+    const overlay = document.getElementById('ult-play-overlay');
+    if(overlay) overlay.style.display = 'none';
+    const v = document.getElementById('ult-video');
+    v.play().catch(() => closeUlt());
+}
+
+function closeUlt() {
+    const v = document.getElementById('ult-video');
+    const musicaBatalha = document.getElementById('musicaBatalha');
+    v.pause(); v.src = '';
+    document.getElementById('ult-screen').style.display = 'none';
+    const overlay = document.getElementById('ult-play-overlay');
+    if(overlay) overlay.style.display = 'flex'; // resetar para próxima vez
+    if(musicaBatalha) musicaBatalha.play().catch(()=>{});
+    if(game.pendingAttack) {
+        const { attacker, defender, skill, source } = game.pendingAttack;
+        game.pendingAttack = null;
+        executeDamage(attacker, defender, skill, source);
+    }
+}
+
+function executeDamage(attacker, defender, skill, source) {
+    if(!defender) return;
+
+    // Esquiva: evita dano
+    if(hasStatus(defender, 'dodge')) {
+        log(`💨 ${defender.name} esquivou do ataque!`, '#4ade80');
+        defender.statuses = (defender.statuses||[]).filter(s => s.type !== 'dodge');
+        updateUI();
+        setTimeout(() => endTurn(false), 1200);
+        return;
+    }
+
+    const dmg = skill.d || 0;
+    if(dmg > 0) {
+        defender.curHP -= dmg;
+        playSFX('sfxDamage');
+        const defId = source === 'player' ? 'e-card-active' : 'p-card-active';
+        const pos = getCardCenter(defId);
+        spawnFloat(pos.x, pos.y, `-${dmg}`, 'dmg');
+        flashCard(defId, defender.curHP);
+        log(`⚔️ ${attacker.name} usou ${skill.n}! Dano: ${dmg}`, source === 'player' ? '#38bdf8' : '#ef4444');
+    }
+
+    // Aplicar status do skill
+    if(skill.status) {
+        const st = skill.status;
+        const targetCard = st.target === 'enemy'
+            ? (source === 'player' ? game.enemy.active : game.player.active)
+            : (source === 'player' ? game.player.active : game.enemy.active);
+        if(targetCard) {
+            applyStatus(targetCard, st.type, st.turns);
+            const statusNames = { burn:'🔥 Queimado', stun:'💫 Atordoado', dodge:'💨 Esquiva', shield:'🛡 Escudo' };
+            log(`✨ ${targetCard.name} recebeu ${statusNames[st.type]}!`, '#a855f7');
+        }
+    }
+
+    if(!checkKOs()) {
+        updateUI();
+        setTimeout(() => endTurn(false), 1500);
+    }
+}
+
+function flashCard(elId, newHP) {
+    const el = document.getElementById(elId);
+    if(!el) return;
+    el.classList.remove('hit-flash');
+    void el.offsetWidth;
+    el.classList.add('hit-flash');
+    setTimeout(() => el.classList.remove('hit-flash'), 450);
+}
+
+// =========================================================
+//  CARTAS DE SUPORTE
+// =========================================================
+function useSupport(cardIndex) {
+    const card = game.player.hand[cardIndex];
+    if(!card || !card.isSupport) return;
+    if(game.turn !== 'player') return alert("Só no seu turno!");
+
+    const eff = card.effect;
+    let msg = '';
+
+    if(eff.type === 'heal') {
+        const target = game.player.active;
+        if(!target) return alert("Sem lutador ativo!");
+        const healed = Math.min(eff.value, target.hp - target.curHP);
+        target.curHP += healed;
+        const pos = getCardCenter('p-card-active');
+        spawnFloat(pos.x, pos.y, `+${healed}`, 'heal');
+        msg = `🌿 ${card.name} curou ${healed} HP de ${target.name}!`;
+    } else if(eff.type === 'draw') {
+        for(let i=0;i<eff.value;i++) drawCard(game.player);
+        msg = `📦 ${card.name} — comprou ${eff.value} cartas!`;
+    } else if(eff.type === 'energyBoost') {
+        game.player.energy += eff.value;
+        msg = `⚡ ${card.name} — ganhou +${eff.value} de energia!`;
+    } else if(eff.type === 'status') {
+        const target = game.player.active;
+        if(!target) return alert("Sem lutador ativo!");
+        applyStatus(target, eff.status, eff.turns);
+        const statusNames = { shield:'🛡 Escudo', dodge:'💨 Esquiva' };
+        msg = `✨ ${card.name} aplicou ${statusNames[eff.status] || eff.status}!`;
+    }
+
+    game.player.hand.splice(cardIndex, 1);
+    log(msg, '#4ade80');
+    playSFX('sfxBuy');
+    updateUI();
+}
+
+// =========================================================
+//  JOGAR CARTA
+// =========================================================
+function playCard(i) {
+    const c = game.player.hand[i];
+    if(!c) return;
+    inspectCard(c);
+
+    if(c.isSupport) { useSupport(i); return; }
+
+    if(!game.player.active && !c.evolvesFrom) {
+        game.player.active = {...c, curHP:c.hp, attached:0, statuses:[]};
+        game.player.hand.splice(i,1);
+    } else if(c.evolvesFrom) {
+        if(game.evolutionsThisTurn >= 1) return alert("Só uma evolução por turno!");
+        let evolved = false;
+        if(game.player.active && c.evolvesFrom === game.player.active.name) {
+            const dmgTaken = game.player.active.hp - game.player.active.curHP;
+            game.player.active = {...c, curHP:c.hp - dmgTaken, attached:game.player.active.attached, statuses:game.player.active.statuses||[]};
+            game.player.hand.splice(i,1); game.evolutionsThisTurn++; evolved = true;
+            log(`⬆️ ${c.name} evoluiu!`, '#fbbf24');
+        } else {
+            for(let j=0;j<game.player.bench.length;j++) {
+                if(game.player.bench[j].name === c.evolvesFrom) {
+                    const bCard = game.player.bench[j];
+                    const d = bCard.hp - bCard.curHP;
+                    game.player.bench[j] = {...c, curHP:c.hp-d, attached:bCard.attached, statuses:bCard.statuses||[]};
+                    game.player.hand.splice(i,1); game.evolutionsThisTurn++; evolved = true;
+                    log(`⬆️ ${c.name} evoluiu no banco!`, '#fbbf24');
+                    break;
+                }
+            }
+        }
+        if(!evolved) alert(`Nenhum ${c.evolvesFrom} em campo!`);
+    } else if(game.player.bench.length < 3 && !c.evolvesFrom) {
+        game.player.bench.push({...c, curHP:c.hp, attached:0, statuses:[]});
+        game.player.hand.splice(i,1);
+        log(`📥 ${c.name} entrou no banco.`, '#94a3b8');
+    }
+    updateUI();
+}
+
+// =========================================================
+//  ENERGIA / SWAP
+// =========================================================
+function attachEnergy(card) {
+    if(game.player.energy <= 0 || game.energyUsed) return;
+    card.attached = (card.attached||0) + 1;
+    game.player.energy--;
+    game.energyUsed = true;
+    const pos = getCardCenter('p-card-active');
+    spawnFloat(pos.x, pos.y, '+EN', 'energy');
+    log(`⚡ Energia anexada a ${card.name}.`, '#fbbf24');
+    updateUI();
+}
+
+function attachEnergyToBench(index) {
+    if(game.turn !== 'player') return;
+    if(game.energyUsed) return alert("Você já anexou energia neste turno!");
+    const card = game.player.bench[index];
+    if(!card) return;
+    const type = card.type;
+    if(type && game.energies[type] !== undefined) {
+        if(game.energies[type] <= 0) {
+            log(`⚠️ Sem ${type} disponível! Espere a sorte trazer.`, '#f59e0b');
+            return;
+        }
+        game.energies[type]--;
+        game.player.energy--;
+    } else {
+        if(game.player.energy <= 0) { log('⚠️ Sem energia disponível!', '#f59e0b'); return; }
+        game.player.energy--;
+    }
+    card.attached = (card.attached || 0) + 1;
+    game.energyUsed = true;
+    log(`⚡ +1 ${type||'EN'} anexado a ${card.name} (banco).`, getTypeColor(type));
+    updateUI();
+}
+
+function swapCard(index) {
+    if(!game.player.active) return;
+    if(game.hasSwapped) return alert("Só uma troca por turno!");
+    log(`🔄 ${game.player.active.name} recuou, ${game.player.bench[index].name} entrou!`, '#94a3b8');
+    const temp = game.player.active;
+    game.player.active = game.player.bench[index];
+    game.player.bench[index] = temp;
+    game.hasSwapped = true;
+    updateUI();
+}
+
+// =========================================================
+//  INSPECIONAR
+// =========================================================
 function inspectCard(card) {
     if(!card) return;
     document.getElementById('ins-name').innerText = card.name;
-    document.getElementById('ins-stats').innerText = `HP: ${card.curHP || card.hp}/${card.hp} | EN: ${card.attached || 0}`;
-    document.getElementById('ins-desc').innerHTML = card.skills.map(s => `<b style="color:#fff">${s.n}</b> (Dano: ${s.d} | Custo: ${s.c})<br><span style="color:#aaa">${s.desc}</span>`).join('<br>');
+    const typeColor = getTypeColor(card.type);
+    if(card.isSupport) {
+        document.getElementById('ins-stats').innerHTML = `<span style="color:var(--green)">🌿 Carta de Suporte</span>`;
+        document.getElementById('ins-desc').innerHTML = card.desc || '';
+    } else {
+        document.getElementById('ins-stats').innerHTML = `HP: <b>${card.curHP||card.hp}/${card.hp}</b> | EN: <b>${card.attached||0}</b> | <span style="color:${typeColor}">${card.type}</span>`;
+        document.getElementById('ins-desc').innerHTML = card.skills.map(s =>
+            `<b style="color:#fff">${s.n}</b> <span style="color:#64748b">(Dano:${s.d}|Custo:${s.c})</span><br><span style="color:#94a3b8">${s.desc}</span>`
+        ).join('<br>');
+    }
 }
 
+// =========================================================
+//  RENDER PRINCIPAL
+// =========================================================
+function render(id, card, isP, type, index) {
+    const area = document.getElementById(id);
+    if(type === 'active') area.innerHTML = '';
+    if(!card) {
+        if(type === 'active') area.innerHTML = `<div class="card active" style="border:2px dashed #1e293b; background:rgba(0,0,0,0.2); border-radius:10px;"></div>`;
+        return;
+    }
+
+    const div = document.createElement('div');
+    div.className = `card ${type === 'active' ? 'active' : ''} ${card.isEx ? 'ex' : ''} ${card.isSupport ? 'support' : ''}`;
+    if(type === 'active') div.id = isP ? 'p-card-active' : 'e-card-active';
+
+    div.onclick = () => {
+        inspectCard(card);
+        if(isP && type === 'active') attachEnergyTyped(card);
+    };
+    div.onmouseenter = () => inspectCard(card);
+
+    const typeColor = getTypeColor(card.type);
+    const energyStyle = getEnergyStyle(card.type);
+
+    // HP bar
+    const hpPct = Math.max(0, Math.min(100, ((card.curHP||card.hp)/card.hp)*100));
+    const hpColor = hpPct > 50 ? '#4ade80' : hpPct > 25 ? '#f59e0b' : '#ef4444';
+    const hpBarHTML = `<div class="hp-bar-wrap"><div class="hp-bar" style="width:${hpPct}%; background:${hpColor};"></div></div>`;
+
+    // Status badges
+    const statusHTML = getStatusHTML(card);
+
+    // Skills
+    let skillsHTML = '';
+    if(type === 'active' && isP && !card.isSupport) {
+        // Energia disponível para este personagem (só do seu tipo)
+        const availableEnergy = card.attached || 0; // já anexada
+        skillsHTML = card.skills.map((s,i) => {
+            const canAfford = availableEnergy >= s.c;
+            const cls = canAfford ? 'btn-skill affordable' : 'btn-skill';
+            const vidIcon = s.vid ? ' ⚡' : '';
+            const typeColor = getTypeColor(card.type);
+            const costStyle = canAfford ? `color:${typeColor};` : 'color:#64748b;';
+            return `<button class="${cls}" ${!canAfford?'disabled':''} onclick="event.stopPropagation(); triggerAttack(${i},'player')" title="${s.desc}">${s.n}${vidIcon} <span style="${costStyle}">[${s.c}]</span></button>`;
+        }).join('');
+    } else if(type === 'active' && !isP && !card.isSupport) {
+        skillsHTML = card.skills.map(s =>
+            `<div class="btn-skill" style="cursor:default">${s.n} [${s.d}💥|${s.c}⚡]</div>`
+        ).join('');
+    }
+
+    const swapBtn = (type === 'bench' && isP && game.turn === 'player')
+        ? `<button class="btn-skill" style="background:var(--gold);color:#000;border:none;margin-bottom:3px;font-weight:900;" onclick="event.stopPropagation(); swapCard(${index})">⇄ TROCAR</button>` : '';
+
+    const benchEnergyBtn = (type === 'bench' && isP && game.turn === 'player')
+        ? `<button class="btn-skill" style="border-color:#fbbf24;color:#fbbf24;margin-bottom:3px;" onclick="event.stopPropagation(); attachEnergyToBench(${index})">⚡ +Energia</button>` : '';
+
+    const nameStyle = card.isEx ? 'color:var(--gold);' : `color:${typeColor};`;
+
+    div.innerHTML = `
+        <img src="${card.img}">
+        ${card.curHP !== undefined ? `<div class="hp-tag">${card.curHP}</div>` : ''}
+        <div class="energy-tag" style="${energyStyle}">${card.attached||0}</div>
+        ${hpBarHTML}
+        <div class="card-content">
+            <b style="${nameStyle} font-size:10px; text-align:center; display:block; line-height:1.2;">${card.name}</b>
+            ${statusHTML ? `<div style="margin:2px 0;">${statusHTML}</div>` : ''}
+            <div style="flex:1; overflow-y:auto; margin-top:3px;">${benchEnergyBtn}${swapBtn}${skillsHTML}</div>
+        </div>
+    `;
+    area.appendChild(div);
+}
+
+// =========================================================
+//  UPDATE UI COMPLETO
+// =========================================================
+function updateUI() {
+    document.getElementById('energy-pool') && (document.getElementById('energy-pool').innerText = game.player.energy);
+
+    // Atualizar painel de energias por tipo
+    const typeKeyMap = {
+        'Chakra':'chakra', 'Ki':'ki', 'Amaldiçoada':'amaldicoada',
+        'Stand':'stand', 'Haki':'haki', 'Reiatsu':'reiatsu', 'Nen':'nen'
+    };
+    Object.keys(game.energies).forEach(k => {
+        const elId = 'e-' + (typeKeyMap[k] || k.toLowerCase());
+        const el = document.getElementById(elId);
+        if(el) el.innerText = game.energies[k];
+    });
+
+    render('p-active', game.player.active, true, 'active');
+    render('e-active', game.enemy.active, false, 'active');
+
+    const pb = document.getElementById('p-bench'); pb.innerHTML = '';
+    game.player.bench.forEach((c,i) => render('p-bench', c, true, 'bench', i));
+
+    const eb = document.getElementById('e-bench'); eb.innerHTML = '';
+    if(game.mode === 'normal' && game.enemy.bench) {
+        game.enemy.bench.forEach((c,i) => render('e-bench', c, false, 'bench', i));
+    }
+
+    const hand = document.getElementById('p-hand');
+    const label = hand.querySelector('.hand-label');
+    hand.innerHTML = '';
+    if(label) hand.appendChild(label);
+
+    game.player.hand.forEach((c,i) => {
+        const div = document.createElement('div');
+        div.className = `card ${c.isEx ? 'ex' : ''} ${c.isSupport ? 'support' : ''}`;
+        div.onclick = () => playCard(i);
+        div.onmouseenter = () => inspectCard(c);
+
+        const typeColor = getTypeColor(c.type);
+        const nameStyle = c.isEx ? 'color:var(--gold);' : (c.isSupport ? 'color:#4ade80;' : `color:${typeColor};`);
+        const tag = c.isEx ? '⭐' : (c.isSupport ? '🌿' : '');
+
+        div.innerHTML = `
+            <img src="${c.img}">
+            <div class="card-content" style="align-items:center; justify-content:center; text-align:center;">
+                <b style="${nameStyle} font-size:10px; line-height:1.2;">${tag} ${c.name}</b>
+                ${c.isSupport ? `<div style="font-size:8px; color:#4ade80; margin-top:2px;">${c.desc ? c.desc.substring(0,30)+'...' : ''}</div>` : ''}
+            </div>
+        `;
+        hand.appendChild(div);
+    });
+}
+
+// =========================================================
+//  INIMIGO AI
+// =========================================================
+function enemyAI() {
+    if(!game.enemy.active || game.turn !== 'enemy') return;
+
+    if(game.mode === 'boss') {
+        game.enemy.active.attached = (game.enemy.active.attached||0) + 2;
+        decideAndAttack(game.enemy.active);
+    } else {
+        game.enemy.energy = (game.enemy.energy||0) + 1;
+        drawCard(game.enemy);
+
+        // Colocar cartas no banco
+        for(let i=game.enemy.hand.length-1;i>=0;i--) {
+            const c = game.enemy.hand[i];
+            if(!c.evolvesFrom && game.enemy.bench.length < 3 && !c.isSupport) {
+                game.enemy.bench.push({...c, curHP:c.hp, attached:0, statuses:[]});
+                game.enemy.hand.splice(i,1);
+            }
+        }
+
+        if(game.enemy.energy > 0) {
+            game.enemy.active.attached = (game.enemy.active.attached||0) + 1;
+            game.enemy.energy--;
+        }
+        setTimeout(() => decideAndAttack(game.enemy.active), 1000);
+    }
+    updateUI();
+}
+
+function decideAndAttack(activeCard) {
+    if(!activeCard) return;
+    const pHP = game.player.active ? game.player.active.curHP : 999;
+    const usable = activeCard.skills.filter(s => (activeCard.attached||0) >= s.c);
+
+    if(usable.length > 0 && game.player.active) {
+        let bestIdx = 0; let maxDmg = 0;
+        for(let i=0;i<usable.length;i++) {
+            const orig = activeCard.skills.indexOf(usable[i]);
+            if(usable[i].d >= pHP) { bestIdx = orig; break; }
+            if(usable[i].d > maxDmg) { maxDmg = usable[i].d; bestIdx = orig; }
+        }
+        triggerAttack(bestIdx, 'enemy');
+    } else {
+        log(`${activeCard.name} está acumulando força...`, '#64748b');
+        if(!checkKOs()) setTimeout(() => endTurn(false), 1000);
+    }
+}
+
+// =========================================================
+//  CHECK KOs
+// =========================================================
+function checkKOs() {
+    let over = false;
+
+    if(game.enemy.active && game.enemy.active.curHP <= 0) {
+        log(`💀 ${game.enemy.active.name} foi derrotado!`, '#ef4444');
+        if(game.mode === 'normal' && game.enemy.bench && game.enemy.bench.length > 0) {
+            game.enemy.active = game.enemy.bench.shift();
+            log(`😈 Inimigo enviou ${game.enemy.active.name}!`, '#ef4444');
+        } else {
+            showResult(true);
+            over = true;
+        }
+    } else if(game.player.active && game.player.active.curHP <= 0) {
+        log(`💀 ${game.player.active.name} caiu!`, '#ef4444');
+        if(game.player.bench.length > 0) {
+            game.player.active = game.player.bench.shift();
+            log(`🔁 ${game.player.active.name} entrou em campo!`, '#fbbf24');
+        } else {
+            showResult(false);
+            over = true;
+        }
+    }
+
+    if(!over) updateUI();
+    return over;
+}
+
+// =========================================================
+//  TELA DE RESULTADO
+// =========================================================
+function showResult(win) {
+    clearInterval(game.timerInterval);
+    const musicaBatalha = document.getElementById('musicaBatalha');
+    const musicaFundo = document.getElementById('musicaFundo');
+    if(musicaBatalha) musicaBatalha.pause();
+
+    if(win) {
+        user.coins += game.currentReward;
+        autoSave();
+        playSFX('sfxVictory');
+        if(musicaFundo && musicaFundo.paused) musicaFundo.play().catch(()=>{});
+    }
+
+    document.getElementById('result-title').className = 'result-title ' + (win ? 'win' : 'lose');
+    document.getElementById('result-title').innerText = win ? '🏆 VITÓRIA!' : '💀 DERROTA!';
+    document.getElementById('result-coins').innerText = win ? `+${game.currentReward} moedas!` : 'Tente novamente...';
+    document.getElementById('result-screen').style.display = 'flex';
+}
+
+// =========================================================
+//  LOADING / SPLASH
+// =========================================================
+const tips = [
+    "Dica: Anexe energia antes de atacar!",
+    "Dica: Cartas EX têm ataques Ultimates!",
+    "Dica: Cartas de suporte são usadas instantaneamente.",
+    "Dica: Queimadura causa 20 de dano por turno.",
+    "Dica: Escudo bloqueia o próximo ataque!",
+    "Dica: Você pode trocar lutadores 1x por turno.",
+    "Dica: Evolua para dobrar o poder do seu personagem!"
+];
+
 let progresso = 0;
-const interval = setInterval(() => {
-    progresso += Math.random() * 7; 
-    if (progresso > 100) progresso = 100;
+let tipIdx = 0;
+const tipsEl = document.getElementById('loading-tips');
+
+const tipRotate = setInterval(() => {
+    tipsEl.style.opacity = '0';
+    setTimeout(() => {
+        tipsEl.innerText = tips[tipIdx % tips.length];
+        tipsEl.style.opacity = '1';
+        tipIdx++;
+    }, 300);
+}, 2500);
+
+const loadInterval = setInterval(() => {
+    progresso += Math.random() * 7;
+    if(progresso > 100) progresso = 100;
 
     const bar = document.getElementById('loading-bar-progress');
     const txt = document.getElementById('percentage-text');
+    if(bar) bar.style.width = progresso + '%';
+    if(txt) txt.innerText = Math.floor(progresso) + '%';
 
-    if (bar) bar.style.width = progresso + "%";
-    if (txt) txt.innerText = Math.floor(progresso) + "%";
-
-    if (progresso >= 100) {
-        clearInterval(interval);
+    if(progresso >= 100) {
+        clearInterval(loadInterval);
+        clearInterval(tipRotate);
         document.getElementById('loading-bar-container').style.display = 'none';
         document.getElementById('percentage-text').style.display = 'none';
+        document.getElementById('loading-tips').style.display = 'none';
         document.getElementById('btn-play-utcg').style.display = 'block';
     }
 }, 150);
 
 function finalizarLoading() {
-    const som = document.getElementById('musicaFundo');
-    if (som) {
-        som.volume = 0.3;
-        som.play().catch(() => {});
-    }
+    const musicaFundo = document.getElementById('musicaFundo');
+    if(musicaFundo) { musicaFundo.volume = 0.3; musicaFundo.play().catch(()=>{}); }
 
     const splash = document.getElementById('splash-screen');
-    splash.style.transition = "all 0.8s ease";
-    splash.style.opacity = "0";
-    splash.style.transform = "scale(1.1)"; 
-    
+    splash.style.transition = 'all 0.8s ease';
+    splash.style.opacity = '0';
+    splash.style.transform = 'scale(1.05)';
+
     setTimeout(() => {
         splash.style.display = 'none';
         showScreen('main-menu');
+        document.getElementById('menu-coins').innerText = user.coins;
     }, 800);
 }
 </script>
