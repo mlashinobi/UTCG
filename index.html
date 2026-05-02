@@ -145,16 +145,40 @@
            UPDATE NOTES
         ========================================================= */
         #update-notes {
-            position: fixed; bottom: 20px; right: 20px; z-index: 5000;
-            width: 240px; background: rgba(10,20,40,0.97);
+            position: fixed;
+            bottom: 20px; right: 20px;
+            z-index: 5;             /* bem abaixo dos botões (z-index:10) e telas */
+            width: 230px;
+            max-height: 260px;
+            overflow-y: auto;
+            background: rgba(10,20,40,0.96);
             border: 1px solid rgba(251,191,36,0.5); border-radius: 10px;
-            padding: 14px; font-size: 11px; color: #cbd5e1;
+            padding: 12px 14px; font-size: 11px; color: #cbd5e1;
             box-shadow: 0 0 25px rgba(0,0,0,0.9);
             pointer-events: none; line-height: 1.6;
         }
+        #update-notes::-webkit-scrollbar { width: 3px; }
+        #update-notes::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         #update-notes h4 { color: var(--gold); margin-bottom: 8px; font-size: 12px; }
-        #update-notes ul { padding-left: 15px; }
-        #update-notes li { margin-bottom: 4px; }
+        #update-notes ul { padding-left: 14px; }
+        #update-notes li { margin-bottom: 3px; }
+
+        @media screen and (max-width: 850px) {
+            #update-notes {
+                bottom: 12px; right: 12px; top: auto; left: auto;
+                width: 160px;
+                max-height: 160px;
+                font-size: 9.5px;
+                padding: 8px 10px;
+                line-height: 1.45;
+            }
+            #update-notes h4 { font-size: 10px; margin-bottom: 5px; }
+            #update-notes ul { padding-left: 11px; }
+            #update-notes li { margin-bottom: 2px; }
+            /* No mobile os botões ficam alinhados à esquerda/centro
+               e com margem direita para não sobrepor o painel */
+            .menu-buttons { margin-right: 175px; width: auto; min-width: 200px; }
+        }
 
         /* =========================================================
            EDITOR DE DECK E LOJA
@@ -491,11 +515,97 @@
             100% { filter: brightness(1); transform: translateX(0); }
         }
 
-        .card.atk-anim { animation: strike 0.4s ease-in-out; }
+        .card.atk-anim { animation: strike 0.45s ease-in-out; }
         @keyframes strike {
-            0% { transform: translateY(0); }
-            40% { transform: translateY(-28px) scale(1.08); }
-            100% { transform: translateY(0); }
+            0%   { transform: translateY(0) scale(1); }
+            30%  { transform: translateY(-36px) scale(1.12) rotate(-3deg); filter: brightness(1.4); }
+            55%  { transform: translateY(-10px) scale(1.05) rotate(1deg); }
+            100% { transform: translateY(0) scale(1); filter: brightness(1); }
+        }
+
+        /* Animação de morte */
+        .card.death-anim {
+            animation: card-die 0.7s ease-in forwards;
+            pointer-events: none;
+        }
+        @keyframes card-die {
+            0%   { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
+            20%  { transform: scale(1.15) rotate(-5deg); filter: brightness(2) saturate(0); }
+            50%  { transform: scale(0.8) rotate(12deg) translateY(10px); opacity: 0.6; filter: brightness(0.3) saturate(0); }
+            100% { transform: scale(0) rotate(25deg) translateY(30px); opacity: 0; }
+        }
+
+        /* Clone voador de ataque */
+        .card-flying-clone {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9500;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(255,255,255,0.5);
+            transition: none;
+        }
+        .card-flying-clone img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+
+        /* Clone voador de descarte (vai para a pilha) */
+        .card-discard-clone {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9500;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid rgba(251,191,36,0.7);
+            box-shadow: 0 0 20px rgba(251,191,36,0.4);
+            transition: none;
+            backface-visibility: hidden;
+        }
+        .card-discard-clone img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+
+        /* Partículas de morte */
+        .death-particle {
+            position: fixed; pointer-events: none; z-index: 8000;
+            width: 6px; height: 6px; border-radius: 50%;
+            animation: particle-fly 0.8s ease-out forwards;
+        }
+        @keyframes particle-fly {
+            0%   { transform: translate(0,0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* Pilha de descarte */
+        .discard-pile {
+            position: relative; width: 52px; height: 74px; flex-shrink: 0;
+            cursor: pointer;
+        }
+        .discard-pile .discard-card {
+            position: absolute; inset: 0;
+            border-radius: 7px; border: 2px solid rgba(251,191,36,0.5);
+            background: linear-gradient(135deg, #0a0f1e 0%, #1a1040 50%, #0a0f1e 100%);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            box-shadow: 0 0 10px rgba(251,191,36,0.2);
+            transition: 0.2s;
+        }
+        .discard-pile .discard-card:nth-child(1) { transform: rotate(-4deg) translate(-2px, 2px); }
+        .discard-pile .discard-card:nth-child(2) { transform: rotate(2deg) translate(1px, -1px); }
+        .discard-pile .discard-card:nth-child(3) { transform: rotate(0deg); }
+        .discard-pile:hover .discard-card:nth-child(3) { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(251,191,36,0.4); }
+        .discard-logo {
+            width: 34px; height: 34px; object-fit: contain;
+            filter: drop-shadow(0 0 6px var(--gold));
+            opacity: 0.8;
+        }
+        .discard-count {
+            font-family: 'Orbitron', monospace; font-size: 9px;
+            color: var(--gold); font-weight: 900; margin-top: 2px;
+        }
+        .discard-label {
+            font-size: 7px; color: #64748b; letter-spacing: 1px;
+            text-transform: uppercase; margin-top: 1px;
         }
 
         /* HP bar */
@@ -614,8 +724,24 @@
         }
 
         /* =========================================================
-           RESPONSIVO MOBILE
+           PAINEL DE ENERGIA MOBILE (barra horizontal no topo da arena)
         ========================================================= */
+        #mobile-energy-bar {
+            display: none;
+            flex-wrap: wrap; gap: 4px;
+            padding: 5px 8px;
+            background: rgba(2,6,23,0.95);
+            border-bottom: 1px solid rgba(251,191,36,0.3);
+        }
+        .mob-en-chip {
+            display: flex; align-items: center; gap: 3px;
+            background: rgba(0,0,0,0.5); border-radius: 20px;
+            padding: 2px 7px; font-size: 10px; font-weight: 700;
+            border: 1px solid transparent;
+        }
+        .mob-en-chip.active-type { border-color: currentColor; }
+        .mob-en-chip.inactive { opacity: 0.25; }
+        .mob-en-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink:0; }
         @media screen and (max-width: 850px) {
             body { height: auto; min-height: 100vh; overflow-y: auto !important; }
 
@@ -634,6 +760,7 @@
                 padding: 6px; grid-row: unset;
             }
             .energy-panel { display: none; }
+            #mobile-energy-bar { display: flex; }
             .terminal { width: 100%; height: 55px; font-size: 9px; }
             .inspect { width: 45%; height: auto; min-height: 70px; }
             .timer-box { font-size: 18px; padding: 6px 10px; }
@@ -705,22 +832,22 @@
         <button class="btn btn-sec" onclick="playClick(); saveGame()">💾 Salvar Dados</button>
         <button class="btn btn-sec" onclick="playClick(); document.getElementById('load-input').click()">📂 Carregar Dados</button>
         <input type="file" id="load-input" style="display:none" onchange="loadGame(this)">
+    </div>
 
-        <div id="update-notes">
-            <h4>🗒 UTCG — Update Notes v2.0</h4>
-            <ul>
-                <li>Floating damage numbers adicionados!</li>
-                <li>Hit-flash e card shake ao receber dano.</li>
-                <li>Cartas de Suporte/Item implementadas.</li>
-                <li>Efeitos de status: Queimado, Atordoado, Esquiva, Escudo.</li>
-                <li>Novas energias: Haki (One Piece), Reiatsu (Bleach), Nen (HxH).</li>
-                <li>Novos personagens: Luffy, Ichigo, Gon.</li>
-                <li>Indicador de turno neon animado.</li>
-                <li>Tela de resultado de vitória/derrota.</li>
-                <li>Custo de habilidades colorido por affordability.</li>
-                <li>HP bar visual nas cartas.</li>
-            </ul>
-        </div>
+    <div id="update-notes">
+        <h4>🗒 UTCG — Update Notes v2.0</h4>
+        <ul>
+            <li>Floating damage numbers adicionados!</li>
+            <li>Hit-flash e card shake ao receber dano.</li>
+            <li>Cartas de Suporte/Item implementadas.</li>
+            <li>Efeitos de status: Queimado, Atordoado, Esquiva, Escudo.</li>
+            <li>Novas energias: Haki (One Piece), Reiatsu (Bleach), Nen (HxH).</li>
+            <li>Novos personagens: Luffy, Ichigo, Gon.</li>
+            <li>Indicador de turno neon animado.</li>
+            <li>Tela de resultado de vitória/derrota.</li>
+            <li>Custo de habilidades colorido por affordability.</li>
+            <li>HP bar visual nas cartas.</li>
+        </ul>
     </div>
 </div>
 
@@ -804,6 +931,17 @@
 
 <!-- ===================== GAME UI ===================== -->
 <div id="game-ui">
+    <!-- BARRA DE ENERGIA MOBILE -->
+    <div id="mobile-energy-bar">
+        <div class="mob-en-chip" id="mob-e-chakra" style="color:var(--chakra)"><div class="mob-en-dot" style="background:var(--chakra)"></div>Chakra <b id="mob-ev-chakra">0</b></div>
+        <div class="mob-en-chip" id="mob-e-ki" style="color:var(--ki)"><div class="mob-en-dot" style="background:var(--ki)"></div>Ki <b id="mob-ev-ki">0</b></div>
+        <div class="mob-en-chip" id="mob-e-amaldicoada" style="color:var(--amaldicoada)"><div class="mob-en-dot" style="background:var(--amaldicoada)"></div>Amal. <b id="mob-ev-amaldicoada">0</b></div>
+        <div class="mob-en-chip" id="mob-e-stand" style="color:var(--stand)"><div class="mob-en-dot" style="background:var(--stand)"></div>Stand <b id="mob-ev-stand">0</b></div>
+        <div class="mob-en-chip" id="mob-e-haki" style="color:var(--haki)"><div class="mob-en-dot" style="background:var(--haki)"></div>Haki <b id="mob-ev-haki">0</b></div>
+        <div class="mob-en-chip" id="mob-e-reiatsu" style="color:var(--reiatsu)"><div class="mob-en-dot" style="background:var(--reiatsu)"></div>Reiat. <b id="mob-ev-reiatsu">0</b></div>
+        <div class="mob-en-chip" id="mob-e-nen" style="color:var(--nen)"><div class="mob-en-dot" style="background:var(--nen)"></div>Nen <b id="mob-ev-nen">0</b></div>
+    </div>
+
     <aside class="sidebar">
         <div style="display:flex; gap:8px; align-items:stretch;">
             <div class="timer-box" id="turn-timer" style="flex:1;">30s</div>
@@ -835,6 +973,17 @@
         <div class="zone-row" id="e-bench"></div>
         <div class="zone-row" id="e-active"></div>
         <div class="divider"></div>
+        <!-- PILHA DE DESCARTE (centro do campo) -->
+        <div style="display:flex; justify-content:center; align-items:center; gap:14px; padding:4px 0;">
+            <div style="text-align:center;">
+                <div style="font-size:9px; color:#475569; letter-spacing:1px; margin-bottom:4px; text-transform:uppercase;">Descarte</div>
+                <div class="discard-pile" onclick="showDiscardModal()" title="Ver pilha de descarte">
+                    <div class="discard-card"><img class="discard-logo" src="https://i.imgur.com/HWERuem.png" alt="UTCG"><div class="discard-count" id="discard-count">0</div><div class="discard-label">cartas</div></div>
+                    <div class="discard-card"><img class="discard-logo" src="https://i.imgur.com/HWERuem.png" alt="UTCG"></div>
+                    <div class="discard-card"><img class="discard-logo" src="https://i.imgur.com/HWERuem.png" alt="UTCG"></div>
+                </div>
+            </div>
+        </div>
         <div class="zone-row" id="p-active"></div>
         <div class="zone-row" id="p-bench"></div>
         <div class="arena-label player">VOCÊ</div>
@@ -845,7 +994,19 @@
     </footer>
 </div>
 
-<!-- ===================== ENERGY TOAST ===================== -->
+<!-- ===================== MODAL DESCARTE ===================== -->
+<div id="discard-modal" style="
+    display:none; position:fixed; inset:0; z-index:4500;
+    background:rgba(0,0,0,0.88); align-items:center; justify-content:center;
+">
+    <div style="background:#0f172a; border:2px solid rgba(251,191,36,0.5); border-radius:14px; padding:20px; max-width:480px; width:92%; max-height:80vh; display:flex; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <span style="font-family:'Orbitron',monospace; color:var(--gold); font-size:16px; font-weight:900;">🗑 Pilha de Descarte</span>
+            <button class="btn" style="padding:6px 14px; background:rgba(239,68,68,0.7);" onclick="document.getElementById('discard-modal').style.display='none'">✕</button>
+        </div>
+        <div id="discard-list" style="overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:8px; padding:4px;"></div>
+    </div>
+</div>
 <div id="energy-toast">
     <div class="toast-label">Energia Gerada!</div>
     <div class="toast-type" id="toast-type-name">—</div>
@@ -865,7 +1026,7 @@ const CARDS_DB = {
         skills:[
             {n:"Rasengan", d:50, c:2, desc:"Esfera de chakra concentrada."},
             {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones de sombra."}
-        ], price:0
+        ], price:50
     },
     'n2': {
         id:'n2', name:"Naruto Modo Sennin EX", type:"Chakra", hp:160, isEx:true, evolvesFrom:"Naruto",
@@ -882,7 +1043,7 @@ const CARDS_DB = {
         skills:[
             {n:"Ki Blast", d:30, c:1, desc:"Uma esfera de Ki!"},
             {n:"Kamehameha", d:50, c:2, desc:"Raio concentrado de Ki!"}
-        ], price:0
+        ], price:75
     },
     'g2': {
         id:'g2', name:"Goku SSJB EX", type:"Ki", hp:210, isEx:true, evolvesFrom:"Goku",
@@ -1020,10 +1181,10 @@ const CARDS_DB = {
 //  NÍVEIS
 // =========================================================
 const LEVELS_BOSS = [
-    { name:"Clone de Treino", reward:100, bossId:'n2', hpBuff:350 },
-    { name:"Rei das Maldições", reward:350, bossId:'j2', hpBuff:800 },
-    { name:"O Ceifeiro", reward:600, bossId:'b2', hpBuff:1200 },
-    { name:"Plano Celestial", reward:1500, bossId:'a1', hpBuff:2000 }
+    { name:"Clone de Treino", reward:450, bossId:'n2', hpBuff:350 },
+    { name:"Rei das Maldições", reward:650, bossId:'j2', hpBuff:800 },
+    { name:"O Ceifeiro", reward:800, bossId:'b2', hpBuff:1200 },
+    { name:"Plano Celestial", reward:2000, bossId:'a1', hpBuff:2000 }
 ];
 const LEVELS_NORMAL = [
     { name:"Iniciante", reward:50, deck:['n1','n1','g1','g1','j1'] },
@@ -1049,8 +1210,9 @@ let game = {
     hasSwapped:false, hasAttacked:false, mode:'',
     pendingAttack:null, timerInterval:null,
     timeLeft:30,
-    roundCount:1,         // Contador de rodadas (sobe a cada turno do jogador)
-    deckTypes:[],         // Tipos únicos presentes no deck do jogador nesta partida
+    roundCount:1,
+    deckTypes:[],
+    discard:[],   // pilha de descarte compartilhada
     energies:{ Chakra:0, Ki:0, Amaldiçoada:0, Stand:0, Haki:0, Reiatsu:0, Nen:0 }
 };
 
@@ -1340,6 +1502,7 @@ function startGame(lvlIdx, firstTurn) {
     game.energies = { Chakra:0, Ki:0, Amaldiçoada:0, Stand:0, Haki:0, Reiatsu:0, Nen:0 };
     game.roundCount = 1;
     game._roundStarted = false;
+    game.discard = [];
 
     // Descobrir quais TIPOS de energia estão presentes no deck do jogador
     // (apenas personagens — ignora cartas de suporte)
@@ -1491,20 +1654,30 @@ function getEnergyStyle(type) {
 // Atualiza o painel lateral de energias: destaca só os tipos do deck atual
 function updateEnergyPanel() {
     const allTypes = ['Chakra','Ki','Amaldiçoada','Stand','Haki','Reiatsu','Nen'];
+    const typeKeyMap = {'Chakra':'chakra','Ki':'ki','Amaldiçoada':'amaldicoada','Stand':'stand','Haki':'haki','Reiatsu':'reiatsu','Nen':'nen'};
     allTypes.forEach(t => {
         const key = t.toLowerCase().replace('amaldiçoada','amaldicoada');
         const el = document.getElementById('e-' + key);
-        if(!el) return;
-        const row = el.closest('.energy-item');
-        if(!row) return;
-        if(game.deckTypes.includes(t)) {
-            row.classList.remove('inactive');
-            row.classList.add('active-type');
-            row.style.borderColor = getTypeColor(t);
-        } else {
-            row.classList.add('inactive');
-            row.classList.remove('active-type');
-            row.style.borderColor = 'transparent';
+        if(el) {
+            const row = el.closest('.energy-item');
+            if(row) {
+                if(game.deckTypes.includes(t)) {
+                    row.classList.remove('inactive'); row.classList.add('active-type');
+                    row.style.borderColor = getTypeColor(t);
+                } else {
+                    row.classList.add('inactive'); row.classList.remove('active-type');
+                    row.style.borderColor = 'transparent';
+                }
+            }
+        }
+        // Mobile chips
+        const chip = document.getElementById('mob-e-' + (typeKeyMap[t]||key));
+        if(chip) {
+            if(game.deckTypes.includes(t)) {
+                chip.classList.remove('inactive'); chip.classList.add('active-type');
+            } else {
+                chip.classList.add('inactive'); chip.classList.remove('active-type');
+            }
         }
     });
 }
@@ -1643,6 +1816,76 @@ function getStatusHTML(card) {
 // =========================================================
 //  ATAQUE / DANO
 // =========================================================
+
+// Anima uma carta voando de um ponto até outro e volta, depois chama callback
+function flyCardTo(atkElId, defElId, card, source, callback) {
+    const atkEl = document.getElementById(atkElId);
+    const defEl = document.getElementById(defElId);
+    if(!atkEl || !defEl) { callback(); return; }
+
+    const atkRect = atkEl.getBoundingClientRect();
+    const defRect = defEl.getBoundingClientRect();
+
+    // Criar clone visual da carta atacante
+    const clone = document.createElement('div');
+    clone.className = 'card-flying-clone';
+    clone.style.width  = atkRect.width  + 'px';
+    clone.style.height = atkRect.height + 'px';
+    clone.style.left   = atkRect.left   + 'px';
+    clone.style.top    = atkRect.top    + 'px';
+
+    const img = document.createElement('img');
+    img.src = card.img;
+    clone.appendChild(img);
+
+    // Destino: centro do defensor
+    const destX = defRect.left + defRect.width/2  - atkRect.width/2;
+    const destY = defRect.top  + defRect.height/2 - atkRect.height/2;
+    // Origem (para voltar)
+    const origX = atkRect.left;
+    const origY = atkRect.top;
+
+    // Esconder carta original durante o voo
+    atkEl.style.opacity = '0';
+
+    document.body.appendChild(clone);
+
+    // Fase 1: voar até o inimigo (280ms)
+    const dur1 = 280;
+    const start1 = performance.now();
+    function phase1(now) {
+        const t = Math.min((now - start1) / dur1, 1);
+        const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // easeInOut
+        clone.style.left = (origX + (destX - origX) * ease) + 'px';
+        clone.style.top  = (origY + (destY - origY) * ease) + 'px';
+        clone.style.transform = `rotate(${source === 'player' ? -8 : 8}deg) scale(${1 + ease * 0.1})`;
+        if(t < 1) { requestAnimationFrame(phase1); }
+        else {
+            // Impacto: flash no defensor
+            flashCard(defElId, 99999);
+            playSFX('sfxDamage');
+            clone.style.transform = 'rotate(0deg) scale(1.15)';
+            // Fase 2: voltar (220ms)
+            const start2 = performance.now();
+            function phase2(now2) {
+                const t2 = Math.min((now2 - start2) / 220, 1);
+                const ease2 = t2 < 0.5 ? 2*t2*t2 : -1+(4-2*t2)*t2;
+                clone.style.left = (destX + (origX - destX) * ease2) + 'px';
+                clone.style.top  = (destY + (origY - destY) * ease2) + 'px';
+                clone.style.transform = `rotate(0deg) scale(${1.15 - ease2 * 0.15})`;
+                if(t2 < 1) { requestAnimationFrame(phase2); }
+                else {
+                    clone.remove();
+                    atkEl.style.opacity = '1';
+                    callback();
+                }
+            }
+            requestAnimationFrame(phase2);
+        }
+    }
+    requestAnimationFrame(phase1);
+}
+
 function triggerAttack(idx, source) {
     if(source === 'player' && (!game.enemy.active || game.turn !== 'player')) return;
     if(source === 'player' && game.hasSwapped) return alert("Troca recente — não pode atacar!");
@@ -1659,7 +1902,7 @@ function triggerAttack(idx, source) {
     // Escudo: bloqueia dano
     if(hasStatus(defender, 'shield')) {
         log(`🛡 ${defender.name} bloqueou o ataque com Escudo!`, '#38bdf8');
-        applyStatus(defender, 'shield', -1); // decrementa manualmente
+        applyStatus(defender, 'shield', -1);
         defender.statuses = defender.statuses.filter(s => s.turns > 0);
         clearInterval(game.timerInterval);
         document.getElementById('end-turn-btn').disabled = true;
@@ -1672,23 +1915,24 @@ function triggerAttack(idx, source) {
     document.getElementById('end-turn-btn').disabled = true;
     if(source === 'player') game.hasAttacked = true;
 
-    // Animação de ataque
-    const atkEl = document.getElementById(source === 'player' ? 'p-card-active' : 'e-card-active');
-    if(atkEl) { atkEl.classList.add('atk-anim'); setTimeout(()=>atkEl.classList.remove('atk-anim'), 400); }
-
     if(attacker.isEx && skill.vid) {
+        // Ultimate: vai direto pro vídeo sem animação de voo
         game.pendingAttack = { attacker, defender, skill, source };
         const musicaBatalha = document.getElementById('musicaBatalha');
         if(musicaBatalha) musicaBatalha.pause();
         const v = document.getElementById('ult-video');
         v.src = skill.vid;
         v.load();
-        // Mostrar overlay de clique (necessário por autoplay policy do navegador)
         const overlay = document.getElementById('ult-play-overlay');
         if(overlay) overlay.style.display = 'flex';
         document.getElementById('ult-screen').style.display = 'flex';
     } else {
-        executeDamage(attacker, defender, skill, source);
+        // Ataque normal: animar carta voando até o inimigo
+        const atkElId = source === 'player' ? 'p-card-active' : 'e-card-active';
+        const defElId = source === 'player' ? 'e-card-active' : 'p-card-active';
+        flyCardTo(atkElId, defElId, attacker, source, () => {
+            executeDamage(attacker, defender, skill, source);
+        });
     }
 }
 
@@ -1729,11 +1973,9 @@ function executeDamage(attacker, defender, skill, source) {
     const dmg = skill.d || 0;
     if(dmg > 0) {
         defender.curHP -= dmg;
-        playSFX('sfxDamage');
         const defId = source === 'player' ? 'e-card-active' : 'p-card-active';
         const pos = getCardCenter(defId);
         spawnFloat(pos.x, pos.y, `-${dmg}`, 'dmg');
-        flashCard(defId, defender.curHP);
         log(`⚔️ ${attacker.name} usou ${skill.n}! Dano: ${dmg}`, source === 'player' ? '#38bdf8' : '#ef4444');
     }
 
@@ -1763,6 +2005,120 @@ function flashCard(elId, newHP) {
     void el.offsetWidth;
     el.classList.add('hit-flash');
     setTimeout(() => el.classList.remove('hit-flash'), 450);
+}
+
+// Animação de morte: partículas + carta voa para a pilha de descarte virando
+function playDeathAnimation(elId, card, callback) {
+    const el = document.getElementById(elId);
+    if(!el) { if(callback) callback(); return; }
+
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top  + rect.height / 2;
+
+    // --- Partículas de impacto ---
+    const colors = ['#ef4444','#f87171','#fbbf24','#fff','#94a3b8'];
+    for(let i = 0; i < 14; i++) {
+        const p = document.createElement('div');
+        p.className = 'death-particle';
+        const angle = (i / 14) * Math.PI * 2;
+        const dist  = 45 + Math.random() * 55;
+        p.style.cssText = `left:${cx}px; top:${cy}px; background:${colors[i%colors.length]}; --tx:${Math.cos(angle)*dist}px; --ty:${Math.sin(angle)*dist}px; animation-duration:${0.5+Math.random()*0.4}s;`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 950);
+    }
+
+    // --- Esconder carta original ---
+    el.style.opacity = '0';
+    el.style.pointerEvents = 'none';
+
+    // --- Encontrar posição da pilha de descarte ---
+    const discardPile = document.querySelector('.discard-pile');
+    let destX = window.innerWidth / 2;
+    let destY = window.innerHeight / 2;
+    if(discardPile) {
+        const dr = discardPile.getBoundingClientRect();
+        destX = dr.left + dr.width  / 2;
+        destY = dr.top  + dr.height / 2;
+    }
+
+    // --- Criar clone da carta ---
+    const clone = document.createElement('div');
+    clone.className = 'card-discard-clone';
+    clone.style.width  = rect.width  + 'px';
+    clone.style.height = rect.height + 'px';
+    clone.style.left   = rect.left   + 'px';
+    clone.style.top    = rect.top    + 'px';
+    clone.style.transformOrigin = 'center center';
+    clone.style.transform = 'rotate(0deg) scale(1)';
+
+    const img = document.createElement('img');
+    img.src = card.img;
+    clone.appendChild(img);
+    document.body.appendChild(clone);
+
+    const origX   = rect.left;
+    const origY   = rect.top;
+    const finalX  = destX - rect.width  / 2;
+    const finalY  = destY - rect.height / 2;
+    const totalDur = 700; // ms
+    const startT   = performance.now();
+
+    function animateDiscard(now) {
+        const raw  = Math.min((now - startT) / totalDur, 1);
+        // easeInBack para dar sensação de "arremesso"
+        const t = raw < 0.5
+            ? 4 * raw * raw * raw
+            : 1 - Math.pow(-2 * raw + 2, 3) / 2;
+
+        const x   = origX + (finalX - origX) * t;
+        const y   = origY + (finalY - origY) * t;
+        // Girar 180° gradualmente (virar de cabeça pra baixo)
+        const rot = 180 * t;
+        const sc  = 1 - t * 0.45; // encolhe ao entrar na pilha
+
+        clone.style.left      = x   + 'px';
+        clone.style.top       = y   + 'px';
+        clone.style.transform = `rotate(${rot}deg) scale(${sc})`;
+        clone.style.opacity   = raw > 0.75 ? (1 - (raw - 0.75) / 0.25) : '1';
+
+        if(raw < 1) {
+            requestAnimationFrame(animateDiscard);
+        } else {
+            clone.remove();
+            el.style.opacity      = '';
+            el.style.pointerEvents = '';
+            if(callback) callback();
+        }
+    }
+    requestAnimationFrame(animateDiscard);
+}
+
+// Adicionar carta ao descarte
+function addToDiscard(card) {
+    if(!card || card.isSupport) return;
+    game.discard.push({...card});
+    const el = document.getElementById('discard-count');
+    if(el) el.innerText = game.discard.length;
+}
+
+// Modal de descarte
+function showDiscardModal() {
+    const modal = document.getElementById('discard-modal');
+    const list = document.getElementById('discard-list');
+    list.innerHTML = '';
+    if(game.discard.length === 0) {
+        list.innerHTML = '<div style="color:#64748b; font-size:12px; grid-column:1/-1; text-align:center; padding:20px;">Nenhuma carta descartada ainda.</div>';
+    } else {
+        [...game.discard].reverse().forEach(card => {
+            const typeColor = getTypeColor(card.type);
+            const d = document.createElement('div');
+            d.style.cssText = 'background:#0a0f1e; border:1px solid #1e293b; border-radius:6px; overflow:hidden; text-align:center;';
+            d.innerHTML = `<img src="${card.img}" style="width:100%; height:60px; object-fit:cover;"><div style="padding:3px; font-size:9px; color:${typeColor}; font-weight:700;">${card.name}</div>`;
+            list.appendChild(d);
+        });
+    }
+    modal.style.display = 'flex';
 }
 
 // =========================================================
@@ -1997,10 +2353,30 @@ function updateUI() {
         'Stand':'stand', 'Haki':'haki', 'Reiatsu':'reiatsu', 'Nen':'nen'
     };
     Object.keys(game.energies).forEach(k => {
-        const elId = 'e-' + (typeKeyMap[k] || k.toLowerCase());
-        const el = document.getElementById(elId);
+        const key = typeKeyMap[k] || k.toLowerCase();
+        const el = document.getElementById('e-' + key);
         if(el) el.innerText = game.energies[k];
+        // Barra mobile
+        const mobVal = document.getElementById('mob-ev-' + key);
+        if(mobVal) mobVal.innerText = game.energies[k];
     });
+
+    // Atualizar chips mobile (destaque de tipos ativos)
+    const allTypes = ['Chakra','Ki','Amaldiçoada','Stand','Haki','Reiatsu','Nen'];
+    allTypes.forEach(t => {
+        const key = typeKeyMap[t];
+        const chip = document.getElementById('mob-e-' + key);
+        if(!chip) return;
+        if(game.deckTypes.includes(t)) {
+            chip.classList.remove('inactive'); chip.classList.add('active-type');
+        } else {
+            chip.classList.add('inactive'); chip.classList.remove('active-type');
+        }
+    });
+
+    // Contagem descarte
+    const dc = document.getElementById('discard-count');
+    if(dc) dc.innerText = game.discard ? game.discard.length : 0;
 
     render('p-active', game.player.active, true, 'active');
     render('e-active', game.enemy.active, false, 'active');
@@ -2096,23 +2472,35 @@ function checkKOs() {
     let over = false;
 
     if(game.enemy.active && game.enemy.active.curHP <= 0) {
-        log(`💀 ${game.enemy.active.name} foi derrotado!`, '#ef4444');
-        if(game.mode === 'normal' && game.enemy.bench && game.enemy.bench.length > 0) {
-            game.enemy.active = game.enemy.bench.shift();
-            log(`😈 Inimigo enviou ${game.enemy.active.name}!`, '#ef4444');
-        } else {
-            showResult(true);
-            over = true;
-        }
+        const dead = game.enemy.active;
+        log(`💀 ${dead.name} foi derrotado!`, '#ef4444');
+        addToDiscard(dead);
+        playDeathAnimation('e-card-active', dead, () => {
+            if(game.mode === 'normal' && game.enemy.bench && game.enemy.bench.length > 0) {
+                game.enemy.active = game.enemy.bench.shift();
+                log(`😈 Inimigo enviou ${game.enemy.active.name}!`, '#ef4444');
+                updateUI();
+                setTimeout(() => endTurn(false), 800);
+            } else {
+                showResult(true);
+            }
+        });
+        return true;
     } else if(game.player.active && game.player.active.curHP <= 0) {
-        log(`💀 ${game.player.active.name} caiu!`, '#ef4444');
-        if(game.player.bench.length > 0) {
-            game.player.active = game.player.bench.shift();
-            log(`🔁 ${game.player.active.name} entrou em campo!`, '#fbbf24');
-        } else {
-            showResult(false);
-            over = true;
-        }
+        const dead = game.player.active;
+        log(`💀 ${dead.name} caiu!`, '#ef4444');
+        addToDiscard(dead);
+        playDeathAnimation('p-card-active', dead, () => {
+            if(game.player.bench.length > 0) {
+                game.player.active = game.player.bench.shift();
+                log(`🔁 ${game.player.active.name} entrou em campo!`, '#fbbf24');
+                updateUI();
+                setTimeout(() => endTurn(false), 800);
+            } else {
+                showResult(false);
+            }
+        });
+        return true;
     }
 
     if(!over) updateUI();
