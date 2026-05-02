@@ -742,6 +742,315 @@
         .mob-en-chip.active-type { border-color: currentColor; }
         .mob-en-chip.inactive { opacity: 0.25; }
         .mob-en-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink:0; }
+        /* =========================================================
+           MODO HISTÓRIA — VISUAL NOVEL STYLE
+        ========================================================= */
+        #story-reader {
+            display: none;
+            position: fixed; inset: 0; z-index: 8000;
+            background: #000;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Background cena */
+        #story-bg {
+            position: absolute; inset: 0;
+            background-size: cover; background-position: center;
+            transition: background-image 0.6s ease, filter 0.6s ease;
+            filter: brightness(0.45);
+        }
+        #story-bg.distorted {
+            filter: brightness(0.35) hue-rotate(180deg) saturate(2);
+            animation: bg-distort 1.5s infinite alternate;
+        }
+        @keyframes bg-distort {
+            0%   { filter: brightness(0.35) hue-rotate(180deg) saturate(2); transform: scale(1); }
+            100% { filter: brightness(0.4) hue-rotate(220deg) saturate(3); transform: scale(1.02) skewX(0.5deg); }
+        }
+
+        /* Overlay dramático */
+        #story-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.92) 100%);
+            pointer-events: none;
+        }
+
+        /* Efeito Dracoyn */
+        #dracoyn-effect {
+            display: none;
+            position: absolute; inset: 0; z-index: 2;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, rgba(139,92,246,0.0) 0%, rgba(139,92,246,0.4) 50%, rgba(0,0,0,0.8) 100%);
+            animation: dracoyn-pulse 2s ease-in-out infinite;
+        }
+        #dracoyn-effect.active { display: block; }
+        @keyframes dracoyn-pulse {
+            0%   { opacity: 0; transform: scale(0.8); }
+            50%  { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.3; transform: scale(1); }
+        }
+        #dracoyn-cracks {
+            display: none;
+            position: absolute; inset: 0; z-index: 3;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 98%,
+                rgba(139,92,246,0.8) 99%,
+                transparent 100%
+            ), repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 97%,
+                rgba(167,139,250,0.6) 98%,
+                transparent 100%
+            );
+            animation: cracks-flash 0.4s ease-in-out infinite;
+        }
+        #dracoyn-cracks.active { display: block; }
+        @keyframes cracks-flash {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Barra superior */
+        #story-topbar {
+            position: relative; z-index: 10;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 16px;
+            background: rgba(0,0,0,0.7);
+            border-bottom: 1px solid rgba(139,92,246,0.3);
+        }
+        #story-chapter-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 13px; font-weight: 900;
+            color: #a78bfa; letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(139,92,246,0.8);
+        }
+        /* Personagens */
+        #story-chars {
+            position: absolute; inset: 0; z-index: 5;
+            display: flex; align-items: flex-end;
+            justify-content: space-between;
+            padding: 0 20px 200px 20px;
+            pointer-events: none;
+        }
+
+        /* Cada lado tem um grupo de até 3 personagens */
+        .story-side {
+            display: flex; align-items: flex-end;
+            position: relative; min-width: 160px;
+        }
+        .story-side.side-left  { flex-direction: row; justify-content: flex-start; }
+        .story-side.side-right { flex-direction: row-reverse; justify-content: flex-start; }
+
+        /* Cada slot dentro do lado */
+        .story-char {
+            display: flex; flex-direction: column; align-items: center;
+            opacity: 0; transition: opacity 0.45s ease, transform 0.45s ease, filter 0.45s ease, z-index 0s;
+            transform: translateY(20px);
+            position: relative;
+        }
+        .story-char.visible { opacity: 1; transform: translateY(0); }
+
+        /* Slot 0 = falante = frente, grande */
+        .story-char[data-slot="0"] {
+            z-index: 3;
+            transform: translateY(0) scale(1);
+        }
+        .story-char[data-slot="0"].visible { opacity: 1; transform: translateY(0) scale(1); }
+
+        /* Slot 1 = segundo = atrás e um pouco menor */
+        .story-char[data-slot="1"] {
+            z-index: 2; margin-left: -45px; margin-right: -45px;
+        }
+        .story-side.side-left  .story-char[data-slot="1"] { margin-left: -50px; }
+        .story-side.side-right .story-char[data-slot="1"] { margin-right: -50px; }
+
+        /* Slot 2 = terceiro = mais atrás ainda */
+        .story-char[data-slot="2"] {
+            z-index: 1; margin-left: -45px; margin-right: -45px;
+        }
+        .story-side.side-left  .story-char[data-slot="2"] { margin-left: -55px; }
+        .story-side.side-right .story-char[data-slot="2"] { margin-right: -55px; }
+
+        /* Estados visuais */
+        .story-char.speaking {
+            filter: brightness(1.15) drop-shadow(0 0 22px rgba(255,255,255,0.35));
+            z-index: 10 !important;
+        }
+        .story-char.cospeaking {
+            filter: brightness(1.0) drop-shadow(0 0 10px rgba(255,255,255,0.15));
+            z-index: 9 !important;
+        }
+        .story-char.listening {
+            filter: brightness(0.7) grayscale(0.2);
+        }
+        .story-char.dim {
+            filter: brightness(0.38) grayscale(0.55);
+            opacity: 0.75 !important;
+        }
+
+        /* Imagens: speaker normal, outros menores */
+        .story-char img {
+            object-fit: contain; object-position: top;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.9));
+            transition: width 0.35s, height 0.35s;
+        }
+        .story-char[data-slot="0"] img { width: 130px; height: 160px; }
+        .story-char[data-slot="1"] img { width: 100px; height: 125px; }
+        .story-char[data-slot="2"] img { width:  80px; height: 100px; }
+
+        .story-char .char-name-badge {
+            font-family: 'Orbitron', monospace;
+            font-size: 9px; font-weight: 900;
+            padding: 3px 10px; border-radius: 4px;
+            margin-top: 6px; letter-spacing: 1px;
+            text-align: center; white-space: nowrap;
+            transition: opacity 0.3s;
+        }
+        /* Esconder badges dos personagens secundários para não poluir */
+        .story-char[data-slot="1"] .char-name-badge,
+        .story-char[data-slot="2"] .char-name-badge { opacity: 0; }
+
+        @media screen and (max-width: 850px) {
+            .story-char[data-slot="0"] img { width: 95px;  height: 118px; }
+            .story-char[data-slot="1"] img { width: 72px;  height:  90px; }
+            .story-char[data-slot="2"] img { width: 56px;  height:  70px; }
+            .story-side.side-left  .story-char[data-slot="1"] { margin-left: -35px; }
+            .story-side.side-right .story-char[data-slot="1"] { margin-right: -35px; }
+            .story-side.side-left  .story-char[data-slot="2"] { margin-left: -38px; }
+            .story-side.side-right .story-char[data-slot="2"] { margin-right: -38px; }
+            #story-chars { padding: 0 8px 195px 8px; }
+        }
+
+        /* Caixa de diálogo */
+        #story-dialog-area {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+            padding: 0 16px 16px 16px;
+        }
+        #story-speaker-name {
+            display: inline-block;
+            font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 900;
+            padding: 5px 16px; border-radius: 6px 6px 0 0;
+            margin-bottom: -2px;
+            letter-spacing: 1px; min-width: 120px;
+            text-align: center;
+            transition: background 0.3s, color 0.3s;
+        }
+        #story-dialog-box {
+            background: rgba(5, 8, 20, 0.96);
+            border: 1px solid rgba(139,92,246,0.5);
+            border-radius: 0 10px 10px 10px;
+            padding: 16px 18px;
+            min-height: 90px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            cursor: pointer;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04);
+            position: relative;
+        }
+        #story-text {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 15px; line-height: 1.65;
+            color: #e2e8f0; min-height: 50px;
+        }
+        #story-continue-hint {
+            text-align: right; font-size: 10px;
+            color: rgba(139,92,246,0.6); margin-top: 6px;
+            animation: hint-blink 1.5s ease-in-out infinite;
+            letter-spacing: 1px;
+        }
+        @keyframes hint-blink {
+            0%, 100% { opacity: 0.4; }
+            50%       { opacity: 1; }
+        }
+
+        /* Narração (sem personagem falante) */
+        #story-narration-box {
+            display: none;
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+            padding: 0 16px 16px 16px;
+        }
+        #story-narration-text {
+            background: rgba(0,0,0,0.88);
+            border: 1px solid rgba(251,191,36,0.25);
+            border-radius: 10px;
+            padding: 16px 20px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px; line-height: 1.7;
+            color: #cbd5e1; font-style: italic;
+            cursor: pointer; text-align: center;
+            min-height: 60px;
+        }
+        #narration-continue-hint {
+            text-align: right; font-size: 10px;
+            color: rgba(251,191,36,0.4); margin-top: 6px;
+            animation: hint-blink 1.5s ease-in-out infinite;
+        }
+
+        /* Tela de batalha dentro da história */
+        #story-battle-transition {
+            display: none;
+            position: fixed; inset: 0; z-index: 8500;
+            background: #000;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        #story-battle-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 36px; font-weight: 900;
+            color: var(--hp-red);
+            text-shadow: 0 0 40px rgba(239,68,68,0.8);
+            animation: battle-title-in 0.8s cubic-bezier(0.34,1.56,0.64,1);
+            letter-spacing: 4px; margin-bottom: 12px;
+        }
+        @keyframes battle-title-in {
+            from { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+            to   { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        #story-battle-subtitle {
+            font-size: 14px; color: #94a3b8; letter-spacing: 3px;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* Tela de fim de capítulo */
+        #story-chapter-end {
+            display: none;
+            position: fixed; inset: 0; z-index: 8600;
+            background: radial-gradient(ellipse at center, #0a0014 0%, #000 100%);
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: 18px;
+        }
+        #story-chapter-end .end-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px; font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 0 40px rgba(251,191,36,0.6);
+            letter-spacing: 3px; animation: result-pop 0.6s ease;
+        }
+        #story-chapter-end .end-reward {
+            font-size: 20px; color: var(--green); font-weight: 700;
+            animation: result-pop 0.8s ease;
+        }
+        #story-chapter-end .end-lore {
+            max-width: 320px; text-align: center;
+            font-size: 13px; color: #64748b; line-height: 1.7;
+            font-style: italic; padding: 0 20px;
+        }
+
+        /* Typing cursor */
+        .typing-cursor {
+            display: inline-block; width: 2px; height: 14px;
+            background: #a78bfa; margin-left: 2px;
+            animation: cursor-blink 0.7s infinite;
+            vertical-align: middle;
+        }
+        @keyframes cursor-blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0; }
+        }
+
         @media screen and (max-width: 850px) {
             body { height: auto; min-height: 100vh; overflow-y: auto !important; }
 
@@ -788,6 +1097,16 @@
     </style>
 </head>
 <body>
+
+<!-- ===================== COPYRIGHT ===================== -->
+<div id="copyright-badge" style="
+    position: fixed; bottom: 10px; left: 12px; z-index: 99999;
+    font-family: 'Rajdhani', sans-serif; font-size: 10px;
+    color: rgba(255,255,255,0.28); letter-spacing: 0.5px;
+    pointer-events: none; user-select: none;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    line-height: 1.4;
+">© Todos os direitos reservados<br>Daniel Ribeiro — Criador do Jogo</div>
 
 <!-- ===================== SPLASH SCREEN ===================== -->
 <div id="splash-screen">
@@ -837,7 +1156,6 @@
     <div id="update-notes">
         <h4>🗒 UTCG — Update Notes v2.0</h4>
         <ul>
-            <li>ESTE JOGO ESTÁ EM DESENVOLVIMENTO! QUALQUER ERRO MANDE MENSAGEM NO INSTAGRAM:@dancostx</li>
             <li>Floating damage numbers adicionados!</li>
             <li>Hit-flash e card shake ao receber dano.</li>
             <li>Cartas de Suporte/Item implementadas.</li>
@@ -852,20 +1170,83 @@
     </div>
 </div>
 
-<!-- ===================== MODO HISTÓRIA ===================== -->
+<!-- ===================== MODO HISTÓRIA — SELEÇÃO DE CAPÍTULOS ===================== -->
 <div id="story-modal" class="screen">
-    <div class="story-box">
-        <h2 style="font-family:'Orbitron',monospace; color:var(--gold); margin-bottom:8px; font-size:22px;">MODO HISTÓRIA</h2>
-        <div style="background:var(--gold); color:#000; font-weight:900; padding:4px 14px; display:inline-block; margin:12px 0; border-radius:4px; font-size:12px; letter-spacing:2px;">EM BREVE</div>
-        <p style="color:#94a3b8; font-size:13px; margin-bottom:20px;">Uma jornada épica através das dimensões dos animes...</p>
-        <div style="text-align:left; margin-bottom:20px;">
-            <div class="story-chapter locked">🔒 Capítulo 0: Prólogo — O Rasgão Dimensional</div>
-            <div class="story-chapter locked" style="padding-left:24px; font-size:13px;">🔒 Capítulo 1: O Despertar (Em Breve)</div>
-            <div class="story-chapter locked" style="padding-left:24px; font-size:13px; color:#1e293b;">🔒 Capítulo 2: Alianças Proibidas</div>
-            <div class="story-chapter locked" style="padding-left:24px; font-size:13px; color:#0f172a;">🔒 Capítulo 3: A Guerra Final</div>
+    <div class="story-box" style="max-width:460px; width:93%;">
+        <h2 style="font-family:'Orbitron',monospace; color:var(--gold); margin-bottom:4px; font-size:20px; text-shadow:0 0 20px rgba(251,191,36,0.4);">📖 MODO HISTÓRIA</h2>
+        <p style="color:#64748b; font-size:11px; margin-bottom:18px; letter-spacing:2px; text-transform:uppercase;">A Ruptura dos Mundos</p>
+        <div id="story-chapters-container" style="text-align:left; margin-bottom:20px; width:100%;">
+            <!-- Capítulos serão renderizados dinamicamente aqui -->
         </div>
         <button class="btn btn-sec" style="width:100%; border-color:var(--gold); color:var(--gold);" onclick="playClick(); showScreen('main-menu')">← VOLTAR AO MENU</button>
     </div>
+</div>
+
+<!-- ===================== MODO HISTÓRIA — LEITOR ===================== -->
+<div id="story-reader">
+    <div id="story-bg"></div>
+    <div id="story-overlay"></div>
+    <div id="dracoyn-effect"></div>
+    <div id="dracoyn-cracks"></div>
+    <div id="story-topbar">
+        <div id="story-chapter-title">CAP. 0 — A RUPTURA DO CHAKRA</div>
+
+    </div>
+    <div id="story-chars">
+        <!-- LADO ESQUERDO: slot 0 = frente (falante), 1 e 2 = atrás -->
+        <div class="story-side side-left" id="story-side-left">
+            <div class="story-char" id="story-char-left-0" data-slot="0">
+                <img id="story-char-left-0-img" src="" alt="">
+                <div class="char-name-badge" id="story-char-left-0-name"></div>
+            </div>
+            <div class="story-char" id="story-char-left-1" data-slot="1">
+                <img id="story-char-left-1-img" src="" alt="">
+                <div class="char-name-badge" id="story-char-left-1-name"></div>
+            </div>
+            <div class="story-char" id="story-char-left-2" data-slot="2">
+                <img id="story-char-left-2-img" src="" alt="">
+                <div class="char-name-badge" id="story-char-left-2-name"></div>
+            </div>
+        </div>
+        <!-- LADO DIREITO: slot 0 = frente (falante), 1 e 2 = atrás -->
+        <div class="story-side side-right" id="story-side-right">
+            <div class="story-char" id="story-char-right-0" data-slot="0">
+                <img id="story-char-right-0-img" src="" alt="">
+                <div class="char-name-badge" id="story-char-right-0-name"></div>
+            </div>
+            <div class="story-char" id="story-char-right-1" data-slot="1">
+                <img id="story-char-right-1-img" src="" alt="">
+                <div class="char-name-badge" id="story-char-right-1-name"></div>
+            </div>
+            <div class="story-char" id="story-char-right-2" data-slot="2">
+                <img id="story-char-right-2-img" src="" alt="">
+                <div class="char-name-badge" id="story-char-right-2-name"></div>
+            </div>
+        </div>
+    </div>
+    <div id="story-dialog-area" onclick="storyAdvance()">
+        <div id="story-speaker-name">NARUTO</div>
+        <div id="story-dialog-box">
+            <div id="story-text"></div>
+            <div id="story-continue-hint">▼ toque para continuar</div>
+        </div>
+    </div>
+    <div id="story-narration-box" onclick="storyAdvance()">
+        <div id="story-narration-text"></div>
+        <div id="narration-continue-hint">▼ toque para continuar</div>
+    </div>
+</div>
+
+<div id="story-battle-transition" style="display:none; position:fixed; inset:0; z-index:8500; background:#000; flex-direction:column; align-items:center; justify-content:center;">
+    <div id="story-battle-title" style="font-family:'Orbitron',monospace; font-size:36px; font-weight:900; color:var(--hp-red); text-shadow:0 0 40px rgba(239,68,68,0.8); letter-spacing:4px; margin-bottom:12px;">⚔ BATALHA!</div>
+    <div id="story-battle-subtitle" style="font-size:14px; color:#94a3b8; letter-spacing:3px; font-family:'Rajdhani',sans-serif;">PREPARE SEU DECK</div>
+</div>
+
+<div id="story-chapter-end" style="display:none; position:fixed; inset:0; z-index:8600; background:radial-gradient(ellipse at center,#0a0014 0%,#000 100%); flex-direction:column; align-items:center; justify-content:center; gap:18px;">
+    <div style="font-family:'Orbitron',monospace; font-size:28px; font-weight:900; color:var(--gold); text-shadow:0 0 40px rgba(251,191,36,0.6); letter-spacing:3px; animation:result-pop 0.6s ease;">✦ CAPÍTULO CONCLUÍDO ✦</div>
+    <div id="story-end-reward" style="font-size:20px; color:var(--green); font-weight:700; animation:result-pop 0.8s ease;">+500 moedas de ouro!</div>
+    <div id="story-end-lore" style="max-width:320px; text-align:center; font-size:13px; color:#64748b; line-height:1.7; font-style:italic; padding:0 20px;"></div>
+    <button class="btn btn-gold" style="padding:13px 40px; letter-spacing:2px; margin-top:8px;" onclick="claimStoryReward()">💰 COLETAR RECOMPENSA</button>
 </div>
 
 <!-- ===================== EDITOR DE DECK ===================== -->
@@ -1071,7 +1452,7 @@ const CARDS_DB = {
             {n:"Fukuma Mizushi", d:200, c:4, desc:"Expansão de domínio.", vid:"expansão de domínio, Sukuna [Jujutsu Kaisen dublado] #Shorts.mp4", status:{target:'enemy', type:'stun', turns:1}}
         ], price:1000
     },
-    'b1': {
+    'j3': {
         id:'b1', name:"Gojo", type:"Amaldiçoada", hp:110,
         img:"https://i.imgur.com/71MfKQb.jpeg",
         skills:[
@@ -1079,7 +1460,7 @@ const CARDS_DB = {
             {n:"Vermelho", d:70, c:2, desc:"Repele com força explosiva.", status:{target:'self', type:'dodge', turns:1}}
         ], price:350
     },
-    'b2': {
+    'j4': {
         id:'b2', name:"Gojo EX", type:"Amaldiçoada", hp:220, isEx:true, evolvesFrom:"Gojo",
         img:"https://i.imgur.com/qQ7wAbW.jpeg",
         skills:[
@@ -1088,7 +1469,7 @@ const CARDS_DB = {
         ], price:2500
     },
     // ---- JOJO'S (Stand) ----
-    'a1': {
+    'jjba1': {
         id:'a1', name:"Dio EX", type:"Stand", hp:230, isEx:true,
         img:"https://i.imgur.com/L5TnHY4.jpeg",
         skills:[
@@ -1147,31 +1528,108 @@ const CARDS_DB = {
             {n:"Nen Liberado", d:200, c:4, desc:"Toda a vida como Nen!", status:{target:'enemy', type:'burn', turns:3}}
         ], price:1300
     },
+    // ---- CARTAS EXCLUSIVAS DO MODO HISTÓRIA (não aparecem na loja) ----
+    // Cap.0 — Naruto + Sasuke vs Madara
+    'hs_sasuke': {
+        id:'hs_sasuke', name:"Sasuke", type:"Chakra", hp:170, storyOnly:true,
+        img:"https://i.imgur.com/MG7FIXN.jpeg",
+        skills:[
+            {n:"Chidori", d:55, c:2, desc:"Relâmpago concentrado na mão."},
+            {n:"Amaterasu", d:80, c:3, desc:"Chamas negras que nunca se apagam.", status:{target:'enemy', type:'burn', turns:2}}
+        ], price:0
+    },
+    'hs_madara_boss': {
+        id:'hs_madara_boss', name:"Madara Uchiha", type:"Chakra", hp:320, storyOnly:true,
+        img:"https://i.imgur.com/MG7FIXN.jpeg",
+        skills:[
+            {n:"Susanoo Completo", d:100, c:3, desc:"Armadura de chakra titânica."},
+            {n:"Limbo", d:160, c:4, desc:"Ataque do reino das sombras!", status:{target:'enemy', type:'stun', turns:1}}
+        ], price:0
+    },
+    // Cap.0 — Treino: Naruto Sennin vs Goku
+    'hs_naruto': {
+        id:'hs_naruto', name:"Naruto", type:"Chakra", hp:100, storyOnly:true,
+        img:"https://i.imgur.com/uXbwFlO.jpeg",
+        skills:[
+            {n:"Kage Bushin", d:70, c:2, desc:"Invoca os clones das sombras!"},
+            {n:"Rasengan", d:90, c:4, desc:"Explosão devastadora!"}
+        ], price:0
+    },
+    'hs_goku': {
+        id:'hs_goku', name:"Goku", type:"Ki", hp:190, storyOnly:true,
+        img:"https://i.imgur.com/g4H83vJ.jpeg",
+        skills:[
+            {n:"Kamehameha", d:80, c:2, desc:"Raio de Ki concentrado!"},
+            {n:"Kaio-ken", d:120, c:3, desc:"Multiplica o poder bruto!", status:{target:'self', type:'shield', turns:1}}
+        ], price:0
+    },
+    // Cap.0 — Naruto + Goku vs Freeza
+    'hs_freeza_boss': {
+        id:'hs_freeza_boss', name:"Freeza", type:"Ki", hp:380, storyOnly:true,
+        img:"https://i.imgur.com/SWcfJrp.jpeg",
+        skills:[
+            {n:"Death Beam", d:90, c:2, desc:"Raio de ki letal e preciso."},
+            {n:"Death Ball", d:180, c:4, desc:"Esfera que destrói planetas!", status:{target:'enemy', type:'burn', turns:2}}
+        ], price:0
+    },
+    // Cap.1 — Sukuna fases
+    'hs_gojo': {
+        id:'hs_gojo', name:"Satoru Gojo", type:"Amaldiçoada", hp:280, storyOnly:true,
+        img:"https://i.imgur.com/71MfKQb.jpeg",
+        skills:[
+            {n:"Azul", d:50, c:2, desc:"Atrai e esmaga o oponente."},
+            {n:"Vermelho", d:70, c:2, desc:"Repele com força explosiva.", status:{target:'self', type:'dodge', turns:1}}
+        ], price:0
+    },
+    'hs_sukuna_fase1': {
+        id:'hs_sukuna_fase1', name:"Sukuna (Fase 1)", type:"Amaldiçoada", hp:280, storyOnly:true,
+        img:"https://i.imgur.com/MQKiefi.jpeg",
+        skills:[
+            {n:"Fuga", d:80, c:2, desc:"Flecha ardente de energia maldita."},
+            {n:"Corte Reverso", d:130, c:3, desc:"Inverte a energia amaldiçoada.", status:{target:'enemy', type:'burn', turns:2}}
+        ], price:0
+    },
+    'hs_sukuna_fase2': {
+        id:'hs_sukuna_fase2', name:"Sukuna (Fase 2)", type:"Amaldiçoada", hp:350, storyOnly:true,
+        img:"https://i.imgur.com/MQKiefi.jpeg",
+        skills:[
+            {n:"Fuga Max", d:100, c:2, desc:"Flecha ardente.", vid:"Sukuna's Fuga Remaster 4K - JJK S2 E17 Bluray - Jack The Anime Ripper (720p, h264, youtube).mp4"},
+            {n:"Fukuma Mizushi", d:200, c:4, desc:"Expansão de domínio.", vid:"expansão de domínio, Sukuna [Jujutsu Kaisen dublado] #Shorts.mp4", status:{target:'enemy', type:'stun', turns:1}}
+        ], price:0
+    },
+    'hs_sukuna_final': {
+        id:'hs_sukuna_final', name:"Sukuna (Final)", type:"Amaldiçoada", hp:420, storyOnly:true,
+        img:"https://i.imgur.com/MQKiefi.jpeg",
+        skills:[
+            {n:"Fuga Max", d:100, c:2, desc:"Flecha ardente.", vid:"Sukuna's Fuga Remaster 4K - JJK S2 E17 Bluray - Jack The Anime Ripper (720p, h264, youtube).mp4"},
+            {n:"Fukuma Mizushi", d:200, c:4, desc:"Expansão de domínio.", vid:"expansão de domínio, Sukuna [Jujutsu Kaisen dublado] #Shorts.mp4", status:{target:'enemy', type:'stun', turns:1}}
+        ], price:0
+    },
     // ---- SUPORTE/ITEM (não vão para a arena) ----
     'sup1': {
         id:'sup1', name:"Semente dos Deuses", type:"Suporte", isSupport:true, hp:0,
-        img:"https://i.imgur.com/G7rdMgx.jpeg",
+        img:"",
         effect:{type:'heal', value:60, target:'active'},
         desc:"Cura 60 HP do seu lutador ativo.",
         price:300
     },
     'sup2': {
         id:'sup2', name:"Pote de Chakra", type:"Suporte", isSupport:true, hp:0,
-        img:"https://i.imgur.com/MG7FIXN.jpeg",
+        img:"",
         effect:{type:'draw', value:2},
         desc:"Compre 2 cartas extras do deck.",
         price:250
     },
     'sup3': {
         id:'sup3', name:"Dedo do Sukuna", type:"Suporte", isSupport:true, hp:0,
-        img:"https://i.imgur.com/qNxk0Sn.jpeg",
+        img:"",
         effect:{type:'energyBoost', value:2},
         desc:"Ganhe +2 de energia imediatamente.",
         price:350
     },
     'sup4': {
         id:'sup4', name:"Armadura Espiritual", type:"Suporte", isSupport:true, hp:0,
-        img:"https://i.imgur.com/RuqS8H0.jpeg",
+        img:"",
         effect:{type:'status', status:'shield', turns:2, target:'active'},
         desc:"Aplica Escudo (2 turnos) no ativo.",
         price:400
@@ -1201,7 +1659,8 @@ const LEVELS_NORMAL = [
 let user = {
     coins: 500,
     inventory: ['n1','g1','n1','g1','n1','g1','j1','b1','op1','bl1','hxh1','sup1','sup2'],
-    deck: ['n1','g1','n1','g1','n1']
+    deck: ['n1','g1','n1','g1','n1'],
+    completedChapters: []  // IDs dos capítulos completados (ex: [0, 1] significa Cap 0 e 1 completos)
 };
 
 let game = {
@@ -1226,7 +1685,14 @@ function autoSave() {
 function autoLoad() {
     try {
         const d = localStorage.getItem('utcg_autosave');
-        if(d) { const parsed = JSON.parse(d); if(parsed.coins !== undefined) user = parsed; }
+        if(d) { 
+            const parsed = JSON.parse(d); 
+            if(parsed.coins !== undefined) {
+                user = parsed;
+                // Garantir que completedChapters existe (para saves antigos)
+                if(!user.completedChapters) user.completedChapters = [];
+            }
+        }
     } catch(e){}
 }
 autoLoad();
@@ -1314,6 +1780,10 @@ function showScreen(id, modeParam) {
         game.mode = modeParam;
         document.getElementById('select-title').innerText = modeParam === 'boss' ? '☠️ Selecione o Boss' : '⚔️ Selecione o Adversário';
         renderLevels(modeParam);
+    }
+
+    if(id === 'story-modal') {
+        renderStoryChapters();
     }
 
     // Update notes só no menu
@@ -1993,6 +2463,11 @@ function executeDamage(attacker, defender, skill, source) {
         }
     }
 
+    // Verificar corte de cena (cutAt) no modo historia
+    if(game._storyMode && source === 'player' && game.enemy && game.enemy.active) {
+        if(checkStoryCutAt()) return;
+    }
+
     if(!checkKOs()) {
         updateUI();
         setTimeout(() => endTurn(false), 1500);
@@ -2575,6 +3050,976 @@ const loadInterval = setInterval(() => {
     }
 }, 150);
 
+// =========================================================
+//  MODO HISTÓRIA — ENGINE
+// =========================================================
+
+// Personagens: img placeholder deixado em branco para o dev colocar
+const STORY_CHARS = {
+    naruto: {
+        name: 'NARUTO', color: '#f97316',
+        img: 'naruto.png' // colocar imagem do Naruto Modo Sennin
+    },
+    narutoseninmode: {
+        name: 'NARUTO MODO SENIN', color: '##7B1128',
+        img: 'narutosenin.png' // colocar imagem do Naruto Modo Sennin
+    },
+    sasuke: {
+        name: 'SASUKE', color: '#818cf8',
+        img: 'sasuke.png' // colocar imagem do Sasuke
+    },
+    madara: {
+        name: 'MADARA', color: '#ef4444',
+        img: 'madara.png' // colocar imagem do Madara
+    },
+    goku: {
+        name: 'GOKU', color: '#fbbf24',
+        img: 'goku.png' // colocar imagem do Goku
+    },
+    gokussb: {
+        name: 'GOKU SSB', color: '#ADD8E6',
+        img: 'ssjbgoku.png' // colocar imagem do Goku
+    },
+    freeza: {
+        name: 'FREEZA', color: '#a855f7',
+        img: 'freeza.png' // colocar imagem do Freeza
+    },
+    itadori: {
+        name: 'ITADORI', color: '#4ade80',
+        img: 'itadori.png' // colocar imagem do Itadori
+    },
+    sukuna: {
+        name: 'SUKUNA', color: '#ef4444',
+        img: 'sukuna.png' // colocar imagem do Sukuna
+    },
+    narrador: {
+        name: 'NARRADOR', color: '#fbbf24',
+        img: ''
+    },
+    gojo: {
+        name:'SATORU GOJO', color:'',
+        img:'gojo.png'
+    },
+};
+
+// Cada cena pode ser:
+// { type:'narration', text }
+// { type:'dialog', speaker, side, left, right, text }
+// { type:'bg', bg, distort }
+// { type:'dracoyn', active }
+// { type:'battle', title, subtitle, bossId, hpOverride, reward, cutAt }  ← cutAt = HP% para cortar (0-100). Se omitido, vai até o fim.
+// { type:'end', reward, lore }
+
+const STORY_CHAPTERS = [
+// =================== CAPÍTULO 0 ===================
+{
+  id: 0,
+  title: 'CAP. 0 — A RUPTURA DO CHAKRA',
+  reward: 600,
+  scenes: [
+
+    //--------------------------------------------------
+    // ACO 1 — VALE DO FIM: NARUTO + SASUKE vs MADARA
+    //--------------------------------------------------
+    { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:false },
+
+    { type:'narration', text:'Vale Oculto do Fim. Dois shinobi enfrentam o homem que ameaça destruir o mundo dos vivos — Madara Uchiha. A batalha já dura horas. O chão está partido. O ar, saturado de chakra.' },
+
+    { type:'dialog', speaker:'madara', side:'left', left:'madara', right:'naruto',
+      text:'Vocês dois são fortes... para insetos. Mas nenhuma combinação de chakra irá mudar o resultado desta noite.' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'madara', right:'naruto',
+      text:'Já ouvi isso antes. E o resultado foi sempre o mesmo — eu ainda tô de pé, dattebayo!' },
+
+    { type:'dialog', speaker:'sasuke', side:'right', left:'madara', right:'sasuke',
+      text:'Guarde sua energia para o que importa. Gritaria não derruba o Rinnegan.' },
+
+    { type:'narration', text:'Naruto entra no Modo Sennin — os olhos assumem a forma de sapo, a percepção natural se expande como ondas por todo o terreno. Ele sente cada passo de Madara, cada tensão muscular antes de um ataque.' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'madara', right:'naruto',
+      text:'Sasuke, ele vai usar o Limbo em dois segundos. Esquerda!' },
+
+    { type:'dialog', speaker:'sasuke', side:'right', left:'madara', right:'sasuke',
+      text:'Já vi. Susanoo vai cobrir o flanco. Você abre a abertura — eu fecho.' },
+
+    { type:'dialog', speaker:'madara', side:'left', left:'madara', right:'naruto',
+      text:'Interessante. Coordenação quase perfeita. Mas enquanto vocês calculam passos... eu já mudei o tabuleiro.' },
+
+    { type:'narration', text:'Madara invoca colunas de fogo negro que rasgam o solo. Naruto usa Kage Bushin estrategicamente — três clones desviam as chamas, enquanto o original lê a trajetória do contra-ataque com a percepção natural.' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'madara', right:'naruto',
+      text:'Não adianta, eu sinto tudo. Cada movimento, cada mínima mudança no fluxo do seu chakra—' },
+
+    { type:'dialog', speaker:'madara', side:'left', left:'madara', right:'naruto',
+      text:'Então vamos ver se sua percepção consegue acompanhar o que vem a seguir.' },
+
+    // === BATALHA 1: NARUTO vs MADARA (corta quando Madara chega a 30% HP) ===
+    { type:'battle',
+      title:'⚔ NARUTO vs MADARA',
+      subtitle:'MODO SENNIN — VALE DO FIM',
+      bossId:'hs_madara_boss', hpOverride: 320, reward: 0,
+      narrativa: true,
+      storyDeck:['n1','n1','n2','hs_sasuke','n2','hs_sasuke'],
+      cutAt: 30,
+      cutScenes: [
+        { type:'narration', text:'O chakra de Naruto pressiona Madara até o limite — mas antes que o golpe final pudesse ser desferido, algo impossível acontece.' },
+        { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
+        { type:'dracoyn', active:true },
+        { type:'dialog', speaker:'naruto', side:'right', left:'madara', right:'naruto',
+          text:'Espera— Sasuke! Isso não é jutsu. Não é chakra de ninguém. O que é isso?!' },
+        { type:'dialog', speaker:'sasuke', side:'right', left:'madara', right:'sasuke',
+          text:'Não sei. Meu Sharingan não consegue rastrear a origem. É como se o espaço estivesse... rasgando sozinho.' },
+        { type:'dialog', speaker:'madara', side:'left', left:'madara', right:'naruto',
+          text:'...Isso não foi algo que invoquei. Isso não é jutsu de ninguém. Recuem — agora!' },
+        { type:'narration', text:'Uma fissura violeta rasga o céu do Vale. O chakra ao redor começa a agir de forma errática. A gravidade oscila. Pedras flutuam e se partem no ar. O Dracoyn — como seria chamado por quem sobrevivesse para estudá-lo — suga tudo ao redor sem escolher lados.' },
+        { type:'dialog', speaker:'naruto', side:'right', left:'madara', right:'naruto',
+          text:'SASUKE! Eu—!' },
+        { type:'narration', text:'Sasuke consegue usar o Amenotejikara para se lançar para longe. Madara ancora-se com chakra puro. Mas Naruto é engolido pela escuridão.' },
+        { type:'dracoyn', active:false },
+      ]
+    },
+
+    //--------------------------------------------------
+    // ACO 2 — UNIVERSO DRAGON BALL: CHEGADA + TREINO
+    //--------------------------------------------------
+    { type:'bg', bg:'https://images.alphacoders.com/133/1330235.png', distort:false },
+
+    { type:'narration', text:'Planeta Terra. Universo de Dragon Ball. O ar tem um peso diferente — não é chakra, é ki puro, bruto, livre. Naruto desperta em uma planície com grama cor de esmeralda. O Modo Sennin ainda ativo é sua única âncora.' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'narrador', right:'naruto',
+      text:'Ugh... ainda de pé. A energia aqui é estranha — não tem chakra natural normal.Onde diabos eu estou?' },
+
+    { type:'narration', text:'Naruto ativa instintivamente o Modo Sennin completo — seus sentidos se expandem pela planície. Ele detecta uma presença enorme se aproximando. Não é hostil. Mas é poderosa o suficiente para fazer a terra tremer.' },
+
+    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'naruto',
+      text:'Heeei! Você surgiu do nada! Nunca vi você antes... mas sua energia é bizarra. Parece força vital de outro mundo, mas ao mesmo tempo familiar. Quem é você?' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'goku', right:'naruto',
+      text:'Naruto Uzumaki. Shinobi de Konoha. E você acabou de aparecer com um sorriso no rosto depois que eu caí de um buraco dimensional, então— onde estou?' },
+
+    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'naruto',
+      text:'Planeta Terra! Sou Goku. Pelo seu ki... você é forte. Quer lutar?????.' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'goku', right:'naruto',
+      text:'Lutar? Eu acabei de ser sugado por uma fissura dimensional e minha percepção diz que você não é inimigo.' },
+
+    { type:'narration', text:'O primeiro contato foi imediato. Uma luta para se entenderem através da linguagem que ambos compreendiam melhor — combate. O Ki de Goku: explosivo, ruidoso, fácil de rastrear. O Chakra de Naruto: fluido, multidirecional, difícil de prever.' },
+
+    // === BATALHA 2: Treino NARUTO SENNIN vs GOKU (solo Naruto) ===
+    { type:'battle',
+      title:'🥊 LUTA!: NARUTO vs GOKU',
+      subtitle:'MODO SENNIN vs INSTINTO DE LUTA',
+      bossId:'g2', hpOverride: 370, reward: 0,
+      storyDeck:['n2','n2','n1','n1'],
+      cutAt: 0,
+      cutScenes: []
+    },
+
+    { type:'narration', text:'A luta termina em empate. Os dois estão ofegantes, mas sorrindo. A troca foi real — Naruto aprendeu a "ouvir" o ki, Goku descobriu a leitura de intenção do Modo Sennin.' },
+
+    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'naruto',
+      text:'Você se move antes do ataque. Como sabe onde vou? Nem lê ki!' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'goku', right:'naruto',
+      text:'Percepção natural. Sinto a intenção antes do movimento. É mais profundo que ki — sinto a força da natureza ao redor de você.' },
+
+    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'naruto',
+      text:'Incrível! Lembra o Instinto Superior, mas usando a natureza inteira como sensor. Você acha que ki e chakra podem se conectar?' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'goku', right:'naruto',
+      text:'Não sei. Mas o Modo Sennin usa a natureza como base. E o ki parece ser a energia vital desse mundo. Talvez sejam faces do mesmo fenômeno — só codificados diferente.' },
+
+    //--------------------------------------------------
+    // ACO 3 — FREEZA APARECE
+    //--------------------------------------------------
+    { type:'narration', text:'Antes que a conversa avançasse, a percepção natural de Naruto disparou um alarme. Algo enorme se aproximava do alto — e diferente de Goku, essa energia era fria. Calculada. Predatória.' },
+
+    { type:'dialog', speaker:'goku', side:'right', left:'freeza', right:'goku',
+      text:'...Freeza. Como— ele estava derrotado.' },
+
+    { type:'dialog', speaker:'freeza', side:'left', left:'freeza', right:'goku',
+      text:'Son Goku. Que surpresa. E com um companheiro peculiar. Que energia exótica. Como um animal que nunca encontrei — primitivo, mas curiosamente eficaz.' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'freeza', right:'naruto',
+      text:'[Para Goku] Esse cara tem uma energia que suprime o espaço ao redor. Qualquer ataque frontal vai ser absorvido. Precisamos de estratégia, não força bruta.' },
+
+    { type:'dialog', speaker:'goku', side:'right', left:'freeza', right:'goku',
+      text:'[Sussurrando] Entendido. Eu seguro ele em campo aberto, você lê os padrões.' },
+
+    { type:'dialog', speaker:'freeza', side:'left', left:'freeza', right:'goku',
+      text:'Estão tramando algo? Que encantador. Não importa — nem o Saiyajin mais poderoso nem seu amiguinho salvo do lixo irão—' },
+
+    // === BATALHA 3: NARUTO + GOKU vs FREEZA (corta quando Freeza chega a 25% HP) ===
+    { type:'battle',
+      title:'⚔ NARUTO + GOKU vs FREEZA',
+      subtitle:'ESTRATÉGIA vs PODER IMPERIAL',
+      bossId:'hs_freeza_boss', hpOverride: 380, reward: 0,
+      narrativa: true,
+      storyDeck:['g1','n1','n2','g2','g1','n1','n2','g2'],
+      cutAt: 0,
+      cutScenes: [
+        { type:'narration', text:'O combo de Naruto e Goku começa a funcionar — clones estratégicos forçam Freeza a desviar, Goku usa as aberturas. Mas Freeza era uma força da natureza. Ele se adapta. E então—' },
+        { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
+        { type:'dracoyn', active:true },
+        { type:'dialog', speaker:'naruto', side:'right', left:'freeza', right:'naruto',
+          text:'Não... de novo! Essa energia — é o mesmo fenômeno! O Dracoyn voltou!' },
+        { type:'dialog', speaker:'freeza', side:'left', left:'freeza', right:'goku',
+          text:'Que fenda é essa?! Isso não é ki de ninguém— recuem, imbecis, ou seremos todos—' },
+        { type:'narration', text:'A fissura violeta rasgou o céu com o dobro da violência anterior. O Dracoyn não escolhia lados. E em segundos, os três combatentes foram sugados para a escuridão entre os mundos.' },
+        { type:'dracoyn', active:false },
+        { type:'bg', bg:'https://images.alphacoders.com/133/1330235.png', distort:false },
+      ]
+    },
+        { type:'narration', text: 'No meio da batalah novamente surge outro Dracoyn, todos ficam assustados. naruto goku e Freeza são sugados e no meio da transição Freeza se separa deles indo parar outra dimensão...'},
+    { type:'end', reward:600,
+      lore:'Naruto foi sugado pelo Dracoyn — um fenômeno que nem deuses nem shinobi criaram. Deriva entre dimensões, o Modo Sennin sendo sua única âncora. E não está sozinho.' }
+  ]
+},
+
+// =================== CAPÍTULO 1 ===================
+{
+  id: 1,
+  title: 'CAP. 1 — O REI DAS MALDIÇÕES',
+  reward: 800,
+  scenes: [
+
+    //--------------------------------------------------
+    // ACO 1 — MUNDO FRAGMENTADO: CHEGADA
+    //--------------------------------------------------
+    { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
+    { type:'dracoyn', active:false },
+
+    { type:'narration', text:'Um mundo partido. Não há céu inteiro aqui — fragmentos de realidade flutuam como ilhas de vidro. A energia que permeia este lugar não é chakra nem ki. É algo mais antigo. Mais podre. Energia amaldiçoada, densa como alcatrão.' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'narrador', right:'naruto',
+      text:'[Acordando] Ugh... Modo Sennin ainda ativo. Bom. Preciso manter — essa energia aqui é corrosiva. Se eu baixar a guarda, ela entra pelo chakra e... não é boa ideia.' },
+
+    { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:false },
+
+    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'naruto',
+      text:'Naruto! Você tá bem? Esse lugar tem uma energia horrível. Não consigo nem fazer um Ki Blast sem sentir que vou contaminar o ar.' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'goku', right:'naruto',
+      text:'É Chakara? Não... É uma energia diferente... Ela não é hostil por natureza — mas foi corrompida. Algo neste mundo torceu a energia vital até ela virar veneno.' },
+
+    //--------------------------------------------------
+    // ACO 2 — ENCONTRO COM ITADORI / SUKUNA ASSUME
+    //--------------------------------------------------
+    { type:'narration', text:'A percepção de Naruto capta um terceiro sinal. Humano. Jovem. Energia irregular — como duas vozes tentando falar ao mesmo tempo.' },
+
+    { type:'dialog', speaker:'itadori', side:'left', left:'itadori', right:'naruto',
+      text:'Vocês são... de fora, né? Seu chakra — isso é chakra real? O Mestre Gojo falava de outras fontes de energia mas eu nunca imaginei—' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'itadori', right:['naruto','goku'],
+      text:'Calma. Sim, tenho chakra. O grandão é Goku, ki. Você tem dois sistemas competindo no mesmo corpo. Isso é perigoso.' },
+
+    { type:'dialog', speaker:'itadori', side:'left', left:'itadori', right:['naruto','goku'],
+      text:'É... porque eu carrego Ryomen Sukuna dentro de mim. Na maioria do tempo eu tenho controle, mas às vezes ele—' },
+
+    { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
+
+    { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['naruto','goku'],
+      text:'Que curioso. Duas energias que não pertencem a este sistema. Chakra e ki. Completamente diferentes da energia amaldiçoada. E no entanto... chegaram até aqui.' },
+
+    { type:'dialog', speaker:'naruto', side:'right', left:'sukuna', right:['naruto','goku'],
+      text:'[Sente as mudanças] Modo Sennin identificou. Esse não é o garoto. Goku — cuidado. O espírito assumiu controle.' },
+
+    { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['goku','naruto'],
+      text:'Sou Ryomen Sukuna. O Rei das Maldições. Estou genuinamente curioso com o que vocês representam. E quando fico curioso... costumo testar pessoalmente.' },
+
+    { type:'dialog', speaker:'goku', side:'right', left:'sukuna', right:['goku','naruto'],
+      text:'Não sei quem você é, mas tomou o corpo de um garoto sem permissão. Isso eu não deixo passar.' },
+
+    // === BATALHA 1: NARUTO vs SUKUNA (primeira fase — corta em 50%) ===
+    { type:'battle',
+      title:'⚔ NARUTO vs SUKUNA',
+      subtitle:'FASE 1 — MODO SENNIN vs REI DAS MALDIÇÕES',
+      bossId:'hs_sukuna_fase1', hpOverride: 280, reward: 0,
+      narrativa: true,
+      storyDeck:['n1','n2','n1','n2','n1','n2'],
+      cutAt: 0,
+      cutScenes: [
+        { type:'narration', text:'Naruto tenta antecipar. O Modo Sennin é perfeito para leitura de intenção, mas Sukuna é um ser que existe há milênios. Ele não telegrafara nada. As previsões de Naruto falham parcialmente.' },
+        { type:'dialog', speaker:'naruto', side:'right', left:'sukuna', right:['naruto','goku'],
+          text:'Difícil. Ele não tem o padrão muscular de um humano normal. Sukuna não pensa antes de agir — ele simplesmente age. Minha leitura tá atrasada um décimo de segundo.' },
+        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['naruto','goku'],
+          text:'A frustração do sensor quando encontra alguém que existiu antes da necessidade de telegrafar movimentos. Milênios de combate purificam os reflexos até não sobrar intenção — só ação.' },
+      ]
+    },
+
+    // === BATALHA 2: GOKU vs SUKUNA (segunda fase — corta em 35%) ===
+    { type:'battle',
+      title:'⚔ GOKU vs SUKUNA',
+      subtitle:'FASE 2 — FORÇA BRUTA vs ADAPTAÇÃO',
+      bossId:'hs_sukuna_fase2', hpOverride: 350, reward: 0,
+      narrativa: true,
+      storyDeck:['g1','g2','g1','g2','g1','g2'],
+      cutAt: 0,
+      cutScenes: [
+        { type:'narration', text:'Fase 2 — Goku entra. Kamehameha direto. A força bruta é genuinamente poderosa — mas Sukuna se adapta em tempo real. Ele redireciona o ki, usa a própria energia de Goku como contra-ataque.' },
+        { type:'dialog', speaker:'goku', side:'right', left:'sukuna', right:['goku','naruto'],
+          text:'Ele está usando meu ki contra mim! A energia amaldiçoada dele envolve o ki e amplifica o impacto de retorno!' },
+        { type:'dialog', speaker:'naruto', side:'right', left:'sukuna', right:['naruto','goku'],
+          text:'Goku, para! Força bruta não funciona aqui. Ele aprende rápido demais — cada ataque que você lança vira material de estudo pra ele!' },
+      ]
+    },
+
+    //--------------------------------------------------
+    // ATO 3 — DOMÍNIO COLAPSA + DRACOYN FINAL
+    //--------------------------------------------------
+    { type:'narration', text:'E de repente, aparece alguém com uma grande presença... A esperança do mundo Jujutsu...' },
+    { type:'dialog', speaker:'gojo', side:'right', left:'sukuna', right:['gojo','naruto','goku'],
+      text:'Ora Ora... Vocês são bons hein... Que caos é esse que vocês estão fazendo em Shinjuku... Vou dar uma ajudinha a vocês!' },
+    { type:'dialog', speaker:'gojo', side:'right', left:'sukuna', right:['gojo','naruto','goku'],
+      text:'Expansão...' },
+    { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['gojo','naruto','goku'],
+      text:'Expansão...' },
+    { type:'dialog', speaker:'gojo', cospeakers:['sukuna'], side:'right', left:'sukuna', right:['gojo','naruto','goku'],
+      text:'DE DOMÍNIO!' },
+    { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
+    { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['gojo','naruto','goku'],
+      text:'Satoru Gojo... Estava esperando por esse duelo... VENHAM OS TRÊS — EU VOU MATÁ-LOS!' },
+    { type:'battle',
+      title:'⚔ NARUTO + GOKU + SATORU GOJO vs SUKUNA',
+      subtitle:'FASE FINAL — DENTRO DO DOMÍNIO',
+      bossId:'hs_sukuna_final', hpOverride: 620, reward: 0,
+      narrativa: true,
+      storyDeck:['n1','g1','n2','g2','j3','j4'],
+      cutAt: 20,
+      cutScenes: [
+        { type:'narration', text:'A batalha dentro do domínio de Sukuna e Gojo foi a mais intensa já vista. Sukuna dominava, mas Naruto criou um mapa parcial do interior com a adaptação híbrida. Goku começava a ser comprimido pela pressão constante. E Gojo tentava segurar o conflito de domínios.' },
+        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['gojo','naruto','goku'],
+          text:'Vocês são excepcionais. Realmente. Mas o Fukuma Mizushi não tem limite de duração — vocês têm...' },
+        { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
+        { type:'dracoyn', active:true },
+        { type:'narration', text:'E então o Dracoyn voltou. Mais violento desta vez. Não uma fissura — uma explosão dimensional que rasgou o próprio domínio de Sukuna de dentro para fora.' },
+        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['gojo','naruto','goku'],
+          text:'Impossível — meu domínio está colapsando! Que fenômeno tem poder para romper dois domínios de dentro!?' },
+        { type:'dialog', speaker:'gojo', side:'right', left:'sukuna', right:['gojo','naruto','goku'],
+          text:'Isso é... impossível.' },
+        { type:'dialog', speaker:'naruto', side:'right', left:'sukuna', right:['naruto','goku','gojo'],
+          text:'O Dracoyn. Ele não escolhe lado. Sukuna — você vai ser sugado também, segura firme—' },
+        { type:'narration', text:'O Dracoyn separou o grupo. Sukuna foi puxado para uma direção diferente. Naruto e Goku foram lançados juntos. Mas Itadori acordou por um instante antes da separação.' },
+        { type:'dialog', speaker:'itadori', side:'left', left:'itadori', right:['naruto','goku'],
+          text:'Naruto! Sukuna só apareceu porque sentiu vocês! Ele foi... curioso! Isso é raro pra ele. Encontre-me no outro lado!' },
+        { type:'dracoyn', active:false },
+        { type:'bg', bg:'https://images.alphacoders.com/133/1330235.png', distort:false },
+        { type:'narration', text:'A dimensão colapsa. Três origens, três sistemas de energia, três destinos imprevisíveis. E em algum lugar entre os mundos, o Dracoyn continua — sem nome, sem vontade, sem misericórdia.' },
+        { type:'dialog', speaker:'naruto', side:'right', left:['goku','gojo'], right:['naruto'],
+          text:'Aonde essa coisa está nos levando agora?' },
+        { type:'dialog', speaker:'goku', side:'left', left:['goku','gojo'], right:'naruto',
+          text:'Assim como Freeza, Sukuna foi sugado junto... Será que iremos nos encontrar de novo?' },
+        { type:'dialog', speaker:'gojo', side:'left', left:['gojo','goku'], right:'naruto',
+          text:'Seja lá o que estiver acontecendo, com o Sukuna solto por aí controlando o Itadori, precisamos encontrá-lo. A propósito — dimensões, né? Maneiro.' },
+      ]
+    },
+
+    { type:'end', reward:800,
+      lore:'O Dracoyn não tem dono. Não tem origem. Mas onde ele passa, fronteiras entre energias começam a sangrar umas nas outras. E Naruto, no olho desse furacão, aprende a língua de todos os mundos.' }
+  ]
+}
+];
+
+// =========================================================
+//  ESTADO DO MODO HISTÓRIA
+// =========================================================
+let storyState = {
+    chapterId: 0,
+    sceneIndex: 0,
+    isTyping: false,
+    pendingBattle: null,
+    pendingReward: 0,
+    typingTimeout: null,
+    currentBattleScene: null
+};
+
+// =========================================================
+//  FUNÇÕES DO MODO HISTÓRIA
+// =========================================================
+// =========================================================
+//  RENDERIZAR CAPÍTULOS DINAMICAMENTE
+// =========================================================
+function renderStoryChapters() {
+    const container = document.getElementById('story-chapters-container');
+    if(!container) return;
+    
+    container.innerHTML = '';
+    
+    // Metadados dos capítulos (título, cor, personagens)
+    const chaptersMetadata = [
+        { 
+            id: 0, 
+            title: 'A Ruptura do Chakra', 
+            color: 'var(--chakra)', 
+            chars: 'Naruto · Goku · Freeza',
+            available: true  // Cap 0 sempre disponível
+        },
+        { 
+            id: 1, 
+            title: 'O Rei das Maldições', 
+            color: 'var(--amaldicoada)', 
+            chars: 'Naruto · Goku · Sukuna · Itadori',
+            available: false  // Requer Cap 0 completo
+        },
+        { 
+            id: 2, 
+            title: 'Alianças Proibidas', 
+            color: '#1e293b', 
+            chars: 'Em breve...',
+            available: false,
+            comingSoon: true
+        },
+        { 
+            id: 3, 
+            title: 'A Guerra Final', 
+            color: '#0f172a', 
+            chars: 'Em breve...',
+            available: false,
+            comingSoon: true
+        }
+    ];
+    
+    chaptersMetadata.forEach((meta, idx) => {
+        const isCompleted = user.completedChapters.includes(meta.id);
+        const prevCompleted = meta.id === 0 ? true : user.completedChapters.includes(meta.id - 1);
+        const isUnlocked = meta.available || prevCompleted;
+        const isLocked = !isUnlocked || meta.comingSoon;
+        
+        const div = document.createElement('div');
+        div.className = `story-chapter ${isLocked ? 'locked' : 'available'}`;
+        div.style.cssText = `border-left:3px solid ${isLocked ? '#1e293b' : meta.color}; padding-left:14px;`;
+        
+        if(!isLocked) {
+            div.style.cursor = 'pointer';
+            div.onclick = () => { playClick(); startStoryChapter(meta.id); };
+        }
+        
+        const statusIcon = isCompleted ? '✅ ' : (isLocked ? '🔒 ' : '');
+        const titleColor = isLocked ? '#334155' : '#fff';
+        const charsColor = isLocked ? '#1e293b' : '#64748b';
+        
+        div.innerHTML = `
+            <span style="color:${isLocked ? '#334155' : meta.color}; font-family:'Orbitron',monospace; font-size:11px;">${statusIcon}CAP. ${meta.id}</span>
+            <b style="display:block; font-size:14px; color:${titleColor};">${meta.title}</b>
+            <small style="color:${charsColor};">${meta.chars}</small>
+            ${isLocked && !meta.comingSoon ? '<div style="font-size:10px; color:#475569; margin-top:2px; font-style:italic;">Complete o capítulo anterior para desbloquear</div>' : ''}
+        `;
+        
+        container.appendChild(div);
+        
+        if(idx < chaptersMetadata.length - 1) {
+            const spacer = document.createElement('div');
+            spacer.style.height = '8px';
+            container.appendChild(spacer);
+        }
+    });
+}
+
+function startStoryChapter(chapterId) {
+    storyState.chapterId = chapterId;
+    storyState.sceneIndex = 0;
+    storyState.isTyping = false;
+    storyState.pendingBattle = null;
+
+    const chapter = STORY_CHAPTERS[chapterId];
+    document.getElementById('story-chapter-title').innerText = chapter.title;
+
+    // Esconde telas
+    document.querySelectorAll('.screen, #coin-screen, #result-screen').forEach(s => s.style.display = 'none');
+    document.getElementById('game-ui').style.display = 'none';
+    document.getElementById('story-chapter-end').style.display = 'none';
+
+    // Mostra o leitor
+    document.getElementById('story-reader').style.display = 'flex';
+
+    // Inicia personagens ocultos
+    resetStoryChars();
+
+    renderStoryScene();
+}
+
+function resetStoryChars() {
+    ['left','right'].forEach(side => {
+        [0,1,2].forEach(slot => {
+            const ch  = document.getElementById(`story-char-${side}-${slot}`);
+            const img = document.getElementById(`story-char-${side}-${slot}-img`);
+            const nm  = document.getElementById(`story-char-${side}-${slot}-name`);
+            if(!ch) return;
+            ch.className = 'story-char';
+            ch.setAttribute('data-slot', slot);
+            if(img) img.src = '';
+            if(nm)  { nm.innerText = ''; nm.style.background = 'transparent'; nm.style.color = '#fff'; }
+        });
+    });
+}
+
+// Popula um lado inteiro com 1 ou vários personagens.
+// `chars` pode ser string ou array de até 3 keys.
+// O índice 0 é o slot da frente (speaker slot).
+function setStorySide(side, chars, speakerKey, cospeakers) {
+    // Normaliza para array
+    const arr = Array.isArray(chars) ? chars : (chars ? [chars] : []);
+
+    [0,1,2].forEach(slot => {
+        const ch  = document.getElementById(`story-char-${side}-${slot}`);
+        const img = document.getElementById(`story-char-${side}-${slot}-img`);
+        const nm  = document.getElementById(`story-char-${side}-${slot}-name`);
+        if(!ch) return;
+
+        ch.setAttribute('data-slot', slot);
+
+        const charKey = arr[slot];
+        if(!charKey) {
+            // Esconder slot vazio
+            ch.className = 'story-char';
+            ch.setAttribute('data-slot', slot);
+            if(img) img.src = '';
+            if(nm)  nm.innerText = '';
+            return;
+        }
+
+        const data = STORY_CHARS[charKey];
+        if(!data) return;
+
+        if(img) img.src = data.img || '';
+        if(nm)  {
+            nm.innerText = data.name;
+            nm.style.background = data.color || '#333';
+            nm.style.color = '#000';
+        }
+
+        // Determinar estado visual
+        ch.className = 'story-char visible';
+        ch.setAttribute('data-slot', slot);
+
+        const isSpeaker   = (charKey === speakerKey);
+        const isCospeaker = cospeakers && cospeakers.includes(charKey);
+
+        if(isSpeaker) {
+            ch.classList.add('speaking');
+        } else if(isCospeaker) {
+            ch.classList.add('cospeaking');
+        } else if(arr.length > 1) {
+            // Há mais de 1 personagem no lado mas este não está falando
+            ch.classList.add('dim');
+        } else {
+            // Único personagem no lado, não é o speaker → listening
+            ch.classList.add('listening');
+        }
+    });
+}
+
+function showStoryDialog(scene) {
+    document.getElementById('story-narration-box').style.display = 'none';
+    document.getElementById('story-dialog-area').style.display = 'block';
+
+    const charData   = STORY_CHARS[scene.speaker];
+    const speakerName = document.getElementById('story-speaker-name');
+    speakerName.innerText      = charData ? charData.name : (scene.speaker || '').toUpperCase();
+    speakerName.style.background = charData ? charData.color : '#555';
+    speakerName.style.color    = '#000';
+
+    // cospeakers = quem fala junto (array opcional na cena)
+    const cospeakers = scene.cospeakers || [];
+
+    // Normaliza left/right para arrays e garante que o speaker fique no slot 0
+    const buildSideArr = (raw, spk) => {
+        if(!raw) return [];
+        const arr = Array.isArray(raw) ? [...raw] : [raw];
+        // Coloca o speaker (ou cospeaker deste lado) sempre no slot 0
+        const speakerInArr = arr.includes(spk) || arr.some(k => cospeakers.includes(k));
+        // Encontra qual personagem deste lado é destaque
+        const frontKey = arr.find(k => k === spk) || arr.find(k => cospeakers.includes(k)) || arr[0];
+        // Reorganiza: frontKey no slot 0
+        const idx = arr.indexOf(frontKey);
+        if(idx > 0) { arr.splice(idx,1); arr.unshift(frontKey); }
+        return arr;
+    };
+
+    const leftArr  = buildSideArr(scene.left,  scene.speaker);
+    const rightArr = buildSideArr(scene.right, scene.speaker);
+
+    setStorySide('left',  leftArr,  scene.speaker, cospeakers);
+    setStorySide('right', rightArr, scene.speaker, cospeakers);
+
+    typeText('story-text', scene.text, '#e2e8f0', true);
+}
+
+function showStoryChar(side, charKey) {
+    // Legacy helper — coloca 1 personagem no slot 0 do lado
+    setStorySide(side, [charKey], charKey, []);
+}
+
+function renderStoryScene() {
+    const chapter = STORY_CHAPTERS[storyState.chapterId];
+    if(!chapter) return;
+
+    const scenes = chapter.scenes;
+    if(storyState.sceneIndex >= scenes.length) {
+        endStoryChapter();
+        return;
+    }
+
+    const scene = scenes[storyState.sceneIndex];
+
+    if(scene.type === 'bg') {
+        const bgEl = document.getElementById('story-bg');
+        bgEl.style.backgroundImage = `url('${scene.bg}')`;
+        if(scene.distort) bgEl.classList.add('distorted');
+        else bgEl.classList.remove('distorted');
+        storyState.sceneIndex++;
+        renderStoryScene();
+        return;
+    }
+
+    if(scene.type === 'dracoyn') {
+        const fx = document.getElementById('dracoyn-effect');
+        const cr = document.getElementById('dracoyn-cracks');
+        if(scene.active) { fx.classList.add('active'); cr.classList.add('active'); }
+        else { fx.classList.remove('active'); cr.classList.remove('active'); }
+        storyState.sceneIndex++;
+        renderStoryScene();
+        return;
+    }
+
+    if(scene.type === 'narration') {
+        showStoryNarration(scene.text);
+        return;
+    }
+
+    if(scene.type === 'dialog') {
+        showStoryDialog(scene);
+        return;
+    }
+
+    if(scene.type === 'battle') {
+        storyState.pendingBattle = scene;
+        showStoryBattleTransition(scene);
+        return;
+    }
+
+    if(scene.type === 'end') {
+        endStoryChapter();
+        return;
+    }
+}
+
+function showStoryNarration(text) {
+    document.getElementById('story-dialog-area').style.display = 'none';
+    document.getElementById('story-narration-box').style.display = 'block';
+    typeText('story-narration-text', text, '#cbd5e1', false);
+}
+
+let typingInterval = null;
+function typeText(elId, text, color, isDialog) {
+    if(typingInterval) clearInterval(typingInterval);
+    storyState.isTyping = true;
+
+    const el = document.getElementById(elId);
+    el.style.color = color || '#e2e8f0';
+    el.innerHTML = '';
+
+    let i = 0;
+    const speed = 18;
+
+    typingInterval = setInterval(() => {
+        if(i < text.length) {
+            el.innerHTML = text.substring(0, i+1) + '<span class="typing-cursor"></span>';
+            i++;
+        } else {
+            clearInterval(typingInterval);
+            el.innerHTML = text;
+            storyState.isTyping = false;
+        }
+    }, speed);
+}
+
+function storyAdvance() {
+    if(storyState.isTyping) {
+        // Completa o texto imediatamente
+        if(typingInterval) clearInterval(typingInterval);
+        storyState.isTyping = false;
+        const chapter = STORY_CHAPTERS[storyState.chapterId];
+        const scene = chapter.scenes[storyState.sceneIndex];
+        if(!scene) return;
+        if(scene.type === 'narration') {
+            document.getElementById('story-narration-text').innerHTML = scene.text;
+        } else if(scene.type === 'dialog') {
+            document.getElementById('story-text').innerHTML = scene.text;
+        }
+        return;
+    }
+
+    storyState.sceneIndex++;
+    renderStoryScene();
+}
+
+function showStoryBattleTransition(scene) {
+    document.getElementById('story-reader').style.display = 'none';
+    const trans = document.getElementById('story-battle-transition');
+    trans.style.display = 'flex';
+    document.getElementById('story-battle-title').innerText = scene.title || '⚔ BATALHA!';
+    document.getElementById('story-battle-subtitle').innerText = scene.subtitle || 'PREPARE SEU DECK';
+
+    setTimeout(() => {
+        trans.style.display = 'none';
+
+        // ── MODO HISTÓRIA — usa EXATAMENTE a mesma lógica do startGame ──────
+        document.getElementById('log').innerHTML = '';
+
+        const musicaFundo  = document.getElementById('musicaFundo');
+        const musicaBatalha = document.getElementById('musicaBatalha');
+        if(musicaFundo)  musicaFundo.pause();
+        if(musicaBatalha){ musicaBatalha.currentTime = 0; musicaBatalha.play().catch(()=>{}); }
+
+        // Zera tudo igual startGame
+        game.mode = 'story';
+        game._storyMode = true;
+        game.currentReward = scene.reward || 0;
+        storyState.pendingReward = STORY_CHAPTERS[storyState.chapterId].reward;
+        storyState.currentBattleScene = scene;
+
+        game.energies = { Chakra:0, Ki:0, Amaldiçoada:0, Stand:0, Haki:0, Reiatsu:0, Nen:0 };
+        game.roundCount = 1;
+        game._roundStarted = false;
+        game.discard = [];
+        game.hasAttacked = false;
+        game.hasSwapped = false;
+        game.energyUsed = false;
+        game.evolutionsThisTurn = 0;
+
+        // ── INIMIGO (boss único igual modo boss normal) ───────────────────────
+        const bossBase = CARDS_DB[scene.bossId];
+        if(!bossBase) { afterStoryBattle(true); return; }
+        const hpTotal = scene.hpOverride || 400;
+        const boss = JSON.parse(JSON.stringify(bossBase));
+        boss.curHP = hpTotal;
+        boss.hp    = hpTotal;   // garante que a barra cheia = hpTotal
+        boss.attached = 0;
+        boss.statuses = [];
+        boss._maxHP = hpTotal;
+        boss._cutAt = (scene.cutAt != null) ? scene.cutAt : null;
+        game.enemy = { active: boss, bench: [], hand: [], energy: 0 };
+
+        // ── DECK DO PLAYER — IDs do storyDeck ou deck do usuário ─────────────
+        const storyIds = (scene.storyDeck && scene.storyDeck.length > 0)
+            ? scene.storyDeck
+            : (user.deck.length >= 1 ? user.deck : ['n1','n1','g1','g1','n1']);
+
+        // Detectar tipos de energia
+        const _typesSet = new Set();
+        storyIds.forEach(id => {
+            const c = CARDS_DB[id];
+            if(c && c.type && c.type !== 'Suporte') _typesSet.add(c.type);
+        });
+        game.deckTypes = [..._typesSet];
+
+        // Monta deck como ARRAY DE IDs (igual user.deck), embaralha
+        const deckAsIds = [...storyIds].sort(() => 0.5 - Math.random());
+
+        // game.player com deck de IDs — drawCard vai funcionar normalmente
+        game.player = {
+            active: null, bench: [], hand: [],
+            deck: deckAsIds,
+            energy: 0
+        };
+
+        // Compra 4 cartas iniciais (igual startGame)
+        for(let i = 0; i < 4; i++) drawCard(game.player);
+        playSFX('sfxShuffle');
+
+        // A PRIMEIRA CARTA DA MÃO vai para o ativo automaticamente
+        if(game.player.hand.length > 0) {
+            const first = game.player.hand.shift();
+            first.curHP = first.hp; first.attached = 0; first.statuses = [];
+            game.player.active = first;
+        }
+
+        showScreen('game-ui');
+        // Inicia o turno do player igual startGame
+        startTurn('player');
+
+    }, 2200);
+}
+
+// Verificação de cutAt — chamada a cada vez que o HP do inimigo muda
+function checkStoryCutAt() {
+    if(!game._storyMode) return false;
+    if(!game.enemy || !game.enemy.active) return false;
+    const active = game.enemy.active;
+    if(active._cutAt == null) return false;
+    const pct = (active.curHP / active._maxHP) * 100;
+    if(pct <= active._cutAt) {
+        active._cutAt = null; // dispara só uma vez
+        triggerStoryCut();
+        return true;
+    }
+    return false;
+}
+
+function triggerStoryCut() {
+    clearInterval(game.timerInterval);
+    game._storyMode = false;
+
+    const musicaBatalha = document.getElementById('musicaBatalha');
+    const musicaFundo = document.getElementById('musicaFundo');
+    if(musicaBatalha) musicaBatalha.pause();
+    if(musicaFundo && musicaFundo.paused) musicaFundo.play().catch(()=>{});
+
+    document.getElementById('game-ui').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'none';
+
+    // Pega as cenas de corte da batalha atual
+    const battleScene = storyState.currentBattleScene;
+    const cutScenes = (battleScene && battleScene.cutScenes) ? battleScene.cutScenes : [];
+
+    storyState.sceneIndex++; // avança além da batalha
+
+    if(cutScenes.length > 0) {
+        // Injeta as cutScenes ANTES das próximas cenas
+        const chapter = STORY_CHAPTERS[storyState.chapterId];
+        const currentScenes = chapter.scenes;
+        // Insere as cutScenes na posição atual
+        currentScenes.splice(storyState.sceneIndex, 0, ...cutScenes);
+    }
+
+    // Verifica se a próxima cena é 'end'
+    const chapter = STORY_CHAPTERS[storyState.chapterId];
+    const nextScene = chapter ? chapter.scenes[storyState.sceneIndex] : null;
+    if(nextScene && nextScene.type === 'end') {
+        endStoryChapter();
+    } else {
+        document.getElementById('story-reader').style.display = 'flex';
+        renderStoryScene();
+    }
+}
+
+function afterStoryBattle(win) {
+    game._storyMode = false;
+    // Sempre avança (vitória normal ou derrota narrativa com cutAt)
+    storyState.sceneIndex++;
+    const chapter = STORY_CHAPTERS[storyState.chapterId];
+    const nextScene = chapter ? chapter.scenes[storyState.sceneIndex] : null;
+    if(nextScene && nextScene.type === 'end') {
+        endStoryChapter();
+    } else {
+        document.getElementById('story-reader').style.display = 'flex';
+        renderStoryScene();
+    }
+}
+
+function endStoryChapter() {
+    document.getElementById('story-reader').style.display = 'none';
+    document.getElementById('story-chapter-end').style.display = 'flex';
+    document.getElementById('dracoyn-effect').classList.remove('active');
+    document.getElementById('dracoyn-cracks').classList.remove('active');
+
+    const chapter = STORY_CHAPTERS[storyState.chapterId];
+    const reward = chapter ? chapter.reward : 500;
+    document.getElementById('story-end-reward').innerText = `+${reward} moedas de ouro! 💰`;
+
+    // Lore final
+    const lastScene = chapter ? chapter.scenes.find(s => s.type === 'end') : null;
+    document.getElementById('story-end-lore').innerText = lastScene ? lastScene.lore : '';
+}
+
+function claimStoryReward() {
+    const chapter = STORY_CHAPTERS[storyState.chapterId];
+    const reward = chapter ? chapter.reward : 500;
+    user.coins += reward;
+    
+    // Marcar capítulo como completo
+    const chapId = storyState.chapterId;
+    if(!user.completedChapters.includes(chapId)) {
+        user.completedChapters.push(chapId);
+    }
+    
+    autoSave();
+    playSFX('sfxVictory');
+
+    document.getElementById('story-chapter-end').style.display = 'none';
+    showScreen('main-menu');
+    document.getElementById('menu-coins').innerText = user.coins;
+    
+    // Re-renderizar capítulos para desbloquear o próximo
+    renderStoryChapters();
+
+    // Partículas de ouro
+    for(let i = 0; i < 18; i++) {
+        setTimeout(() => {
+            const p = document.createElement('div');
+            p.style.cssText = `position:fixed;z-index:9999;pointer-events:none;
+                width:8px;height:8px;border-radius:50%;background:var(--gold);
+                left:${30+Math.random()*40}vw;top:${30+Math.random()*40}vh;
+                animation:particle-fly 1.2s ease-out forwards;
+                --tx:${(Math.random()-0.5)*200}px;--ty:${(Math.random()-0.5)*200}px;
+                box-shadow:0 0 8px var(--gold);`;
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 1300);
+        }, i * 60);
+    }
+}
+
+// =========================================================
+//  MODO HISTÓRIA — RESULTADO DA BATALHA
+//  narrativa:true  → derrota TAMBÉM avança a história (batalha é parte do roteiro)
+//  narrativa:false → derrota mostra "TENTAR NOVAMENTE" até o jogador vencer
+// =========================================================
+const _origShowResult = showResult;
+function showResult(win) {
+    if(!game._storyMode) { _origShowResult(win); return; }
+
+    // Para musica de batalha, retoma trilha do mapa
+    clearInterval(game.timerInterval);
+    const musicaBatalha = document.getElementById('musicaBatalha');
+    const musicaFundo   = document.getElementById('musicaFundo');
+    if(musicaBatalha) musicaBatalha.pause();
+    if(musicaFundo && musicaFundo.paused) musicaFundo.play().catch(()=>{});
+
+    // Credita recompensa se ganhou
+    if(win && game.currentReward > 0) {
+        user.coins += game.currentReward;
+        autoSave();
+    }
+
+    document.getElementById('game-ui').style.display = 'none';
+
+    const scene = storyState.currentBattleScene;
+
+    // Batalhas narrativas: ganhar OU perder avança a história
+    // (Madara, Freeza, Sukuna fases 1/2/final — são parte do roteiro)
+    const ehNarrativa = scene && scene.narrativa === true;
+
+    if(win || ehNarrativa) {
+        // Vitória em qualquer batalha OU derrota em batalha narrativa → avança
+        if(win) playSFX('sfxVictory');
+        afterStoryBattle(true);
+    } else {
+        // Derrota em batalha NÃO-narrativa (ex: treino Naruto vs Goku) → RETRY
+        document.getElementById('result-title').className = 'result-title lose';
+        document.getElementById('result-title').innerText = '💀 DERROTA!';
+        document.getElementById('result-coins').innerText = 'Você precisa vencer para continuar...';
+        document.getElementById('result-screen').style.display = 'flex';
+        const btn = document.querySelector('#result-screen .btn');
+        if(btn) {
+            btn.innerText = '↩ TENTAR NOVAMENTE';
+            btn.onclick = () => {
+                playClick();
+                document.getElementById('result-screen').style.display = 'none';
+                // Recarrega exatamente a batalha atual, sem reiniciar o capítulo inteiro
+                showStoryBattleTransition(scene);
+            };
+        }
+    }
+}
+
+function shuffleArray(arr) {
+    for(let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i+1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+}
+
 function finalizarLoading() {
     const musicaFundo = document.getElementById('musicaFundo');
     if(musicaFundo) { musicaFundo.volume = 0.3; musicaFundo.play().catch(()=>{}); }
@@ -2591,5 +4036,25 @@ function finalizarLoading() {
     }, 800);
 }
 </script>
+
+<!-- ===================== COPYRIGHT BADGE ===================== -->
+<div id="copyright-badge" style="
+    position: fixed;
+    bottom: 10px;
+    left: 12px;
+    z-index: 99999;
+    pointer-events: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.8px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    line-height: 1.4;
+    user-select: none;
+">
+    © Todos os direitos reservados<br>
+    <span style="color: var(--gold); font-weight:700;">Daniel Ribeiro</span> — Criador do Jogo
+</div>
+
 </body>
 </html>
