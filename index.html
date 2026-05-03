@@ -1571,7 +1571,7 @@ const CARDS_DB = {
         img:"https://i.imgur.com/47D0zzB.jpeg", // COLOQUE A IMAGEM DO MADE IN HEAVEN AQUI
         skills:[
             {n:"Tiro Ultra Rápido", d:110, c:3, desc:"Velocidade infinita!", status:{target:'enemy', type:'stun', turns:1}},
-            {n:"TEMPO ACELERADO", d:0, c:12, desc:"⏰ Ativa contagem regressiva de 20s! Se não for derrotado = RESET DO UNIVERSO!", special:'timeAcceleration', vid:"Made in Heaven JJBA Stone Ocean Concept Animation [SPOILERS] - TheDashingDoctorK (1080p, h264, youtube).mp4"}
+            {n:"TEMPO ACELERADO", d:0, c:5, desc:"⏰ Ativa contagem regressiva de 20s! Se não for derrotado = RESET DO UNIVERSO!", special:'timeAcceleration', vid:"Made in Heaven JJBA Stone Ocean Concept Animation [SPOILERS] - TheDashingDoctorK (1080p, h264, youtube).mp4"}
         ], 
         price:0 // Não vendido — só obtido via evolução
     },
@@ -1856,10 +1856,30 @@ function showTurnIndicator(who) {
 // =========================================================
 function showScreen(id, modeParam) {
     // Sempre que sair do fluxo de jogo/história para qualquer tela de menu,
-    // garante que _storyMode é desligado para não interceptar batalhas normais
+    // mata TODOS os intervalos ativos (timer de turno, countdown do Tempo Acelerado, etc.)
     if(['main-menu','deck-select','story-modal','store-screen','deck-editor'].includes(id)) {
         game._storyMode = false;
         if(id !== 'story-modal') storyState.currentBattleScene = null;
+
+        // Para timers de batalha
+        clearInterval(game.timerInterval);
+        clearInterval(game.accelerationInterval);
+        game.timeAccelerationActive = false;
+        game._universeResetFired = true; // impede qualquer callback pendente de disparar
+
+        // Limpa overlays visuais do Tempo Acelerado
+        const _ov = document.getElementById('time-acceleration-overlay');
+        const _te = document.getElementById('acceleration-timer');
+        const _gu = document.getElementById('game-ui');
+        if(_ov) _ov.classList.remove('active');
+        if(_te) { _te.classList.remove('active'); _te.style.animation = ''; }
+        if(_gu) _gu.classList.remove('time-accelerated-shake');
+
+        // Fecha tela de vídeo se estiver aberta
+        const _us = document.getElementById('ult-screen');
+        const _uv = document.getElementById('ult-video');
+        if(_uv) { _uv.onended = null; _uv.pause(); _uv.src = ''; }
+        if(_us) _us.style.display = 'none';
     }
 
     document.querySelectorAll('.screen, #coin-screen, #result-screen').forEach(s => s.style.display = 'none');
@@ -2550,70 +2570,134 @@ function activateTimeAcceleration() {
     }
 
     game.timeAccelerationActive = true;
-    game.accelerationTimeLeft = 20;
+    game._universeResetFired = false;
 
-    // Ativar overlays visuais
-    const overlay = document.getElementById('time-acceleration-overlay');
-    const timer = document.getElementById('acceleration-timer');
-    const gameUI = document.getElementById('game-ui');
-    
-    if(overlay) overlay.classList.add('active');
-    if(timer) {
-        timer.classList.add('active');
-        timer.innerText = '20';
-    }
-    if(gameUI) gameUI.classList.add('time-accelerated-shake');
+    // Para o timer de turno enquanto o vídeo toca e durante o countdown
+    clearInterval(game.timerInterval);
 
     log(`⏰⚡ TEMPO ACELERADO ATIVADO! Derrote Pucci em 20 segundos ou o UNIVERSO SERÁ RESETADO!`, '#ef4444');
 
-    // Iniciar contagem regressiva
-    clearInterval(game.accelerationInterval);
-    game.accelerationInterval = setInterval(() => {
-        game.accelerationTimeLeft--;
-        if(timer) timer.innerText = game.accelerationTimeLeft;
+    // ── PASSO 1: Tocar vídeo do Tempo Acelerado primeiro ─────────────────────
+    const v = document.getElementById('ult-video');
+    const ultScreen = document.getElementById('ult-screen');
+    const playOverlay = document.getElementById('ult-play-overlay');
 
-        if(game.accelerationTimeLeft <= 5) {
-            // Piscar vermelho quando crítico
-            if(timer) timer.style.animation = 'count-pulse 0.3s infinite';
-        }
+    v.onended = null; // limpa handler anterior
+    v.src = 'Made in Heaven JJBA Stone Ocean Concept Animation [SPOILERS] - TheDashingDoctorK (1080p, h264, youtube).mp4';
+    v.load();
+    if(playOverlay) playOverlay.style.display = 'none'; // autoplay sem botão
+    ultScreen.style.display = 'flex';
 
-        if(game.accelerationTimeLeft <= 0) {
-            clearInterval(game.accelerationInterval);
-            triggerUniverseReset();
+    // Quando o vídeo do Tempo Acelerado terminar → inicia countdown
+    let videoEnded = false;
+    function startCountdown() {
+        if(videoEnded) return;
+        videoEnded = true;
+        v.onended = null;
+
+        // Fecha tela de vídeo e mostra o jogo com o overlay do Tempo Acelerado
+        v.pause(); v.src = '';
+        ultScreen.style.display = 'none';
+        const musicaBatalha = document.getElementById('musicaBatalha');
+        if(musicaBatalha) musicaBatalha.play().catch(()=>{});
+
+        // Se o Tempo Acelerado foi cancelado (Pucci morreu durante o vídeo), para aqui
+        if(!game.timeAccelerationActive) return;
+
+        // ── PASSO 2: Ativar overlays e iniciar countdown de 20s ──────────────
+        game.accelerationTimeLeft = 20;
+        const overlay = document.getElementById('time-acceleration-overlay');
+        const timerEl = document.getElementById('acceleration-timer');
+        const gameUI  = document.getElementById('game-ui');
+
+        if(overlay)  overlay.classList.add('active');
+        if(timerEl) {
+            timerEl.classList.add('active');
+            timerEl.style.animation = '';
+            timerEl.innerText = '20';
         }
-    }, 1000);
+        if(gameUI) gameUI.classList.add('time-accelerated-shake');
+
+        clearInterval(game.accelerationInterval);
+        game.accelerationInterval = setInterval(() => {
+            if(!game.timeAccelerationActive) {
+                clearInterval(game.accelerationInterval);
+                return;
+            }
+            game.accelerationTimeLeft--;
+            if(timerEl) timerEl.innerText = game.accelerationTimeLeft;
+
+            if(game.accelerationTimeLeft <= 5 && timerEl) {
+                timerEl.style.animation = 'count-pulse 0.3s infinite';
+            }
+
+            if(game.accelerationTimeLeft <= 0) {
+                clearInterval(game.accelerationInterval);
+                triggerUniverseReset();
+            }
+        }, 1000);
+    }
+
+    v.onended = startCountdown;
+    // Fallback: se vídeo não carregar/tocar em 1s, inicia countdown direto
+    setTimeout(() => {
+        v.play().catch(() => {
+            // Vídeo falhou — fecha e inicia countdown imediatamente
+            ultScreen.style.display = 'none';
+            startCountdown();
+        });
+    }, 300);
+    // Fallback máximo: garante que o countdown começa mesmo se o vídeo travar
+    setTimeout(startCountdown, 15000);
 }
 
 // Reset do Universo — Vitória automática para quem tem Made in Heaven
 function triggerUniverseReset() {
+    // Evita chamada dupla (onended + setTimeout)
+    if(game._universeResetFired) return;
+    game._universeResetFired = true;
+
     clearInterval(game.accelerationInterval);
     clearInterval(game.timerInterval);
+    game.timeAccelerationActive = false;
 
     const overlay = document.getElementById('time-acceleration-overlay');
-    const timer = document.getElementById('acceleration-timer');
-    const gameUI = document.getElementById('game-ui');
-    
-    if(overlay) overlay.classList.remove('active');
-    if(timer) timer.classList.remove('active');
-    if(gameUI) gameUI.classList.remove('time-accelerated-shake');
+    const timerEl = document.getElementById('acceleration-timer');
+    const gameUI  = document.getElementById('game-ui');
+
+    if(overlay)  overlay.classList.remove('active');
+    if(timerEl) { timerEl.classList.remove('active'); timerEl.style.animation = ''; }
+    if(gameUI)   gameUI.classList.remove('time-accelerated-shake');
+
+    log(`🌌 O UNIVERSO ESTÁ SENDO RESETADO...`, '#ef4444');
 
     // Tocar vídeo de reset do universo
     const v = document.getElementById('ult-video');
-    v.src = 'Made In Haven.mp4';  // COLOQUE O VÍDEO AQUI
+    v.src = 'Made In Haven.mp4';
     document.getElementById('ult-screen').style.display = 'flex';
     const playOverlay = document.getElementById('ult-play-overlay');
     if(playOverlay) playOverlay.style.display = 'none';
-    
+
+    // Controle de chamada única para finishUniverseReset
+    let finished = false;
+    function safeFinish() {
+        if(finished) return;
+        finished = true;
+        v.onended = null;
+        finishUniverseReset();
+    }
+
     setTimeout(() => {
         v.play().catch(() => {
-            // Se o vídeo falhar, mostrar resultado direto
-            finishUniverseReset();
+            // Vídeo não carregou — espera 2s simbólicos e finaliza
+            setTimeout(safeFinish, 2000);
         });
     }, 300);
 
-    // Após o vídeo (ou 5s), mostrar vitória
-    v.onended = finishUniverseReset;
-    setTimeout(finishUniverseReset, 5000); // Backup se video não terminar
+    v.onended = safeFinish;
+
+    // Fallback: se o vídeo travar, finaliza após 12s (tempo razoável p/ vídeo curto)
+    setTimeout(safeFinish, 12000);
 }
 
 function finishUniverseReset() {
@@ -2636,19 +2720,27 @@ function finishUniverseReset() {
 // Limpar Tempo Acelerado se Pucci morrer
 function clearTimeAcceleration() {
     if(!game.timeAccelerationActive) return;
-    
+
     game.timeAccelerationActive = false;
+    game._universeResetFired = true; // impede triggerUniverseReset de disparar depois
     clearInterval(game.accelerationInterval);
 
-    const overlay = document.getElementById('time-acceleration-overlay');
-    const timer = document.getElementById('acceleration-timer');
-    const gameUI = document.getElementById('game-ui');
-    
-    if(overlay) overlay.classList.remove('active');
-    if(timer) timer.classList.remove('active');
-    if(gameUI) gameUI.classList.remove('time-accelerated-shake');
+    // Fecha vídeo se ainda estiver tocando
+    const v = document.getElementById('ult-video');
+    const ultScreen = document.getElementById('ult-screen');
+    if(v) { v.onended = null; v.pause(); v.src = ''; }
+    if(ultScreen) ultScreen.style.display = 'none';
 
-    log(`⏰ Tempo Acelerado foi cancelado!`, '#38bdf8');
+    // Remove overlays visuais
+    const overlay = document.getElementById('time-acceleration-overlay');
+    const timerEl = document.getElementById('acceleration-timer');
+    const gameUI  = document.getElementById('game-ui');
+    if(overlay)  overlay.classList.remove('active');
+    if(timerEl) { timerEl.classList.remove('active'); timerEl.style.animation = ''; }
+    if(gameUI)   gameUI.classList.remove('time-accelerated-shake');
+
+    log(`⏰ Pucci foi derrotado! O Tempo Acelerado foi cancelado!`, '#38bdf8');
+    // A derrota do Pucci já é tratada pelo fluxo normal de showResult
 }
 
 function triggerAttack(idx, source) {
@@ -2683,8 +2775,13 @@ function triggerAttack(idx, source) {
 
     if(skill.special === 'timeAcceleration') {
         // MADE IN HEAVEN: Tempo Acelerado
+        // Consome a energia da skill normalmente
+        attacker.attached -= skill.c;
+        if(source === 'player') game.hasAttacked = true;
         activateTimeAcceleration();
-        // Skill tem vídeo, então continua o fluxo normal de ultimate abaixo
+        updateUI();
+        // NÃO continua o fluxo de ataque — o jogo fica aguardando os 20s
+        return;
     }
     // ===== FIM PUCCI SPECIAL SKILLS =====
 
