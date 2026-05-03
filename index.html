@@ -2206,8 +2206,8 @@ function startTurn(who) {
         gainEnergy('player');
         drawCard(game.player);
         processBurnDamage('player');
-        processStunCheck('player');
-        document.getElementById('end-turn-btn').disabled = false;
+        const playerStunned = processStunCheck('player');
+        document.getElementById('end-turn-btn').disabled = playerStunned;
         startTimer();
         log(`─── Rodada ${game.roundCount} — Seu turno ───`, '#38bdf8');
     } else {
@@ -2215,7 +2215,11 @@ function startTurn(who) {
         gainEnergy('enemy');
         processBurnDamage('enemy');
         startTimer();
-        setTimeout(enemyAI, 1500);
+        // Só executa AI se inimigo não estiver atordoado e não morreu de queimadura
+        const enemyStunned = processStunCheck('enemy');
+        if(!enemyStunned && game.enemy.active && game.enemy.active.curHP > 0) {
+            setTimeout(enemyAI, 1500);
+        }
         log("─── Turno do inimigo ───", '#ef4444');
     }
     updateUI();
@@ -2252,6 +2256,11 @@ function processBurnDamage(who) {
         card.curHP -= dmg;
         log(`🔥 ${card.name} sofreu ${dmg} de dano por Queimadura!`, '#fb923c');
         flashCard(who === 'player' ? 'p-card-active' : 'e-card-active', card.curHP);
+        // Queimadura pode matar — checar KO imediatamente
+        if(card.curHP <= 0) {
+            setTimeout(() => checkKOs(), 400);
+            return;
+        }
     }
 }
 
@@ -2261,10 +2270,11 @@ function processStunCheck(who) {
     if(!card) return;
     if(hasStatus(card, 'stun')) {
         log(`💫 ${card.name} está Atordoado e perdeu este turno!`, '#a5b4fc');
-        if(who === 'player') {
-            setTimeout(() => endTurn(false), 1200);
-        }
+        // Tanto jogador quanto inimigo atordoados devem encerrar o turno
+        setTimeout(() => endTurn(false), 1200);
+        return true;
     }
+    return false;
 }
 
 function decrementStatuses(side) {
@@ -2485,10 +2495,28 @@ function flashCard(elId, newHP) {
 
 // Animação de morte: partículas + carta voa para a pilha de descarte virando
 function playDeathAnimation(elId, card, callback) {
+    // Segurança: sempre chama callback após no máximo 900ms,
+    // independente de qualquer falha na animação
+    let callbackFired = false;
+    const safeCallback = () => {
+        if(callbackFired) return;
+        callbackFired = true;
+        if(callback) callback();
+    };
+    const safetyTimer = setTimeout(safeCallback, 900);
+
     const el = document.getElementById(elId);
-    if(!el) { if(callback) callback(); return; }
+    if(!el) { clearTimeout(safetyTimer); safeCallback(); return; }
 
     const rect = el.getBoundingClientRect();
+
+    // Se o elemento não está visível no layout, pula a animação e vai direto
+    if(!rect.width || !rect.height) {
+        clearTimeout(safetyTimer);
+        safeCallback();
+        return;
+    }
+
     const cx = rect.left + rect.width / 2;
     const cy = rect.top  + rect.height / 2;
 
@@ -2510,12 +2538,14 @@ function playDeathAnimation(elId, card, callback) {
 
     // --- Encontrar posição da pilha de descarte ---
     const discardPile = document.querySelector('.discard-pile');
-    let destX = window.innerWidth / 2;
-    let destY = window.innerHeight / 2;
+    let destX = cx; // fallback: voa para o próprio lugar e some
+    let destY = cy;
     if(discardPile) {
         const dr = discardPile.getBoundingClientRect();
-        destX = dr.left + dr.width  / 2;
-        destY = dr.top  + dr.height / 2;
+        if(dr.width && dr.height) {
+            destX = dr.left + dr.width  / 2;
+            destY = dr.top  + dr.height / 2;
+        }
     }
 
     // --- Criar clone da carta ---
@@ -2529,7 +2559,7 @@ function playDeathAnimation(elId, card, callback) {
     clone.style.transform = 'rotate(0deg) scale(1)';
 
     const img = document.createElement('img');
-    img.src = card.img;
+    img.src = card.img || '';
     clone.appendChild(img);
     document.body.appendChild(clone);
 
@@ -2537,34 +2567,28 @@ function playDeathAnimation(elId, card, callback) {
     const origY   = rect.top;
     const finalX  = destX - rect.width  / 2;
     const finalY  = destY - rect.height / 2;
-    const totalDur = 700; // ms
+    const totalDur = 650;
     const startT   = performance.now();
 
     function animateDiscard(now) {
         const raw  = Math.min((now - startT) / totalDur, 1);
-        // easeInBack para dar sensação de "arremesso"
         const t = raw < 0.5
             ? 4 * raw * raw * raw
             : 1 - Math.pow(-2 * raw + 2, 3) / 2;
 
-        const x   = origX + (finalX - origX) * t;
-        const y   = origY + (finalY - origY) * t;
-        // Girar 180° gradualmente (virar de cabeça pra baixo)
-        const rot = 180 * t;
-        const sc  = 1 - t * 0.45; // encolhe ao entrar na pilha
-
-        clone.style.left      = x   + 'px';
-        clone.style.top       = y   + 'px';
-        clone.style.transform = `rotate(${rot}deg) scale(${sc})`;
-        clone.style.opacity   = raw > 0.75 ? (1 - (raw - 0.75) / 0.25) : '1';
+        clone.style.left      = (origX + (finalX - origX) * t) + 'px';
+        clone.style.top       = (origY + (finalY - origY) * t) + 'px';
+        clone.style.transform = `rotate(${180 * t}deg) scale(${1 - t * 0.45})`;
+        clone.style.opacity   = raw > 0.75 ? String(1 - (raw - 0.75) / 0.25) : '1';
 
         if(raw < 1) {
             requestAnimationFrame(animateDiscard);
         } else {
             clone.remove();
-            el.style.opacity      = '';
+            el.style.opacity       = '';
             el.style.pointerEvents = '';
-            if(callback) callback();
+            clearTimeout(safetyTimer);
+            safeCallback();
         }
     }
     requestAnimationFrame(animateDiscard);
@@ -2986,7 +3010,7 @@ function checkKOs() {
 // =========================================================
 //  TELA DE RESULTADO
 // =========================================================
-function showResult(win) {
+function showResultBase(win) {
     clearInterval(game.timerInterval);
     const musicaBatalha = document.getElementById('musicaBatalha');
     const musicaFundo = document.getElementById('musicaFundo');
@@ -3965,9 +3989,8 @@ function claimStoryReward() {
 //  narrativa:true  → derrota TAMBÉM avança a história (batalha é parte do roteiro)
 //  narrativa:false → derrota mostra "TENTAR NOVAMENTE" até o jogador vencer
 // =========================================================
-const _origShowResult = showResult;
 function showResult(win) {
-    if(!game._storyMode) { _origShowResult(win); return; }
+    if(!game._storyMode) { showResultBase(win); return; }
 
     // Para musica de batalha, retoma trilha do mapa
     clearInterval(game.timerInterval);
