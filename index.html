@@ -1640,17 +1640,17 @@ const CARDS_DB = {
 //  NÍVEIS
 // =========================================================
 const LEVELS_BOSS = [
-    { name:"Clone de Treino", reward:450, bossId:'n2', hpBuff:350 },
-    { name:"Rei das Maldições", reward:650, bossId:'j2', hpBuff:800 },
-    { name:"O Ceifeiro", reward:800, bossId:'b2', hpBuff:1200 },
-    { name:"Plano Celestial", reward:2000, bossId:'a1', hpBuff:2000 }
+    { name:"Clone de Treino", reward:450, bossId:'n2', hpBuff:350, narrativa:false },
+    { name:"Rei das Maldições", reward:650, bossId:'j2', hpBuff:800, narrativa:false },
+    { name:"O Ceifeiro", reward:800, bossId:'b2', hpBuff:1200, narrativa:false },
+    { name:"Plano Celestial", reward:2000, bossId:'a1', hpBuff:2000, narrativa:false }
 ];
 const LEVELS_NORMAL = [
-    { name:"Iniciante", reward:50, deck:['n1','n1','g1','g1','j1'] },
-    { name:"Rival Forte", reward:150, deck:['g1','g2','b1','n1','j1'] },
-    { name:"Mestre TCG", reward:400, deck:['j1','j2','b1','b2','a1'] },
-    { name:"Caçador de Piratas", reward:600, deck:['op1','op2','bl1','hxh1','op1'] },
-    { name:"Lenda Absoluta", reward:1000, deck:['op2','bl2','hxh2','g2','b2'] }
+    { name:"Iniciante", reward:50, deck:['n1','n1','g1','g1','j1'], narrativa:false},
+    { name:"Rival Forte", reward:150, deck:['g1','g2','b1','n1','j1'], narrativa:false },
+    { name:"Mestre TCG", reward:400, deck:['j1','j2','b1','b2','a1'], narrativa:false },
+    { name:"Caçador de Piratas", reward:600, deck:['op1','op2','bl1','hxh1','op1'], narrativa:false },
+    { name:"Lenda Absoluta", reward:1000, deck:['op2','bl2','hxh2','g2','b2'], narrativa:false }
 ];
 
 // =========================================================
@@ -3210,7 +3210,7 @@ const STORY_CHAPTERS = [
       title:'🥊 LUTA!: NARUTO vs GOKU',
       subtitle:'MODO SENNIN vs INSTINTO DE LUTA',
       bossId:'g2', hpOverride: 370, reward: 0,
-      storyDeck:['n2','n2','n1','n1','n2','n2','n1','n1'],
+      storyDeck:['n2','n2','n1','n1'],
       cutAt: 0,
       cutScenes: []
     },
