@@ -1753,6 +1753,12 @@ function showTurnIndicator(who) {
 //  NAVEGAÇÃO DE TELAS
 // =========================================================
 function showScreen(id, modeParam) {
+    // Sempre que sair do fluxo de jogo/história para qualquer tela de menu,
+    // garante que _storyMode é desligado para não interceptar batalhas normais
+    if(['main-menu','deck-select','story-modal','store-screen','deck-editor'].includes(id)) {
+        game._storyMode = false;
+    }
+
     document.querySelectorAll('.screen, #coin-screen, #result-screen').forEach(s => s.style.display = 'none');
     document.getElementById('game-ui').style.display = 'none';
 
@@ -3160,7 +3166,9 @@ const STORY_CHAPTERS = [
   reward: 600,
   scenes: [
 
-    // ── ABERTURA ──────────────────────────────────────────
+    //--------------------------------------------------
+    // ACO 1 — VALE DO FIM: NARUTO + SASUKE vs MADARA
+    //--------------------------------------------------
     { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:false },
 
     { type:'narration', text:'Vale Oculto do Fim. Dois shinobi enfrentam o homem que ameaça destruir o mundo dos vivos — Madara Uchiha. A batalha já dura horas. O chão está partido. O ar, saturado de chakra.' },
@@ -3172,104 +3180,147 @@ const STORY_CHAPTERS = [
       text:'Já ouvi isso antes. E o resultado foi sempre o mesmo — eu ainda tô de pé, dattebayo!' },
 
     { type:'dialog', speaker:'sasuke', side:'right', left:'madara', right:'sasuke',
-      text:'Guarde sua energia. Gritaria não derruba o Rinnegan.' },
+      text:'Guarde sua energia para o que importa. Gritaria não derruba o Rinnegan.' },
 
-    { type:'narration', text:'Naruto entra no Modo Sennin. Os olhos assumem a forma de sapo. A percepção natural se expande por todo o terreno — ele sente cada passo de Madara, cada tensão muscular antes de um golpe.' },
+    { type:'narration', text:'Naruto entra no Modo Sennin — os olhos assumem a forma de sapo, a percepção natural se expande como ondas por todo o terreno. Ele sente cada passo de Madara, cada tensão muscular antes de um ataque.' },
 
-    { type:'dialog', speaker:'naruto', side:'right', left:'madara', right:'naruto',
-      text:'Sasuke — Limbo em dois segundos. Esquerda!' },
+    { type:'dialog', speaker:'narutos', side:'right', left:'madara', right:'narutos',
+      text:'Sasuke, ele vai usar o Limbo em dois segundos. Esquerda!' },
 
-    { type:'dialog', speaker:'madara', side:'left', left:'madara', right:'naruto',
+    { type:'dialog', speaker:'sasuke', side:'right', left:'madara', right:'sasuke',
+      text:'Já vi. Susanoo vai cobrir o flanco. Você abre a abertura — eu fecho.' },
+
+    { type:'dialog', speaker:'madara', side:'left', left:'madara', right:'narutos',
       text:'Interessante. Coordenação quase perfeita. Mas enquanto vocês calculam passos... eu já mudei o tabuleiro.' },
 
-    // ── BATALHA 1: NARUTO vs MADARA (corta em 30% HP) ────
+    { type:'narration', text:'Madara invoca colunas de fogo negro que rasgam o solo. Naruto usa Kage Bushin estrategicamente — três clones desviam as chamas, enquanto o original lê a trajetória do contra-ataque com a percepção natural.' },
+
+    { type:'dialog', speaker:'narutos', side:'right', left:'madara', right:'narutos',
+      text:'Não adianta, eu sinto tudo. Cada movimento, cada mínima mudança no fluxo do seu chakra—' },
+
+    { type:'dialog', speaker:'madara', side:'left', left:'madara', right:'narutos',
+      text:'Então vamos ver se sua percepção consegue acompanhar o que vem a seguir.' },
+
+    // === BATALHA 1: NARUTO vs MADARA (corta quando Madara chega a 30% HP) ===
     { type:'battle',
-      title:'⚔ NARUTO vs MADARA', subtitle:'MODO SENNIN — VALE DO FIM',
-      bossId:'n2', hpOverride:320, reward:0, narrativa:true,
-      cutAt:30,
-      cutScenes:[
+      title:'⚔ NARUTO vs MADARA',
+      subtitle:'MODO SENNIN — VALE DO FIM',
+      bossId:'hs_madara_boss', hpOverride: 320, reward: 0,
+      narrativa: true,
+      storyDeck:['n1','n1','n2','hs_sasuke','n2','hs_sasuke'],
+      cutAt: 30,
+      cutScenes: [
         { type:'narration', text:'O chakra de Naruto pressiona Madara até o limite — mas antes que o golpe final pudesse ser desferido, algo impossível acontece.' },
         { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
         { type:'dracoyn', active:true },
-        { type:'dialog', speaker:'naruto', side:'right', left:'madara', right:'naruto',
-          text:'Espera— isso não é jutsu! Não é chakra de ninguém— o que está acontecendo?!' },
-        { type:'dialog', speaker:'madara', side:'left', left:'madara', right:'naruto',
-          text:'...Isso não foi algo que invoquei. Fujam — agora!' },
-        { type:'dialog', speaker:'naruto', side:'right', left:'madara', right:'naruto',
+        { type:'dialog', speaker:'narutos', side:'right', left:'madara', right:'narutos',
+          text:'Espera— Sasuke! Isso não é jutsu. Não é chakra de ninguém. O que é isso?!' },
+        { type:'dialog', speaker:'sasuke', side:'right', left:'madara', right:'sasuke',
+          text:'Não sei. Meu Sharingan não consegue rastrear a origem. É como se o espaço estivesse... rasgando sozinho.' },
+        { type:'dialog', speaker:'madara', side:'left', left:'madara', right:'narutos',
+          text:'...Isso não foi algo que invoquei. Isso não é jutsu de ninguém. Recuem — agora!' },
+        { type:'narration', text:'Uma fissura violeta rasga o céu do Vale. O chakra ao redor começa a agir de forma errática. A gravidade oscila. Pedras flutuam e se partem no ar. O Dracoyn — como seria chamado por quem sobrevivesse para estudá-lo — suga tudo ao redor sem escolher lados.' },
+        { type:'dialog', speaker:'narutos', side:'right', left:'madara', right:'narutos',
           text:'SASUKE! Eu—!' },
-        { type:'narration', text:'A fissura violeta engoliu tudo. Naruto foi sugado pela escuridão.' },
+        { type:'narration', text:'Sasuke consegue usar o Amenotejikara para se lançar para longe. Madara ancora-se com chakra puro. Mas Naruto é engolido pela escuridão.' },
         { type:'dracoyn', active:false },
       ]
     },
 
-    // ── UNIVERSO DRAGON BALL ───────────────────────────────
+    //--------------------------------------------------
+    // ACO 2 — UNIVERSO DRAGON BALL: CHEGADA + TREINO
+    //--------------------------------------------------
     { type:'bg', bg:'https://images.alphacoders.com/133/1330235.png', distort:false },
 
-    { type:'narration', text:'Planeta Terra. Universo de Dragon Ball. O Modo Sennin ainda ativo é a única âncora de Naruto à realidade. A energia aqui não é chakra — é ki, bruto e livre.' },
+    { type:'narration', text:'Planeta Terra. Universo de Dragon Ball. O ar tem um peso diferente — não é chakra, é ki puro, bruto, livre. Naruto desperta em uma planície com grama cor de esmeralda. O Modo Sennin ainda ativo é sua única âncora.' },
 
     { type:'dialog', speaker:'naruto', side:'right', left:'narrador', right:'naruto',
-      text:'Ugh... ainda de pé. A energia aqui é completamente diferente. Mais direta. Mais expansiva. Onde eu estou?' },
+      text:'Ugh... ainda de pé. A energia aqui é estranha — não tem chakra natural normal.Onde diabos eu estou?' },
 
-    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'naruto',
-      text:'Heeei! Você surgiu do nada! Nunca vi você antes — mas sua energia é bizarra. Parece ki de outro mundo. Quem é você?' },
+    { type:'narration', text:'Naruto ativa instintivamente o Modo Sennin completo — seus sentidos se expandem pela planície. Ele detecta uma presença enorme se aproximando. Não é hostil. Mas é poderosa o suficiente para fazer a terra tremer.' },
 
-    { type:'dialog', speaker:'naruto', side:'right', left:'goku', right:'naruto',
-      text:'Naruto Uzumaki. Shinobi de Konoha. Acabei de cair de uma fissura dimensional. Você sabe onde estou?' },
+    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'narutos',
+      text:'Heeei! Você surgiu do nada! Nunca vi você antes... mas sua energia é bizarra. Parece força vital de outro mundo, mas ao mesmo tempo familiar. Quem é você?' },
 
-    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'naruto',
-      text:'Planeta Terra! Sou Goku. Pelo seu ki... você é forte. Que tal um treino para você se ambientar?' },
+    { type:'dialog', speaker:'narutos', side:'right', left:'goku', right:'narutos',
+      text:'Naruto Uzumaki. Shinobi de Konoha. E você acabou de aparecer com um sorriso no rosto depois que eu caí de um buraco dimensional, então— onde estou?' },
 
-    { type:'dialog', speaker:'naruto', side:'right', left:'goku', right:'naruto',
-      text:'Treinar? Acabei de cair de um buraco no espaço— mas tá bom. Preciso entender essa energia.' },
+    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'narutos',
+      text:'Planeta Terra! Sou Goku. Pelo seu ki... você é forte. Quer lutar?????.' },
 
-    // ── BATALHA 2: NARUTO vs GOKU (treino — sem cutAt, player precisa vencer) ──
+    { type:'dialog', speaker:'narutos', side:'right', left:'goku', right:'narutos',
+      text:'Lutar? Eu acabei de ser sugado por uma fissura dimensional e minha percepção diz que você não é inimigo.' },
+
+    { type:'narration', text:'O primeiro contato foi imediato. Uma luta para se entenderem através da linguagem que ambos compreendiam melhor — combate. O Ki de Goku: explosivo, ruidoso, fácil de rastrear. O Chakra de Naruto: fluido, multidirecional, difícil de prever.' },
+
+    // === BATALHA 2: Treino NARUTO SENNIN vs GOKU (solo Naruto) ===
     { type:'battle',
-      title:'🥊 TREINO: NARUTO vs GOKU', subtitle:'MODO SENNIN vs INSTINTO DE LUTA',
-      bossId:'g1', hpOverride:160, reward:0, narrativa:false,
-      cutAt:null, cutScenes:[]
+      title:'🥊 LUTA!: NARUTO vs GOKU',
+      subtitle:'MODO SENNIN vs INSTINTO DE LUTA',
+      bossId:'g2', hpOverride: 370, reward: 0,
+      storyDeck:['n2','n2','n1','n1',],
+      cutAt: 0,
+      cutScenes: []
     },
 
-    { type:'narration', text:'O treino termina empatado. Ambos ofegantes, mas sorrindo. Naruto aprendeu a "ouvir" ki. Goku descobriu a leitura de intenção do Modo Sennin.' },
+    { type:'narration', text:'A luta termina em empate. Os dois estão ofegantes, mas sorrindo. A troca foi real — Naruto aprendeu a "ouvir" o ki, Goku descobriu a leitura de intenção do Modo Sennin.' },
 
     { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'naruto',
-      text:'Você se move antes do ataque! Como sabe onde vou? Você nem lê ki!' },
+      text:'Você se move antes do ataque. Como sabe onde vou? Nem lê ki!' },
 
-    { type:'dialog', speaker:'naruto', side:'right', left:'goku', right:'naruto',
-      text:'Percepção natural. Sinto a intenção antes do movimento. Seu ki e meu chakra talvez sejam a mesma coisa — só codificada diferente.' },
+    { type:'dialog', speaker:'narutos', side:'right', left:'goku', right:'narutos',
+      text:'Percepção natural. Sinto a intenção antes do movimento. É mais profundo que ki — sinto a força da natureza ao redor de você.' },
 
-    // ── FREEZA APARECE ─────────────────────────────────────
-    { type:'narration', text:'Antes que a conversa avançasse, a percepção natural de Naruto disparou um alarme. Algo enorme vinha do alto — frio, calculado, predatório.' },
+    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'narutos',
+      text:'Incrível! Lembra o Instinto Superior, mas usando a natureza inteira como sensor. Você acha que ki e chakra podem se conectar?' },
 
-    { type:'dialog', speaker:'freeza', side:'left', left:'freeza', right:'goku',
-      text:'Son Goku. Que surpresa. E com um companheiro peculiar — energia exótica. Como um animal selvagem que nunca encontrei.' },
+    { type:'dialog', speaker:'narutos', side:'right', left:'goku', right:'narutos',
+      text:'Não sei. Mas o Modo Sennin usa a natureza como base. E o ki parece ser a energia vital desse mundo. Talvez sejam faces do mesmo fenômeno — só codificados diferente.' },
 
-    { type:'dialog', speaker:'naruto', side:'right', left:'freeza', right:'naruto',
-      text:'[Para Goku em voz baixa] Ki que suprime o espaço. Ataque frontal vai ser deflectido. Precisamos de estratégia.' },
+    //--------------------------------------------------
+    // ACO 3 — FREEZA APARECE
+    //--------------------------------------------------
+    { type:'narration', text:'Antes que a conversa avançasse, a percepção natural de Naruto disparou um alarme. Algo enorme se aproximava do alto — e diferente de Goku, essa energia era fria. Calculada. Predatória.' },
 
     { type:'dialog', speaker:'goku', side:'right', left:'freeza', right:'goku',
-      text:'[Sussurrando] Entendido. Eu seguro ele, você lê os padrões.' },
+      text:'...Freeza. Como— ele estava derrotado.' },
 
-    // ── BATALHA 3: NARUTO+GOKU vs FREEZA (cutAt 25%) ─────
+    { type:'dialog', speaker:'freeza', side:'left', left:'freeza', right:'goku',
+      text:'Son Goku. Que surpresa. E com um companheiro peculiar. Que energia exótica. Como um animal que nunca encontrei — primitivo, mas curiosamente eficaz.' },
+
+    { type:'dialog', speaker:'narutos', side:'right', left:'freeza', right:'narutos',
+      text:'[Para Goku] Esse cara tem uma energia que suprime o espaço ao redor. Qualquer ataque frontal vai ser absorvido. Precisamos de estratégia, não força bruta.' },
+
+    { type:'dialog', speaker:'goku', side:'right', left:'freeza', right:'goku',
+      text:'[Sussurrando] Entendido. Eu seguro ele em campo aberto, você lê os padrões.' },
+
+    { type:'dialog', speaker:'freeza', side:'left', left:'freeza', right:'goku',
+      text:'Estão tramando algo? Que encantador. Não importa — nem o Saiyajin mais poderoso nem seu amiguinho salvo do lixo irão—' },
+
+    // === BATALHA 3: NARUTO + GOKU vs FREEZA (corta quando Freeza chega a 25% HP) ===
     { type:'battle',
-      title:'⚔ NARUTO + GOKU vs FREEZA', subtitle:'ESTRATÉGIA + FORÇA vs PODER IMPERIAL',
-      bossId:'g2', hpOverride:380, reward:0, narrativa:true,
-      cutAt:25,
-      cutScenes:[
-        { type:'narration', text:'O combo funciona — até Freeza se adaptar. Então, antes do golpe final—' },
+      title:'⚔ NARUTO + GOKU vs FREEZA',
+      subtitle:'ESTRATÉGIA vs PODER IMPERIAL',
+      bossId:'hs_freeza_boss', hpOverride: 380, reward: 0,
+      narrativa: true,
+      storyDeck:['g1','n1','n2','g2','g1','n1','n2','g2'],
+      cutAt: 0,
+      cutScenes: [
+        { type:'narration', text:'O combo de Naruto e Goku começa a funcionar — clones estratégicos forçam Freeza a desviar, Goku usa as aberturas. Mas Freeza era uma força da natureza. Ele se adapta. E então—' },
         { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
         { type:'dracoyn', active:true },
-        { type:'dialog', speaker:'naruto', side:'right', left:'freeza', right:'naruto',
-          text:'De novo! O Dracoyn— todos segurem firme!' },
+        { type:'dialog', speaker:'narutos', side:'right', left:'freeza', right:'narutos',
+          text:'Não... de novo! Essa energia — é o mesmo fenômeno! O Dracoyn voltou!' },
         { type:'dialog', speaker:'freeza', side:'left', left:'freeza', right:'goku',
-          text:'Que fenda é essa?! Isso não é ki de ninguém—' },
-        { type:'narration', text:'O Dracoyn rasgou o céu com o dobro da violência. Os três combatentes foram sugados para a escuridão entre os mundos.' },
+          text:'Que fenda é essa?! Isso não é ki de ninguém— recuem, imbecis, ou seremos todos—' },
+        { type:'narration', text:'A fissura violeta rasgou o céu com o dobro da violência anterior. O Dracoyn não escolhia lados. E em segundos, os três combatentes foram sugados para a escuridão entre os mundos.' },
         { type:'dracoyn', active:false },
         { type:'bg', bg:'https://images.alphacoders.com/133/1330235.png', distort:false },
       ]
     },
-
+        { type:'narration', text: 'No meio da batalah novamente surge outro Dracoyn, todos ficam assustados. naruto goku e Freeza são sugados e no meio da transição Freeza se separa deles indo parar outra dimensão...'},
     { type:'end', reward:600,
-      lore:'Naruto deriva entre dimensões. O Modo Sennin é sua única âncora. E não está sozinho.' }
+      lore:'Naruto foi sugado pelo Dracoyn — um fenômeno que nem deuses nem shinobi criaram. Deriva entre dimensões, o Modo Sennin sendo sua única âncora. E não está sozinho.' }
   ]
 },
 
@@ -3280,102 +3331,142 @@ const STORY_CHAPTERS = [
   reward: 800,
   scenes: [
 
-    // ── CHEGADA NO MUNDO FRAGMENTADO ─────────────────────
+    //--------------------------------------------------
+    // ACO 1 — MUNDO FRAGMENTADO: CHEGADA
+    //--------------------------------------------------
     { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
     { type:'dracoyn', active:false },
+
+    { type:'narration', text:'Um mundo partido. Não há céu inteiro aqui — fragmentos de realidade flutuam como ilhas de vidro. A energia que permeia este lugar não é chakra nem ki. É algo mais antigo. Mais podre. Energia amaldiçoada, densa como alcatrão.' },
+
+    { type:'dialog', speaker:'narutos', side:'right', left:'narrador', right:'narutos',
+      text:'[Acordando] Ugh... Modo Sennin ainda ativo. Bom. Preciso manter — essa energia aqui é corrosiva. Se eu baixar a guarda, ela entra pelo chakra e... não é boa ideia.' },
+
     { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:false },
 
-    { type:'narration', text:'Um mundo partido. Fragmentos de realidade flutuam como ilhas de vidro. A energia aqui é densa, corrompida — energia amaldiçoada, grudando em tudo que tenta absorvê-la.' },
+    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'narutos',
+      text:'Naruto! Você tá bem? Esse lugar tem uma energia horrível. Não consigo nem fazer um Ki Blast sem sentir que vou contaminar o ar.' },
 
-    { type:'dialog', speaker:'naruto', side:'right', left:'narrador', right:'naruto',
-      text:'[Acordando] Modo Sennin ainda ativo. Bom. Essa energia é corrosiva — se eu baixar a guarda ela entra pelo chakra.' },
+    { type:'dialog', speaker:'narutos', side:'right', left:'goku', right:'narutos',
+      text:'É Chakara? Não... É uma energia diferente... Ela não é hostil por natureza — mas foi corrompida. Algo neste mundo torceu a energia vital até ela virar veneno.' },
 
-    { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'naruto',
-      text:'Naruto! Esse lugar tem uma energia horrível. Não consigo nem fazer um Ki Blast sem sentir que contaminei o ar.' },
+    //--------------------------------------------------
+    // ACO 2 — ENCONTRO COM ITADORI / SUKUNA ASSUME
+    //--------------------------------------------------
+    { type:'narration', text:'A percepção de Naruto capta um terceiro sinal. Humano. Jovem. Energia irregular — como duas vozes tentando falar ao mesmo tempo.' },
 
-    { type:'narration', text:'A percepção de Naruto detecta um terceiro sinal. Humano. Jovem. Energia irregular — como duas vozes tentando falar ao mesmo tempo.' },
+    { type:'dialog', speaker:'itadori', side:'left', left:'itadori', right:'narutos',
+      text:'Vocês são... de fora, né? Seu chakra — isso é chakra real? O Mestre Gojo falava de outras fontes de energia mas eu nunca imaginei—' },
 
-    { type:'dialog', speaker:'itadori', side:'left', left:'itadori', right:'naruto',
-      text:'Vocês são de fora, né? Seu chakra... é chakra real? O Mestre Gojo falava de outras fontes de energia mas eu nunca imaginei ver isso—' },
+    { type:'dialog', speaker:'narutos', side:'right', left:'itadori', right:['narutos','goku'],
+      text:'Calma. Sim, tenho chakra. O grandão é Goku, ki. Você tem dois sistemas competindo no mesmo corpo. Isso é perigoso.' },
 
-    { type:'dialog', speaker:'naruto', side:'right', left:'itadori', right:'naruto',
-      text:'Calma. Sim, tenho chakra. O grandão é Goku, ki. Você tem dois sistemas competindo no mesmo corpo — isso é perigoso.' },
+    { type:'dialog', speaker:'itadori', side:'left', left:'itadori', right:['narutos','goku'],
+      text:'É... porque eu carrego Ryomen Sukuna dentro de mim. Na maioria do tempo eu tenho controle, mas às vezes ele—' },
 
-    // ── SUKUNA ASSUME ──────────────────────────────────────
     { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
 
-    { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:'naruto',
-      text:'Que curioso. Duas energias que não pertencem a este sistema. Chakra e ki. Genuinamente diferentes da energia amaldiçoada. E no entanto... chegaram até mim.' },
+    { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['narutos','goku'],
+      text:'Que curioso. Duas energias que não pertencem a este sistema. Chakra e ki. Completamente diferentes da energia amaldiçoada. E no entanto... chegaram até aqui.' },
 
-    { type:'dialog', speaker:'naruto', side:'right', left:'sukuna', right:'naruto',
-      text:'[Alerta total] Goku — o espírito assumiu o corpo do garoto. Cuidado.' },
+    { type:'dialog', speaker:'narutos', side:'right', left:'sukuna', right:['narutos','goku'],
+      text:'[Sente as mudanças] Modo Sennin identificou. Esse não é o garoto. Goku — cuidado. O espírito assumiu controle.' },
 
-    { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:'goku',
-      text:'Sou Ryomen Sukuna. Rei das Maldições. Quando fico curioso... costumo testar pessoalmente.' },
+    { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['goku','narutos'],
+      text:'Sou Ryomen Sukuna. O Rei das Maldições. Estou genuinamente curioso com o que vocês representam. E quando fico curioso... costumo testar pessoalmente.' },
 
-    // ── BATALHA 1: NARUTO vs SUKUNA fase 1 (cutAt 50%) ───
+    { type:'dialog', speaker:'goku', side:'right', left:'sukuna', right:['goku','narutos'],
+      text:'Não sei quem você é, mas tomou o corpo de um garoto sem permissão. Isso eu não deixo passar.' },
+
+    // === BATALHA 1: NARUTO vs SUKUNA (primeira fase — corta em 50%) ===
     { type:'battle',
-      title:'⚔ NARUTO vs SUKUNA', subtitle:'FASE 1 — MODO SENNIN vs REI DAS MALDIÇÕES',
-      bossId:'j2', hpOverride:280, reward:0, narrativa:true,
-      cutAt:50,
-      cutScenes:[
-        { type:'narration', text:'Naruto tenta antecipar. Sukuna existe há milênios — não telegrafara nada. As previsões falham parcialmente.' },
-        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:'naruto',
-          text:'A frustração do sensor quando encontra alguém que purificou os reflexos até não sobrar intenção — só ação.' },
-        { type:'dialog', speaker:'naruto', side:'right', left:'sukuna', right:'naruto',
-          text:'Diferente de qualquer coisa que já enfrentei. Mas aprendo rápido.' },
+      title:'⚔ NARUTO vs SUKUNA',
+      subtitle:'FASE 1 — MODO SENNIN vs REI DAS MALDIÇÕES',
+      bossId:'hs_sukuna_fase1', hpOverride: 280, reward: 0,
+      narrativa: true,
+      storyDeck:['n1','n2','n1','n2','n1','n2'],
+      cutAt: 0,
+      cutScenes: [
+        { type:'narration', text:'Naruto tenta antecipar. O Modo Sennin é perfeito para leitura de intenção, mas Sukuna é um ser que existe há milênios. Ele não telegrafara nada. As previsões de Naruto falham parcialmente.' },
+        { type:'dialog', speaker:'narutos', side:'right', left:'sukuna', right:['narutos','goku'],
+          text:'Difícil. Ele não tem o padrão muscular de um humano normal. Sukuna não pensa antes de agir — ele simplesmente age. Minha leitura tá atrasada um décimo de segundo.' },
+        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['narutos','goku'],
+          text:'A frustração do sensor quando encontra alguém que existiu antes da necessidade de telegrafar movimentos. Milênios de combate purificam os reflexos até não sobrar intenção — só ação.' },
       ]
     },
 
-    // ── BATALHA 2: GOKU vs SUKUNA fase 2 (cutAt 35%) ────
+    // === BATALHA 2: GOKU vs SUKUNA (segunda fase — corta em 35%) ===
     { type:'battle',
-      title:'⚔ GOKU vs SUKUNA', subtitle:'FASE 2 — FORÇA BRUTA vs ADAPTAÇÃO',
-      bossId:'j2', hpOverride:320, reward:0, narrativa:true,
-      cutAt:35,
-      cutScenes:[
-        { type:'dialog', speaker:'goku', side:'right', left:'sukuna', right:'goku',
-          text:'Ele está usando meu ki contra mim! Envolve o ki e amplifica o retorno!' },
-        { type:'dialog', speaker:'naruto', side:'right', left:'sukuna', right:'naruto',
-          text:'Goku, para! Força bruta não funciona — ele aprende rápido demais!' },
-        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:'naruto',
-          text:'Malevolent Shrine — Expansão de Domínio.' },
-        { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
-        { type:'narration', text:'O domínio se fecha. A percepção natural de Naruto começa a falhar — dentro de energia amaldiçoada pura, não há "fora" para referenciar.' },
-        { type:'dialog', speaker:'naruto', side:'right', left:'sukuna', right:'naruto',
-          text:'Se eu não tentar transformar a energia amaldiçoada em chakra — mas apenas observá-la como ela é—' },
-        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:'naruto',
-          text:'Você está lendo o interior do meu domínio usando o próprio domínio como sensor. Isso nem os feiticeiros deste mundo conseguiram.' },
+      title:'⚔ GOKU vs SUKUNA',
+      subtitle:'FASE 2 — FORÇA BRUTA vs ADAPTAÇÃO',
+      bossId:'hs_sukuna_fase2', hpOverride: 350, reward: 0,
+      narrativa: true,
+      storyDeck:['g1','g2','g1','g2','g1','g2'],
+      cutAt: 0,
+      cutScenes: [
+        { type:'narration', text:'Fase 2 — Goku entra. Kamehameha direto. A força bruta é genuinamente poderosa — mas Sukuna se adapta em tempo real. Ele redireciona o ki, usa a própria energia de Goku como contra-ataque.' },
+        { type:'dialog', speaker:'goku', side:'right', left:'sukuna', right:['goku','narutos'],
+          text:'Ele está usando meu ki contra mim! A energia amaldiçoada dele envolve o ki e amplifica o impacto de retorno!' },
+        { type:'dialog', speaker:'narutos', side:'right', left:'sukuna', right:['narutos','goku'],
+          text:'Goku, para! Força bruta não funciona aqui. Ele aprende rápido demais — cada ataque que você lança vira material de estudo pra ele!' },
       ]
     },
 
-    // ── BATALHA 3: NARUTO+GOKU vs SUKUNA fase final (cutAt 20%) ──
+    //--------------------------------------------------
+    // ATO 3 — DOMÍNIO COLAPSA + DRACOYN FINAL
+    //--------------------------------------------------
+    { type:'narration', text:'E de repente, aparece alguém com uma grande presença... A esperança do mundo Jujutsu...' },
+    { type:'dialog', speaker:'gojo', side:'right', left:'sukuna', right:['gojo','narutos','goku'],
+      text:'Ora Ora... Vocês são bons hein... Que caos é esse que vocês estão fazendo em Shinjuku... Vou dar uma ajudinha a vocês!' },
+    { type:'dialog', speaker:'gojo', side:'right', left:'sukuna', right:['gojo','narutos','goku'],
+      text:'Expansão...' },
+    { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['gojo','narutos','goku'],
+      text:'Expansão...' },
+    { type:'dialog', speaker:'gojo', cospeakers:['sukuna'], side:'right', left:'sukuna', right:['gojo','narutos','goku'],
+      text:'DE DOMÍNIO!' },
+    { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
+    { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['gojo','narutos','goku'],
+      text:'Satoru Gojo... Estava esperando por esse duelo... VENHAM OS TRÊS — EU VOU MATÁ-LOS!' },
     { type:'battle',
-      title:'⚔ NARUTO + GOKU vs SUKUNA', subtitle:'FASE FINAL — DENTRO DO DOMÍNIO',
-      bossId:'j2', hpOverride:420, reward:0, narrativa:true,
-      cutAt:20,
-      cutScenes:[
-        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:'naruto',
-          text:'Vocês são excepcionais. Mas o Malevolent Shrine não tem limite de duração — e vocês têm.' },
+      title:'⚔ NARUTO + GOKU + SATORU GOJO vs SUKUNA',
+      subtitle:'FASE FINAL — DENTRO DO DOMÍNIO',
+      bossId:'hs_sukuna_final', hpOverride: 620, reward: 0,
+      narrativa: true,
+      storyDeck:['n1','g1','n2','g2','j3','j4'],
+      cutAt: 20,
+      cutScenes: [
+        { type:'narration', text:'A batalha dentro do domínio de Sukuna e Gojo foi a mais intensa já vista. Sukuna dominava, mas Naruto criou um mapa parcial do interior com a adaptação híbrida. Goku começava a ser comprimido pela pressão constante. E Gojo tentava segurar o conflito de domínios.' },
+        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['gojo','narutos','goku'],
+          text:'Vocês são excepcionais. Realmente. Mas o Fukuma Mizushi não tem limite de duração — vocês têm...' },
         { type:'bg', bg:'https://images.alphacoders.com/132/1326442.png', distort:true },
         { type:'dracoyn', active:true },
-        { type:'narration', text:'O Dracoyn explodiu de dentro do domínio. Nenhuma energia consegue conter um fenômeno que não tem origem.' },
-        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:'naruto',
-          text:'Impossível — meu domínio está colapsando! Que fenômeno tem poder para romper o Malevolent Shrine de dentro?!' },
-        { type:'dialog', speaker:'itadori', side:'left', left:'itadori', right:'naruto',
-          text:'[Por um instante] Naruto! Sukuna foi curioso — isso é raro. Encontre-me no outro lado!' },
+        { type:'narration', text:'E então o Dracoyn voltou. Mais violento desta vez. Não uma fissura — uma explosão dimensional que rasgou o próprio domínio de Sukuna de dentro para fora.' },
+        { type:'dialog', speaker:'sukuna', side:'left', left:'sukuna', right:['gojo','narutos','goku'],
+          text:'Impossível — meu domínio está colapsando! Que fenômeno tem poder para romper dois domínios de dentro!?' },
+        { type:'dialog', speaker:'gojo', side:'right', left:'sukuna', right:['gojo','narutos','goku'],
+          text:'Isso é... impossível.' },
+        { type:'dialog', speaker:'narutos', side:'right', left:'sukuna', right:['narutos','goku','gojo'],
+          text:'O Dracoyn. Ele não escolhe lado. Sukuna — você vai ser sugado também, segura firme—' },
+        { type:'narration', text:'O Dracoyn separou o grupo. Sukuna foi puxado para uma direção diferente. Naruto e Goku foram lançados juntos. Mas Itadori acordou por um instante antes da separação.' },
+        { type:'dialog', speaker:'itadori', side:'left', left:'itadori', right:['narutos','goku'],
+          text:'Naruto! Sukuna só apareceu porque sentiu vocês! Ele foi... curioso! Isso é raro pra ele. Encontre-me no outro lado!' },
         { type:'dracoyn', active:false },
         { type:'bg', bg:'https://images.alphacoders.com/133/1330235.png', distort:false },
-        { type:'dialog', speaker:'naruto', side:'right', left:'goku', right:'naruto',
-          text:'[Modo Sennin ativo, olhando um novo horizonte] Chakra, ki, energia amaldiçoada — línguas diferentes falando sobre a mesma coisa. E o Dracoyn é uma gramática que ainda não entendemos.' },
-        { type:'dialog', speaker:'goku', side:'left', left:'goku', right:'naruto',
-          text:'Você sempre fala como sábio quando tá cansado. [sorri] Mas acho que você tá certo. O garoto vai aparecer de novo. E quando aparecer — a gente tá pronto.' },
+        { type:'narration', text:'A dimensão colapsa. Três origens, três sistemas de energia, três destinos imprevisíveis. E em algum lugar entre os mundos, o Dracoyn continua — sem nome, sem vontade, sem misericórdia.' },
+        { type:'dialog', speaker:'narutos', side:'right', left:['goku','gojo'], right:['narutos'],
+          text:'Aonde essa coisa está nos levando agora?' },
+        { type:'dialog', speaker:'goku', side:'left', left:['goku','gojo'], right:'naruto',
+          text:'Assim como Freeza, Sukuna foi sugado junto... Será que iremos nos encontrar de novo?' },
+        { type:'dialog', speaker:'gojo', side:'left', left:['gojo','goku'], right:'naruto',
+          text:'Seja lá o que estiver acontecendo, com o Sukuna solto por aí controlando o Itadori, precisamos encontrá-lo. A propósito — dimensões, né? Maneiro.' },
       ]
     },
 
     { type:'end', reward:800,
-      lore:'O Dracoyn não tem dono nem origem. Mas onde ele passa, fronteiras entre energias começam a sangrar. E Naruto aprende a língua de todos os mundos.' }
+      lore:'O Dracoyn não tem dono. Não tem origem. Mas onde ele passa, fronteiras entre energias começam a sangrar umas nas outras. E Naruto, no olho desse furacão, aprende a língua de todos os mundos.' }
   ]
-}];
+}
+];
 
 // =========================================================
 //  ESTADO DO MODO HISTÓRIA
@@ -3923,6 +4014,7 @@ function afterStoryBattle(win) {
 }
 
 function endStoryChapter() {
+    game._storyMode = false;
     document.getElementById('story-reader').style.display = 'none';
     document.getElementById('story-chapter-end').style.display = 'flex';
     document.getElementById('dracoyn-effect').classList.remove('active');
@@ -3938,6 +4030,7 @@ function endStoryChapter() {
 }
 
 function claimStoryReward() {
+    game._storyMode = false;
     const chapter = STORY_CHAPTERS[storyState.chapterId];
     const reward = chapter ? chapter.reward : 500;
     user.coins += reward;
