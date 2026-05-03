@@ -399,6 +399,54 @@
         }
 
         /* =========================================================
+           TEMPO ACELERADO (MADE IN HEAVEN)
+        ========================================================= */
+        #time-acceleration-overlay {
+            display: none; position: fixed; inset: 0;
+            z-index: 2500; pointer-events: none;
+            background: radial-gradient(ellipse at center, rgba(239,68,68,0.15) 0%, transparent 70%);
+            border: 4px solid rgba(239,68,68,0.6);
+            animation: time-pulse 1s infinite;
+        }
+        #time-acceleration-overlay.active { display: block; }
+        @keyframes time-pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        #acceleration-timer {
+            display: none; position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3000; pointer-events: none;
+            font-family: 'Orbitron', monospace;
+            font-size: 120px; font-weight: 900;
+            color: var(--hp-red);
+            text-shadow: 0 0 40px rgba(239,68,68,0.8), 0 0 80px rgba(239,68,68,0.4);
+            animation: count-pulse 1s infinite;
+        }
+        #acceleration-timer.active { display: block; }
+        @keyframes count-pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.15); }
+        }
+
+        .time-accelerated-shake {
+            animation: screen-shake 0.5s infinite;
+        }
+        @keyframes screen-shake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-3px, 2px); }
+            20% { transform: translate(3px, -2px); }
+            30% { transform: translate(-2px, -3px); }
+            40% { transform: translate(2px, 3px); }
+            50% { transform: translate(-3px, -2px); }
+            60% { transform: translate(3px, 2px); }
+            70% { transform: translate(-2px, 3px); }
+            80% { transform: translate(2px, -3px); }
+            90% { transform: translate(-3px, 2px); }
+        }
+
+        /* =========================================================
            GAME UI — LAYOUT
         ========================================================= */
         #game-ui {
@@ -1135,6 +1183,10 @@
 <!-- ===================== INDICADOR DE TURNO ===================== -->
 <div id="turn-indicator"></div>
 
+<!-- ===================== TEMPO ACELERADO (MADE IN HEAVEN) ===================== -->
+<div id="time-acceleration-overlay"></div>
+<div id="acceleration-timer">20</div>
+
 <!-- ===================== MENU PRINCIPAL ===================== -->
 <div id="main-menu" class="screen">
     <div class="menu-bg"></div>
@@ -1403,20 +1455,38 @@
 const CARDS_DB = {
     // ---- NARUTO (Chakra) ----
     'n1': {
-        id:'n1', name:"Naruto", type:"Chakra", hp:70,
+        id:'n1', name:"Naruto", type:"Chakra", hp:80,
         img:"https://i.imgur.com/MG7FIXN.jpeg",
         skills:[
             {n:"Rasengan", d:50, c:2, desc:"Esfera de chakra concentrada."},
             {n:"Kage Bushin", d:20, c:1, desc:"Invoca clones de sombra."}
-        ], price:50
+        ], price:150
     },
     'n2': {
-        id:'n2', name:"Naruto Modo Sennin EX", type:"Chakra", hp:160, isEx:true, evolvesFrom:"Naruto",
+        id:'n2', name:"Naruto Modo Sennin EX", type:"Chakra", hp:180, isEx:true, evolvesFrom:"Naruto",
         img:"https://i.imgur.com/uXbwFlO.jpeg",
         skills:[
             {n:"Invocação de Gamakichi", d:90, c:2, desc:"Invoca o sapo gigante!"},
             {n:"Rasenshuriken", d:140, c:4, desc:"Explosão devastadora!", vid:"Naruto Ultimate Ninja Storm 2 - Rasenshuriken with Anime SFX - Soundman (720p, h264, youtube).mp4"}
-        ], price:500
+        ], price:700
+    },
+    'n3': {
+        id:'n3', name:"Sasuke", type:"Chakra", hp:90,
+        img:"https://i.imgur.com/jg6lEZW.png",
+        skills:[
+            {n:"Chidori", d:50, c:2, desc:"Ataque de raio concentrado!"},
+            {n:"Kirin", d:80, c:3, desc:"Raio em forma de dragão, devastador!",}
+        ], price:250
+
+    },
+    'n4': {
+        id:'n4', name:"Sasuke Mangekyou EX", type:"Chakra", hp:200, isEx:true, evolvesFrom:"Sasuke",
+        img:"https://i.imgur.com/jg6lEZW.png",
+        skills:[
+            {n:"Kagutsuchi", d:90, c:2, desc:"Manipulação do amaterasu!"},
+            {n:"Flecha de Indra", d:160, c:3, desc:"Flecha ardente com amaterasu!", status:{target:'enemy', type:'burn', turns:2}}
+        ], price:1000
+
     },
     // ---- DRAGON BALL (Ki) ----
     'g1': {
@@ -1425,7 +1495,7 @@ const CARDS_DB = {
         skills:[
             {n:"Ki Blast", d:30, c:1, desc:"Uma esfera de Ki!"},
             {n:"Kamehameha", d:50, c:2, desc:"Raio concentrado de Ki!"}
-        ], price:75
+        ], price:150
     },
     'g2': {
         id:'g2', name:"Goku SSJB EX", type:"Ki", hp:210, isEx:true, evolvesFrom:"Goku",
@@ -1433,79 +1503,107 @@ const CARDS_DB = {
         skills:[
             {n:"Super Kamehameha", d:80, c:2, desc:"Potência aumentada!"},
             {n:"GENKI DAMA", d:170, c:4, desc:"Força da Terra inteira!", vid:"GOKU SSJB SUPER SPIRIT BOMB!!  GENKIDAMA  DBZ ONLINE  ULTIMATE ATTACK  KAKAROT.mp4"}
-        ], price:600
+        ], price:1000
     },
     // ---- JUJUTSU KAISEN (Amaldiçoada) ----
     'j1': {
         id:'j1', name:"Itadori", type:"Amaldiçoada", hp:90,
         img:"https://i.imgur.com/qNxk0Sn.jpeg",
         skills:[
-            {n:"Kokusen", d:40, c:1, desc:"Energia amaldiçoada negra!"},
+            {n:"Kokusen", d:60, c:3, desc:"Energia amaldiçoada negra!"},
             {n:"Choku Shiton", d:30, c:1, desc:"Soco amplificado por maldição.", status:{target:'enemy', type:'burn', turns:2}}
-        ], price:200
+        ], price:450
     },
     'j2': {
-        id:'j2', name:"Sukuna EX", type:"Amaldiçoada", hp:250, isEx:true, evolvesFrom:"Itadori",
+        id:'j2', name:"Sukuna EX", type:"Amaldiçoada", hp:280, isEx:true, evolvesFrom:"Itadori",
         img:"https://i.imgur.com/MQKiefi.jpeg",
         skills:[
-            {n:"Fuga", d:90, c:2, desc:"Flecha ardente.", vid:"Sukuna's Fuga Remaster 4K - JJK S2 E17 Bluray - Jack The Anime Ripper (720p, h264, youtube).mp4"},
-            {n:"Fukuma Mizushi", d:200, c:4, desc:"Expansão de domínio.", vid:"expansão de domínio, Sukuna [Jujutsu Kaisen dublado] #Shorts.mp4", status:{target:'enemy', type:'stun', turns:1}}
-        ], price:1000
+            {n:"Fuga", d:100, c:3, desc:"Flecha ardente.", vid:"Sukuna's Fuga Remaster 4K - JJK S2 E17 Bluray - Jack The Anime Ripper (720p, h264, youtube).mp4"},
+            {n:"Fukuma Mizushi", d:250, c:5, desc:"Expansão de domínio.", vid:"expansão de domínio, Sukuna [Jujutsu Kaisen dublado] #Shorts.mp4", status:{target:'enemy', type:'stun', turns:1}}
+        ], price:3000
     },
     'j3': {
-        id:'b1', name:"Gojo", type:"Amaldiçoada", hp:110,
+        id:'j3', name:"Gojo", type:"Amaldiçoada", hp:110,
         img:"https://i.imgur.com/71MfKQb.jpeg",
         skills:[
             {n:"Azul", d:50, c:2, desc:"Atrai e esmaga o oponente."},
             {n:"Vermelho", d:70, c:2, desc:"Repele com força explosiva.", status:{target:'self', type:'dodge', turns:1}}
-        ], price:350
+        ], price:650
     },
     'j4': {
-        id:'b2', name:"Gojo EX", type:"Amaldiçoada", hp:220, isEx:true, evolvesFrom:"Gojo",
+        id:'j4', name:"Gojo EX", type:"Amaldiçoada", hp:220, isEx:true, evolvesFrom:"Gojo",
         img:"https://i.imgur.com/qQ7wAbW.jpeg",
         skills:[
-            {n:"Vazio Roxo", d:120, c:2, desc:"Criação potente.", vid:"satoru gojo usa vazio roxo pela primeira vez.mp4"},
-            {n:"Muryo Kusho", d:250, c:4, desc:"Expansão de domínio.", vid:"Gojo Satoru's 0.2s Domain Expansion in 4K JJK Shibuya Incident Arc - Silver Clips Raw Anime (720p, h264, youtube).mp4", status:{target:'self', type:'shield', turns:2}}
-        ], price:2500
+            {n:"Vazio Roxo", d:120, c:3, desc:"Criação potente.", vid:"satoru gojo usa vazio roxo pela primeira vez.mp4"},
+            {n:"Muryo Kusho", d:250, c:5, desc:"Expansão de domínio.", vid:"Gojo Satoru's 0.2s Domain Expansion in 4K JJK Shibuya Incident Arc - Silver Clips Raw Anime (720p, h264, youtube).mp4", status:{target:'self', type:'shield', turns:2}}
+        ], price:3500
     },
     // ---- JOJO'S (Stand) ----
     'jjba1': {
-        id:'a1', name:"Dio EX", type:"Stand", hp:230, isEx:true,
+        id:'jjba1', name:"Dio EX", type:"Stand", hp:230, isEx:true,
         img:"https://i.imgur.com/L5TnHY4.jpeg",
         skills:[
             {n:"Muda Muda Muda!", d:120, c:2, desc:"Barragem de socos imparáveis!"},
             {n:"Za Warudo! Road Roller!", d:190, c:4, desc:"Para o tempo!", vid:"ROAD ROLLER DA - Hugette Hikari (480p, h264, youtube).mp4", status:{target:'enemy', type:'stun', turns:1}}
-        ], price:1750
+        ], price:2500
+    },
+    // ---- PUCCI 3-STAGE EVOLUTION ----
+    'pucci1': {
+        id:'pucci1', name:"Pucci White Snake", type:"Stand", hp:140,
+        img:"https://i.imgur.com/SUa5vRX.jpeg", // COLOQUE A IMAGEM DO WHITE SNAKE AQUI
+        skills:[
+            {n:"Remover Disco", d:0, c:2, desc:"Remove a memória e copia um ataque do oponente.", special:'copySkill'},
+            {n:"[Nenhum Ataque Copiado]", d:0, c:0, desc:"Use Remover Disco primeiro."}
+        ], 
+        price:0
+    },
+    'pucci2': {
+        id:'pucci2', name:"Pucci C-Moon", type:"Stand", hp:200, isEx:true, evolvesFrom:"Pucci White Snake",
+        img:"https://i.imgur.com/Il62vCl.jpeg", // COLOQUE A IMAGEM DO C-MOON AQUI
+        skills:[
+            {n:"Inversão da Gravidade", d:90, c:3, desc:"Ataque gravitacional devastador!"},
+            {n:"Subir aos Céus", d:0, c:7, desc:"⚠️ Evolução obrigatória para Made in Heaven!", special:'forcedEvolution'}
+        ], 
+        price:0 // Não vendido — só obtido via evolução
+    },
+    'pucci3': {
+        id:'pucci3', name:"Pucci Made in Heaven", type:"Stand", hp:250, isEx:true, evolvesFrom:"Pucci C-Moon",
+        img:"https://i.imgur.com/47D0zzB.jpeg", // COLOQUE A IMAGEM DO MADE IN HEAVEN AQUI
+        skills:[
+            {n:"Tiro Ultra Rápido", d:110, c:3, desc:"Velocidade infinita!", status:{target:'enemy', type:'stun', turns:1}},
+            {n:"TEMPO ACELERADO", d:0, c:12, desc:"⏰ Ativa contagem regressiva de 20s! Se não for derrotado = RESET DO UNIVERSO!", special:'timeAcceleration', vid:"Made in Heaven JJBA Stone Ocean Concept Animation [SPOILERS] - TheDashingDoctorK (1080p, h264, youtube).mp4"}
+        ], 
+        price:0 // Não vendido — só obtido via evolução
     },
     // ---- ONE PIECE (Haki) ----
     'op1': {
         id:'op1', name:"Luffy", type:"Haki", hp:100,
-        img:"https://i.imgur.com/qKe0sDN.jpeg",
+        img:"https://i.imgur.com/T0qs9Ia.jpeg",
         skills:[
-            {n:"Gomu Gomu Pistol", d:35, c:1, desc:"Soco elástico de borracha!"},
-            {n:"Gomu Gomu Rifle", d:60, c:2, desc:"Soco giratório devastador!"}
+            {n:"Gomu Gomu Pistol", d:40, c:1, desc:"Soco elástico de borracha!"},
+            {n:"Gomu Gomu Gatling", d:80, c:3, desc:"Uma barragem de soco devastadora!"}
         ], price:300
     },
     'op2': {
         id:'op2', name:"Luffy Gear 5 EX", type:"Haki", hp:240, isEx:true, evolvesFrom:"Luffy",
-        img:"https://i.imgur.com/fWyDT2q.jpeg",
+        img:"https://i.imgur.com/R976Itu.jpeg",
         skills:[
             {n:"Gomu Gomu Gigant", d:100, c:2, desc:"Soco gigante de borracha!"},
             {n:"Bajrang Gun", d:180, c:4, desc:"Punho revestido do poder do Sol!", status:{target:'enemy', type:'burn', turns:3}}
-        ], price:1200
+        ], price:3500
     },
     // ---- BLEACH (Reiatsu) ----
     'bl1': {
         id:'bl1', name:"Ichigo", type:"Reiatsu", hp:95,
-        img:"https://i.imgur.com/RuqS8H0.jpeg",
+        img:"https://i.imgur.com/QBByZA1.jpeg",
         skills:[
             {n:"Getsuga Tensho", d:55, c:2, desc:"Corte de energia espiritual!"},
             {n:"Bankai!", d:30, c:1, desc:"Libera o Bankai!", status:{target:'self', type:'shield', turns:1}}
-        ], price:280
+        ], price:600
     },
     'bl2': {
         id:'bl2', name:"Ichigo Bankai EX", type:"Reiatsu", hp:200, isEx:true, evolvesFrom:"Ichigo",
-        img:"https://i.imgur.com/vRZfTYk.jpeg",
+        img:"https://i.imgur.com/PpSbEcC.jpeg",
         skills:[
             {n:"Kuroi Getsuga", d:110, c:2, desc:"Corte negro de pressão máxima!"},
             {n:"Mugetsu", d:190, c:4, desc:"O corte final sem lua!", status:{target:'enemy', type:'stun', turns:2}}
@@ -1514,11 +1612,11 @@ const CARDS_DB = {
     // ---- HUNTER X HUNTER (Nen) ----
     'hxh1': {
         id:'hxh1', name:"Gon", type:"Nen", hp:85,
-        img:"https://i.imgur.com/PzCbmIM.jpeg",
+        img:"https://i.imgur.com/qw63Mhh.jpeg",
         skills:[
             {n:"Jajaken", d:40, c:1, desc:"Pedra de Nen concentrada!"},
             {n:"Pedra de Nen Carregada", d:65, c:2, desc:"Carregada por longo tempo!"}
-        ], price:250
+        ], price:570
     },
     'hxh2': {
         id:'hxh2', name:"Gon Adulto EX", type:"Nen", hp:220, isEx:true, evolvesFrom:"Gon",
@@ -1526,7 +1624,7 @@ const CARDS_DB = {
         skills:[
             {n:"Jajaken MAX", d:120, c:2, desc:"Pedra de Nen ao máximo!"},
             {n:"Nen Liberado", d:200, c:4, desc:"Toda a vida como Nen!", status:{target:'enemy', type:'burn', turns:3}}
-        ], price:1300
+        ], price:2500
     },
     // ---- CARTAS EXCLUSIVAS DO MODO HISTÓRIA (não aparecem na loja) ----
     // Cap.0 — Naruto + Sasuke vs Madara
@@ -1540,7 +1638,7 @@ const CARDS_DB = {
     },
     'hs_madara_boss': {
         id:'hs_madara_boss', name:"Madara Uchiha", type:"Chakra", hp:320, storyOnly:true,
-        img:"https://i.imgur.com/MG7FIXN.jpeg",
+        img:"https://i.imgur.com/cpJlPaG.png",
         skills:[
             {n:"Susanoo Completo", d:100, c:3, desc:"Armadura de chakra titânica."},
             {n:"Limbo", d:160, c:4, desc:"Ataque do reino das sombras!", status:{target:'enemy', type:'stun', turns:1}}
@@ -1673,7 +1771,11 @@ let game = {
     roundCount:1,
     deckTypes:[],
     discard:[],   // pilha de descarte compartilhada
-    energies:{ Chakra:0, Ki:0, Amaldiçoada:0, Stand:0, Haki:0, Reiatsu:0, Nen:0 }
+    energies:{ Chakra:0, Ki:0, Amaldiçoada:0, Stand:0, Haki:0, Reiatsu:0, Nen:0 },
+    // PUCCI MECHANICS
+    timeAccelerationActive: false,  // Tempo Acelerado do Made in Heaven
+    accelerationTimeLeft: 20,        // Contador regressivo (20s)
+    accelerationInterval: null       // Intervalo do contador
 };
 
 // =========================================================
@@ -1757,6 +1859,7 @@ function showScreen(id, modeParam) {
     // garante que _storyMode é desligado para não interceptar batalhas normais
     if(['main-menu','deck-select','story-modal','store-screen','deck-editor'].includes(id)) {
         game._storyMode = false;
+        if(id !== 'story-modal') storyState.currentBattleScene = null;
     }
 
     document.querySelectorAll('.screen, #coin-screen, #result-screen').forEach(s => s.style.display = 'none');
@@ -2373,6 +2476,181 @@ function flyCardTo(atkElId, defElId, card, source, callback) {
     requestAnimationFrame(phase1);
 }
 
+// =========================================================
+//  PUCCI SPECIAL MECHANICS
+// =========================================================
+
+// WHITE SNAKE: Copiar habilidade do oponente
+function copyEnemySkill(attackerCard) {
+    const defender = game.turn === 'player' ? game.enemy.active : game.player.active;
+    if(!defender || !defender.skills || defender.skills.length === 0) {
+        log(`❌ Sem habilidades para copiar!`, '#f59e0b');
+        return;
+    }
+
+    // Mostrar opções de skills para escolher
+    const skillOptions = defender.skills.map((s, i) => `${i+1}. ${s.n} (Dano: ${s.d}, Custo: ${s.c})`).join('\n');
+    const choice = prompt(`🎭 REMOVER DISCO\n\nEscolha qual ataque copiar de ${defender.name}:\n\n${skillOptions}\n\nDigite o número (1-${defender.skills.length}):`);
+    
+    const idx = parseInt(choice) - 1;
+    if(idx >= 0 && idx < defender.skills.length) {
+        const copiedSkill = {...defender.skills[idx]};
+        attackerCard.skills[1] = copiedSkill;  // Substitui o segundo slot
+        attackerCard.copiedSkillName = copiedSkill.n; // Guardar nome para exibir
+        log(`🎭 ${attackerCard.name} copiou "${copiedSkill.n}" de ${defender.name}!`, '#10b981');
+        updateUI();
+    } else {
+        log(`❌ Escolha inválida.`, '#f59e0b');
+    }
+}
+
+// C-MOON: Evolução forçada para Made in Heaven
+function forcePucciEvolution(attackerCard, source) {
+    log(`🌙 SUBIR AOS CÉUS — Evolução para Made in Heaven!`, '#fbbf24');
+    
+    // Verificar se tem Made in Heaven no deck/mão
+    const pucciMIH = CARDS_DB['pucci3'];
+    if(!pucciMIH) {
+        log(`❌ Erro: Made in Heaven não encontrado!`, '#ef4444');
+        return;
+    }
+
+    const side = source === 'player' ? game.player : game.enemy;
+    const dmgTaken = attackerCard.hp - attackerCard.curHP;
+    
+    // Evoluir diretamente
+    const evolved = {
+        ...pucciMIH,
+        curHP: pucciMIH.hp - dmgTaken,
+        attached: attackerCard.attached,
+        statuses: attackerCard.statuses || []
+    };
+
+    side.active = evolved;
+    log(`⭐ ${evolved.name} entrou no campo!`, '#fbbf24');
+    
+    // Visual: flash dourado
+    setTimeout(() => {
+        const elId = source === 'player' ? 'p-card-active' : 'e-card-active';
+        const el = document.getElementById(elId);
+        if(el) {
+            el.style.filter = 'brightness(3) saturate(1.5)';
+            setTimeout(() => el.style.filter = '', 500);
+        }
+    }, 100);
+
+    updateUI();
+}
+
+// MADE IN HEAVEN: Ativar Tempo Acelerado
+function activateTimeAcceleration() {
+    if(game.timeAccelerationActive) {
+        log(`⏰ Tempo Acelerado já está ativo!`, '#f59e0b');
+        return;
+    }
+
+    game.timeAccelerationActive = true;
+    game.accelerationTimeLeft = 20;
+
+    // Ativar overlays visuais
+    const overlay = document.getElementById('time-acceleration-overlay');
+    const timer = document.getElementById('acceleration-timer');
+    const gameUI = document.getElementById('game-ui');
+    
+    if(overlay) overlay.classList.add('active');
+    if(timer) {
+        timer.classList.add('active');
+        timer.innerText = '20';
+    }
+    if(gameUI) gameUI.classList.add('time-accelerated-shake');
+
+    log(`⏰⚡ TEMPO ACELERADO ATIVADO! Derrote Pucci em 20 segundos ou o UNIVERSO SERÁ RESETADO!`, '#ef4444');
+
+    // Iniciar contagem regressiva
+    clearInterval(game.accelerationInterval);
+    game.accelerationInterval = setInterval(() => {
+        game.accelerationTimeLeft--;
+        if(timer) timer.innerText = game.accelerationTimeLeft;
+
+        if(game.accelerationTimeLeft <= 5) {
+            // Piscar vermelho quando crítico
+            if(timer) timer.style.animation = 'count-pulse 0.3s infinite';
+        }
+
+        if(game.accelerationTimeLeft <= 0) {
+            clearInterval(game.accelerationInterval);
+            triggerUniverseReset();
+        }
+    }, 1000);
+}
+
+// Reset do Universo — Vitória automática para quem tem Made in Heaven
+function triggerUniverseReset() {
+    clearInterval(game.accelerationInterval);
+    clearInterval(game.timerInterval);
+
+    const overlay = document.getElementById('time-acceleration-overlay');
+    const timer = document.getElementById('acceleration-timer');
+    const gameUI = document.getElementById('game-ui');
+    
+    if(overlay) overlay.classList.remove('active');
+    if(timer) timer.classList.remove('active');
+    if(gameUI) gameUI.classList.remove('time-accelerated-shake');
+
+    // Tocar vídeo de reset do universo
+    const v = document.getElementById('ult-video');
+    v.src = 'Made In Haven.mp4';  // COLOQUE O VÍDEO AQUI
+    document.getElementById('ult-screen').style.display = 'flex';
+    const playOverlay = document.getElementById('ult-play-overlay');
+    if(playOverlay) playOverlay.style.display = 'none';
+    
+    setTimeout(() => {
+        v.play().catch(() => {
+            // Se o vídeo falhar, mostrar resultado direto
+            finishUniverseReset();
+        });
+    }, 300);
+
+    // Após o vídeo (ou 5s), mostrar vitória
+    v.onended = finishUniverseReset;
+    setTimeout(finishUniverseReset, 5000); // Backup se video não terminar
+}
+
+function finishUniverseReset() {
+    document.getElementById('ult-screen').style.display = 'none';
+    
+    // Verificar qual lado tem Made in Heaven
+    const playerHasMIH = game.player.active && game.player.active.id === 'pucci3';
+    const enemyHasMIH = game.enemy.active && game.enemy.active.id === 'pucci3';
+
+    // Também verificar no banco
+    const playerHasMIHBench = game.player.bench && game.player.bench.some(c => c.id === 'pucci3');
+    const enemyHasMIHBench = game.enemy.bench && game.enemy.bench.some(c => c.id === 'pucci3');
+
+    const playerWins = playerHasMIH || playerHasMIHBench;
+    
+    log(`🌌 RESET DO UNIVERSO CONCLUÍDO!`, '#fbbf24');
+    showResult(playerWins);
+}
+
+// Limpar Tempo Acelerado se Pucci morrer
+function clearTimeAcceleration() {
+    if(!game.timeAccelerationActive) return;
+    
+    game.timeAccelerationActive = false;
+    clearInterval(game.accelerationInterval);
+
+    const overlay = document.getElementById('time-acceleration-overlay');
+    const timer = document.getElementById('acceleration-timer');
+    const gameUI = document.getElementById('game-ui');
+    
+    if(overlay) overlay.classList.remove('active');
+    if(timer) timer.classList.remove('active');
+    if(gameUI) gameUI.classList.remove('time-accelerated-shake');
+
+    log(`⏰ Tempo Acelerado foi cancelado!`, '#38bdf8');
+}
+
 function triggerAttack(idx, source) {
     if(source === 'player' && (!game.enemy.active || game.turn !== 'player')) return;
     if(source === 'player' && game.hasSwapped) return alert("Troca recente — não pode atacar!");
@@ -2385,6 +2663,30 @@ function triggerAttack(idx, source) {
 
     if(!skill) return;
     if(attacker.attached < skill.c) { if(source === 'player') alert("Energia insuficiente!"); return; }
+
+    // ===== PUCCI SPECIAL SKILLS =====
+    if(skill.special === 'copySkill') {
+        // WHITE SNAKE: Remover Disco
+        copyEnemySkill(attacker);
+        if(source === 'player') game.hasAttacked = true;
+        setTimeout(() => endTurn(false), 1500);
+        return;
+    }
+
+    if(skill.special === 'forcedEvolution') {
+        // C-MOON: Subir aos Céus (evolução obrigatória)
+        forcePucciEvolution(attacker, source);
+        if(source === 'player') game.hasAttacked = true;
+        setTimeout(() => endTurn(false), 2000);
+        return;
+    }
+
+    if(skill.special === 'timeAcceleration') {
+        // MADE IN HEAVEN: Tempo Acelerado
+        activateTimeAcceleration();
+        // Skill tem vídeo, então continua o fluxo normal de ultimate abaixo
+    }
+    // ===== FIM PUCCI SPECIAL SKILLS =====
 
     // Escudo: bloqueia dano
     if(hasStatus(defender, 'shield')) {
@@ -2992,7 +3294,8 @@ function checkKOs() {
         log(`💀 ${dead.name} foi derrotado!`, '#ef4444');
         addToDiscard(dead);
         playDeathAnimation('e-card-active', dead, () => {
-            if(game.mode === 'normal' && game.enemy.bench && game.enemy.bench.length > 0) {
+            // No modo história, boss não tem bench — vai direto para showResult
+            if((game.mode === 'normal') && game.enemy.bench && game.enemy.bench.length > 0) {
                 game.enemy.active = game.enemy.bench.shift();
                 log(`😈 Inimigo enviou ${game.enemy.active.name}!`, '#ef4444');
                 updateUI();
@@ -3207,7 +3510,7 @@ const STORY_CHAPTERS = [
       subtitle:'MODO SENNIN — VALE DO FIM',
       bossId:'hs_madara_boss', hpOverride: 320, reward: 0,
       narrativa: true,
-      storyDeck:['n1','n1','n2','hs_sasuke','n2','hs_sasuke'],
+      storyDeck:['n1','n1','n2','n3','n2','n3','n4','n4'],
       cutAt: 30,
       cutScenes: [
         { type:'narration', text:'O chakra de Naruto pressiona Madara até o limite — mas antes que o golpe final pudesse ser desferido, algo impossível acontece.' },
@@ -3258,7 +3561,7 @@ const STORY_CHAPTERS = [
       title:'🥊 LUTA!: NARUTO vs GOKU',
       subtitle:'MODO SENNIN vs INSTINTO DE LUTA',
       bossId:'g2', hpOverride: 370, reward: 0,
-      storyDeck:['n2','n2','n1','n1',],
+      storyDeck:['n2','n2','n1','n1','n2','n2','n1','n1'],
       cutAt: 0,
       cutScenes: []
     },
@@ -3432,7 +3735,7 @@ const STORY_CHAPTERS = [
       subtitle:'FASE FINAL — DENTRO DO DOMÍNIO',
       bossId:'hs_sukuna_final', hpOverride: 620, reward: 0,
       narrativa: true,
-      storyDeck:['n1','g1','n2','g2','j3','j4'],
+      storyDeck:['n1','g1','n2','g2','j3','j4','j3','j4'],
       cutAt: 20,
       cutScenes: [
         { type:'narration', text:'A batalha dentro do domínio de Sukuna e Gojo foi a mais intensa já vista. Sukuna dominava, mas Naruto criou um mapa parcial do interior com a adaptação híbrida. Goku começava a ser comprimido pela pressão constante. E Gojo tentava segurar o conflito de domínios.' },
@@ -4071,9 +4374,12 @@ function claimStoryReward() {
 //  MODO HISTÓRIA — RESULTADO DA BATALHA
 //  narrativa:true  → derrota TAMBÉM avança a história (batalha é parte do roteiro)
 //  narrativa:false → derrota mostra "TENTAR NOVAMENTE" até o jogador vencer
-// =========================================================
 function showResult(win) {
-    if(!game._storyMode) { showResultBase(win); return; }
+    // Se está em modo história OU se há uma batalha de história pendente
+    // (pode ter sido resetado por triggerStoryCut mas batalha ainda é narrativa)
+    const isStoryBattle = game._storyMode || (storyState.currentBattleScene != null && game.mode === 'story');
+
+    if(!isStoryBattle) { showResultBase(win); return; }
 
     // Para musica de batalha, retoma trilha do mapa
     clearInterval(game.timerInterval);
@@ -4088,20 +4394,19 @@ function showResult(win) {
         autoSave();
     }
 
+    game._storyMode = false;
     document.getElementById('game-ui').style.display = 'none';
 
     const scene = storyState.currentBattleScene;
 
     // Batalhas narrativas: ganhar OU perder avança a história
-    // (Madara, Freeza, Sukuna fases 1/2/final — são parte do roteiro)
     const ehNarrativa = scene && scene.narrativa === true;
 
     if(win || ehNarrativa) {
-        // Vitória em qualquer batalha OU derrota em batalha narrativa → avança
         if(win) playSFX('sfxVictory');
         afterStoryBattle(true);
     } else {
-        // Derrota em batalha NÃO-narrativa (ex: treino Naruto vs Goku) → RETRY
+        // Derrota em batalha NÃO-narrativa → RETRY
         document.getElementById('result-title').className = 'result-title lose';
         document.getElementById('result-title').innerText = '💀 DERROTA!';
         document.getElementById('result-coins').innerText = 'Você precisa vencer para continuar...';
@@ -4112,7 +4417,6 @@ function showResult(win) {
             btn.onclick = () => {
                 playClick();
                 document.getElementById('result-screen').style.display = 'none';
-                // Recarrega exatamente a batalha atual, sem reiniciar o capítulo inteiro
                 showStoryBattleTransition(scene);
             };
         }
