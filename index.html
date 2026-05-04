@@ -1923,6 +1923,7 @@ let game = {
     accelerationInterval: null,      // Intervalo do contador
     _cardUidSeed: 0,
     _resetVideoActive: false,
+    _pendingBattleResult: null,
     _resultRevealQueued: false,
     battleEnded: false
 };
@@ -2971,6 +2972,8 @@ function triggerUniverseReset() {
     clearInterval(game.accelerationInterval);
     clearInterval(game.timerInterval);
     game.timeAccelerationActive = false;
+    game.battleEnded = true;
+    game.pendingAttack = null;
 
     const overlay = document.getElementById('time-acceleration-overlay');
     const timerEl = document.getElementById('acceleration-timer');
@@ -3025,7 +3028,9 @@ function finishUniverseReset() {
     const playerHasMIHBench = game.player.bench && game.player.bench.some(c => c.id === 'pucci3');
     const enemyHasMIHBench = game.enemy.bench && game.enemy.bench.some(c => c.id === 'pucci3');
 
-    const playerWins = playerHasMIH || playerHasMIHBench;
+    const queuedResult = game._pendingBattleResult;
+    game._pendingBattleResult = null;
+    const playerWins = queuedResult != null ? queuedResult : (playerHasMIH || playerHasMIHBench);
     
     log(`🌌 RESET DO UNIVERSO CONCLUÍDO!`, '#fbbf24');
     game._resetVideoActive = false;
@@ -3766,6 +3771,11 @@ function showResultBase(win) {
     clearInterval(game.accelerationInterval);
     game.battleEnded = true;
     game.pendingAttack = null;
+
+    if(game._resetVideoActive) {
+        game._pendingBattleResult = win;
+        return;
+    }
 
     const musicaBatalha = document.getElementById('musicaBatalha');
     const musicaFundo = document.getElementById('musicaFundo');
