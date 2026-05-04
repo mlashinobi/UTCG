@@ -1923,7 +1923,8 @@ let game = {
     accelerationInterval: null,      // Intervalo do contador
     _cardUidSeed: 0,
     _resetVideoActive: false,
-    _resultRevealQueued: false
+    _resultRevealQueued: false,
+    battleEnded: false
 };
 
 // =========================================================
@@ -2140,6 +2141,7 @@ function showScreen(id, modeParam) {
     // mata TODOS os intervalos ativos (timer de turno, countdown do Tempo Acelerado, etc.)
     if(['main-menu','deck-select','story-modal','store-screen','deck-editor'].includes(id)) {
         game._storyMode = false;
+        game.battleEnded = true;
         if(id !== 'story-modal') storyState.currentBattleScene = null;
 
         // Para timers de batalha
@@ -2372,6 +2374,7 @@ function initCoinFlip(lvlIdx) {
 //  INICIAR JOGO
 // =========================================================
 function startGame(lvlIdx, firstTurn) {
+    game.battleEnded = false;
     showScreen('game-ui');
     document.getElementById('log').innerHTML = '';
 
@@ -2576,6 +2579,7 @@ function updateEnergyPanel() {
 //  TIMER
 // =========================================================
 function startTimer() {
+    if(game.battleEnded) return;
     clearInterval(game.timerInterval);
     game.timeLeft = game.timeAccelerationActive ? 5 : 30;
     const td = document.getElementById('turn-timer');
@@ -2598,6 +2602,7 @@ function startTimer() {
 //  TURNOS
 // =========================================================
 function startTurn(who) {
+    if(game.battleEnded) return;
     game.turn = who;
     game.energyUsed = false;
     game.hasAttacked = false;
@@ -2654,6 +2659,7 @@ function startTurn(who) {
 }
 
 function endTurn(isManual) {
+    if(game.battleEnded) return;
     clearInterval(game.timerInterval);
     decrementStatuses(game.turn === 'player' ? game.player : game.enemy);
     if(game.turn === 'player') startTurn('enemy');
@@ -3001,17 +3007,9 @@ function triggerUniverseReset() {
     v.onended = safeFinish;
     v.onerror = safeFinish;
 
-    fallbackTimer = setTimeout(() => {
-        if(!finished) safeFinish();
-    }, 20000);
-
     setTimeout(() => {
         v.play().catch(() => {
-            // Se o navegador bloquear o play, espera um tempo maior antes de encerrar.
-            if(!finished) {
-                if(fallbackTimer) clearTimeout(fallbackTimer);
-                fallbackTimer = setTimeout(safeFinish, 20000);
-            }
+            // Se o navegador bloquear o play, mantém a tela aberta até o vídeo realmente terminar ou falhar.
         });
     }, 1000);
 }
@@ -3062,6 +3060,7 @@ function clearTimeAcceleration() {
 }
 
 function triggerAttack(idx, source) {
+    if(game.battleEnded) return;
     if(source === 'player' && (!game.enemy.active || game.turn !== 'player')) return;
     if(source === 'player' && game.hasSwapped) return alert("Troca recente — não pode atacar!");
     if(source === 'player' && game.hasAttacked) return alert("Você já atacou neste turno!");
@@ -3172,6 +3171,7 @@ function closeUlt() {
 }
 
 function executeDamage(attacker, defender, skill, source) {
+    if(game.battleEnded) return;
     if(!defender) return;
 
     // Esquiva: evita dano
@@ -3666,6 +3666,7 @@ function updateUI() {
 //  INIMIGO AI
 // =========================================================
 function enemyAI() {
+    if(game.battleEnded) return;
     if(!game.enemy.active || game.turn !== 'enemy') return;
 
     if(game.mode === 'boss' || game.mode === 'story') {
@@ -3763,10 +3764,17 @@ function checkKOs() {
 function showResultBase(win) {
     clearInterval(game.timerInterval);
     clearInterval(game.accelerationInterval);
+    game.battleEnded = true;
+    game.pendingAttack = null;
 
     const musicaBatalha = document.getElementById('musicaBatalha');
     const musicaFundo = document.getElementById('musicaFundo');
     if(musicaBatalha) musicaBatalha.pause();
+
+    const ultScreen = document.getElementById('ult-screen');
+    const ultVideo = document.getElementById('ult-video');
+    if(ultVideo) { ultVideo.pause(); ultVideo.src = ''; }
+    if(ultScreen) ultScreen.style.display = 'none';
 
     if(win) {
         user.coins += game.currentReward;
@@ -4604,6 +4612,7 @@ function showStoryBattleTransition(scene) {
         // Zera tudo igual startGame
         game.mode = 'story';
         game._storyMode = true;
+        game.battleEnded = false;
         game.currentReward = scene.reward || 0;
         storyState.pendingReward = STORY_CHAPTERS[storyState.chapterId].reward;
         storyState.currentBattleScene = scene;
@@ -4850,10 +4859,13 @@ function showResult(win) {
 
     // Para musica de batalha, retoma trilha do mapa
     clearInterval(game.timerInterval);
+    game.battleEnded = true;
+    game.pendingAttack = null;
     const musicaBatalha = document.getElementById('musicaBatalha');
     const musicaFundo   = document.getElementById('musicaFundo');
     if(musicaBatalha) musicaBatalha.pause();
     if(musicaFundo && musicaFundo.paused) musicaFundo.play().catch(()=>{});
+    document.getElementById('game-ui').style.display = 'none';
 
     // Credita recompensa se ganhou
     if(win && game.currentReward > 0) {
