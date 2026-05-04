@@ -1958,6 +1958,31 @@ function playSFX(id) {
 }
 function playClick() { playSFX('sfxClick'); }
 
+function pauseAllBackgroundMusicForVideo() {
+    const musicaFundo = document.getElementById('musicaFundo');
+    const musicaBatalha = document.getElementById('musicaBatalha');
+    game._videoMusicState = {
+        fundoWasPlaying: !!(musicaFundo && !musicaFundo.paused),
+        batalhaWasPlaying: !!(musicaBatalha && !musicaBatalha.paused)
+    };
+    if(musicaFundo) musicaFundo.pause();
+    if(musicaBatalha) musicaBatalha.pause();
+}
+
+function restoreBackgroundMusicAfterVideo(preferBattle = true) {
+    const musicaFundo = document.getElementById('musicaFundo');
+    const musicaBatalha = document.getElementById('musicaBatalha');
+    const state = game._videoMusicState || {};
+    if(preferBattle) {
+        if(musicaBatalha && state.batalhaWasPlaying) musicaBatalha.play().catch(()=>{});
+        else if(musicaFundo && state.fundoWasPlaying) musicaFundo.play().catch(()=>{});
+    } else {
+        if(musicaFundo && state.fundoWasPlaying) musicaFundo.play().catch(()=>{});
+        else if(musicaBatalha && state.batalhaWasPlaying) musicaBatalha.play().catch(()=>{});
+    }
+    game._videoMusicState = null;
+}
+
 function desbloquearAudio() {
     const m = document.getElementById('musicaFundo');
     m.volume = 0.3;
@@ -2861,6 +2886,7 @@ function activateTimeAcceleration() {
     v.load();
     if(playOverlay) playOverlay.style.display = 'none'; // autoplay sem botão
     ultScreen.style.display = 'flex';
+    pauseAllBackgroundMusicForVideo();
 
     // Quando o vídeo do Tempo Acelerado terminar → entra o turno oposto e começa o countdown
     let videoEnded = false;
@@ -2872,8 +2898,7 @@ function activateTimeAcceleration() {
         // Fecha tela de vídeo e volta ao campo
         v.pause();
         ultScreen.style.display = 'none';
-        const musicaBatalha = document.getElementById('musicaBatalha');
-        if(musicaBatalha) musicaBatalha.play().catch(()=>{});
+        restoreBackgroundMusicAfterVideo(true);
 
         // Se o Tempo Acelerado foi cancelado (Pucci morreu durante o vídeo), para aqui
         if(!game.timeAccelerationActive) return;
@@ -2928,7 +2953,7 @@ function activateTimeAcceleration() {
         } else {
             v.play().catch(() => {});
         }
-    }, 300);
+    }, 1000);
 }
 
 function triggerUniverseReset() {
@@ -2958,12 +2983,15 @@ function triggerUniverseReset() {
     v.src = 'Made In Haven.mp4';
     ultScreen.style.display = 'flex';
     if(playOverlay) playOverlay.style.display = 'none';
+    pauseAllBackgroundMusicForVideo();
 
     // Controle de chamada única para finishUniverseReset
     let finished = false;
+    let fallbackTimer = null;
     function safeFinish() {
         if(finished) return;
         finished = true;
+        if(fallbackTimer) clearTimeout(fallbackTimer);
         v.onended = null;
         v.onerror = null;
         game._resetVideoActive = false;
@@ -2973,12 +3001,19 @@ function triggerUniverseReset() {
     v.onended = safeFinish;
     v.onerror = safeFinish;
 
+    fallbackTimer = setTimeout(() => {
+        if(!finished) safeFinish();
+    }, 20000);
+
     setTimeout(() => {
         v.play().catch(() => {
-            // Se o navegador bloquear o play, termina sem prender a tela.
-            setTimeout(safeFinish, 1500);
+            // Se o navegador bloquear o play, espera um tempo maior antes de encerrar.
+            if(!finished) {
+                if(fallbackTimer) clearTimeout(fallbackTimer);
+                fallbackTimer = setTimeout(safeFinish, 20000);
+            }
         });
-    }, 300);
+    }, 1000);
 }
 
 function finishUniverseReset() {
@@ -3087,8 +3122,7 @@ function triggerAttack(idx, source) {
     if(attacker.isEx && skill.vid) {
         // Ultimate: vale tanto para player quanto para inimigo
         game.pendingAttack = { attacker, defender, skill, source };
-        const musicaBatalha = document.getElementById('musicaBatalha');
-        if(musicaBatalha) musicaBatalha.pause();
+        pauseAllBackgroundMusicForVideo();
         const v = document.getElementById('ult-video');
         v.src = skill.vid;
         v.load();
@@ -3125,12 +3159,11 @@ function startUltVideo() {
 function closeUlt() {
     if(game._resetVideoActive) return;
     const v = document.getElementById('ult-video');
-    const musicaBatalha = document.getElementById('musicaBatalha');
     v.pause(); v.src = '';
     document.getElementById('ult-screen').style.display = 'none';
     const overlay = document.getElementById('ult-play-overlay');
     if(overlay) overlay.style.display = 'flex'; // resetar para próxima vez
-    if(musicaBatalha) musicaBatalha.play().catch(()=>{});
+    restoreBackgroundMusicAfterVideo(true);
     if(game.pendingAttack) {
         const { attacker, defender, skill, source } = game.pendingAttack;
         game.pendingAttack = null;
