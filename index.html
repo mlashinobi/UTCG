@@ -261,24 +261,163 @@
         ========================================================= */
         #result-screen {
             display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.92); z-index: 4000;
+            background: radial-gradient(ellipse at center, rgba(2,6,23,0.94) 0%, rgba(0,0,0,0.98) 100%);
+            z-index: 4000;
             flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden;
         }
-        .result-box {
-            background: linear-gradient(135deg, #0f172a, #020617);
-            border: 3px solid var(--gold); border-radius: 16px;
-            padding: 50px 60px; text-align: center;
-            box-shadow: 0 0 60px rgba(251,191,36,0.3);
-            animation: result-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        #result-screen.reveal .result-card-shell.revealed .result-card-stage {
+            transform: rotateY(180deg);
         }
-        @keyframes result-pop { from { opacity:0; transform:scale(0.5); } to { opacity:1; transform:scale(1); } }
+        .result-shell {
+            width: min(980px, 95vw);
+            padding: 28px 18px 22px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(15,23,42,0.92), rgba(2,6,23,0.96));
+            border: 1px solid rgba(251,191,36,0.18);
+            box-shadow: 0 0 60px rgba(0,0,0,0.65), inset 0 0 40px rgba(251,191,36,0.04);
+            text-align: center;
+            animation: result-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .result-subtitle {
+            color: #94a3b8;
+            font-size: 11px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+        .result-card-showcase {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 18px;
+            align-items: center;
+            justify-items: center;
+            margin: 10px 0 18px;
+        }
+        .result-vs-orb {
+            font-family: 'Orbitron', monospace;
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 0 24px rgba(251,191,36,0.8);
+            animation: vs-pulse 1.2s ease-in-out infinite;
+        }
+        @keyframes vs-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+        .result-card-slot {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .result-card-shell {
+            width: min(280px, 38vw);
+            perspective: 1200px;
+            opacity: 0;
+            transform: translateY(24px) scale(0.96);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        #result-screen.reveal .result-card-shell {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .result-card-stage {
+            position: relative;
+            width: 100%;
+            min-height: 390px;
+            transform-style: preserve-3d;
+            transition: transform 1.05s cubic-bezier(0.2, 0.7, 0.1, 1.0);
+        }
+        .result-card-card {
+            position: absolute;
+            inset: 0;
+            border-radius: 22px;
+            overflow: hidden;
+            backface-visibility: hidden;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.55);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .result-card-back {
+            background: linear-gradient(135deg, #111827, #020617);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .result-card-back img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.38) saturate(0.3);
+        }
+        .result-card-back-badge {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: 900;
+            color: rgba(251,191,36,0.9);
+            text-shadow: 0 0 18px rgba(251,191,36,0.6);
+            letter-spacing: 3px;
+        }
+        .result-card-front {
+            transform: rotateY(180deg);
+            background: linear-gradient(180deg, #0f172a, #020617);
+        }
+        .result-card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .result-card-front-glow {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at top, rgba(251,191,36,0.22), transparent 55%);
+            pointer-events: none;
+        }
+        .result-card-front-glow.loser {
+            background: radial-gradient(circle at top, rgba(239,68,68,0.22), transparent 55%);
+        }
+        .result-card-caption {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            padding: 14px 12px 12px;
+            background: linear-gradient(180deg, transparent 0%, rgba(2,6,23,0.78) 26%, rgba(2,6,23,0.98) 100%);
+            text-align: center;
+        }
+        .result-card-role {
+            font-family: 'Orbitron', monospace;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+        }
+        .result-card-name {
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: 900;
+            margin-bottom: 6px;
+            text-shadow: 0 0 18px rgba(255,255,255,0.16);
+        }
+        .result-card-dmg {
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 4px;
+        }
+        .result-card-sub {
+            font-size: 10px;
+            color: #94a3b8;
+            line-height: 1.4;
+            min-height: 28px;
+        }
         .result-title {
             font-family: 'Orbitron', monospace; font-size: 52px; font-weight: 900;
-            margin-bottom: 12px; text-shadow: 0 0 30px currentColor;
+            margin-bottom: 8px; text-shadow: 0 0 30px currentColor;
         }
         .result-title.win { color: var(--gold); }
         .result-title.lose { color: var(--hp-red); }
-        .result-coins { font-size: 28px; color: var(--green); font-weight: 700; margin-bottom: 30px; }
+        .result-coins { font-size: 24px; color: var(--green); font-weight: 700; margin-top: 10px; margin-bottom: 22px; }
 
         /* =========================================================
            STATUS EFFECTS BADGES
@@ -1340,10 +1479,16 @@
 
 <!-- ===================== RESULTADO ===================== -->
 <div id="result-screen">
-    <div class="result-box">
+    <div class="result-shell">
         <div class="result-title" id="result-title">VITÓRIA!</div>
+        <div class="result-subtitle">RESUMO FINAL DA BATALHA</div>
+        <div class="result-card-showcase">
+            <div class="result-card-slot" id="result-card-winner"></div>
+            <div class="result-vs-orb">VS</div>
+            <div class="result-card-slot" id="result-card-loser"></div>
+        </div>
         <div class="result-coins" id="result-coins"></div>
-        <button class="btn btn-sec" style="width:220px; border-color:var(--gold); color:var(--gold); font-size:16px;" onclick="playClick(); showScreen('main-menu')">← VOLTAR AO MENU</button>
+        <button class="btn btn-sec" style="width:240px; border-color:var(--gold); color:var(--gold); font-size:16px;" onclick="playClick(); showScreen('main-menu')">← VOLTAR AO MENU</button>
     </div>
 </div>
 
@@ -1756,8 +1901,8 @@ const LEVELS_NORMAL = [
 // =========================================================
 let user = {
     coins: 500,
-    inventory: ['n1','g1','n1','g1','n1','g1','j1','b1','op1','bl1','hxh1','sup1','sup2'],
-    deck: ['n1','g1','n1','g1','n1'],
+    inventory: ['pucci1','pucci2','pucci3','n1','g1','n1','g1','n1','g1','j1','b1','op1','bl1','hxh1','sup1','sup2'],
+    deck: ['pucci1','pucci2','pucci3','n1','g1'],
     completedChapters: []  // IDs dos capítulos completados (ex: [0, 1] significa Cap 0 e 1 completos)
 };
 
@@ -1775,7 +1920,10 @@ let game = {
     // PUCCI MECHANICS
     timeAccelerationActive: false,  // Tempo Acelerado do Made in Heaven
     accelerationTimeLeft: 20,        // Contador regressivo (20s)
-    accelerationInterval: null       // Intervalo do contador
+    accelerationInterval: null,      // Intervalo do contador
+    _cardUidSeed: 0,
+    _resetVideoActive: false,
+    _resultRevealQueued: false
 };
 
 // =========================================================
@@ -1852,6 +2000,114 @@ function showTurnIndicator(who) {
 }
 
 // =========================================================
+//  CONTROLE DE DANO / MVP / SVP
+// =========================================================
+function stampBattleCard(card, ownerSide, preserveDamage = false) {
+    if(!card) return card;
+    if(card._uid == null) card._uid = ++game._cardUidSeed;
+    card._ownerSide = ownerSide || card._ownerSide || null;
+    if(!preserveDamage && card._damageDealt == null) card._damageDealt = 0;
+    return card;
+}
+
+function cloneBattleCard(card, ownerSide, preserveDamage = false) {
+    if(!card) return card;
+    const cloned = { ...card };
+    if(card._uid == null) card._uid = ++game._cardUidSeed;
+    cloned._uid = card._uid;
+    cloned._ownerSide = ownerSide || card._ownerSide || null;
+    cloned._damageDealt = preserveDamage ? (card._damageDealt || 0) : 0;
+    return cloned;
+}
+
+function noteDamageDealt(card, dmg) {
+    if(!card || !dmg || dmg <= 0) return;
+    if(card._damageDealt == null) card._damageDealt = 0;
+    card._damageDealt += dmg;
+}
+
+function gatherBattleCards(sideName) {
+    const side = sideName === 'player' ? game.player : game.enemy;
+    const seen = new Set();
+    const out = [];
+    const push = (card) => {
+        if(!card || card._ownerSide !== sideName) return;
+        const key = card._uid != null ? String(card._uid) : `${card.id || 'x'}:${card.name || 'c'}:${card._ownerSide}`;
+        if(seen.has(key)) return;
+        seen.add(key);
+        out.push(card);
+    };
+    push(side.active);
+    (side.bench || []).forEach(push);
+    (side.hand || []).forEach(push);
+    (game.discard || []).forEach(push);
+    return out;
+}
+
+function getTopDamageCard(sideName) {
+    const cards = gatherBattleCards(sideName);
+    if(cards.length === 0) return null;
+    return cards.reduce((best, card) => {
+        const bestDmg = best ? (best._damageDealt || 0) : -1;
+        const cardDmg = card ? (card._damageDealt || 0) : 0;
+        if(cardDmg > bestDmg) return card;
+        if(cardDmg === bestDmg && best) {
+            const bestHP = best.hp || 0;
+            const cardHP = card.hp || 0;
+            if(cardHP > bestHP) return card;
+        }
+        return best;
+    }, null);
+}
+
+function getBattleResultData(win) {
+    const winnerSide = win ? 'player' : 'enemy';
+    const loserSide = win ? 'enemy' : 'player';
+    return {
+        winnerSide,
+        loserSide,
+        winnerCard: getTopDamageCard(winnerSide),
+        loserCard: getTopDamageCard(loserSide)
+    };
+}
+
+function renderResultCard(card, side, roleLabel, subLabel) {
+    const isEmpty = !card;
+    const img = isEmpty ? 'https://i.imgur.com/HWERuem.png' : (card.img || 'https://i.imgur.com/HWERuem.png');
+    const name = isEmpty ? 'Sem carta' : (card.name || 'Sem nome');
+    const dmg = isEmpty ? 0 : (card._damageDealt || 0);
+    const typeColor = isEmpty ? '#94a3b8' : getTypeColor(card.type);
+    return `
+        <div class="result-card-shell ${side}">
+            <div class="result-card-stage">
+                <div class="result-card-card result-card-back">
+                    <img src="https://i.imgur.com/HWERuem.png" alt="Verso da carta">
+                    <div class="result-card-back-badge">UTCG</div>
+                </div>
+                <div class="result-card-card result-card-front">
+                    <img src="${img}" alt="${name}">
+                    <div class="result-card-front-glow ${side}"></div>
+                    <div class="result-card-caption">
+                        <div class="result-card-role">${roleLabel}</div>
+                        <div class="result-card-name" style="color:${typeColor}">${name}</div>
+                        <div class="result-card-dmg">DANO TOTAL: <b>${dmg}</b></div>
+                        <div class="result-card-sub">${subLabel}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function animateResultReveal() {
+    const screen = document.getElementById('result-screen');
+    if(!screen) return;
+    screen.classList.remove('reveal');
+    void screen.offsetWidth;
+    requestAnimationFrame(() => screen.classList.add('reveal'));
+}
+
+// =========================================================
 //  NAVEGAÇÃO DE TELAS
 // =========================================================
 function showScreen(id, modeParam) {
@@ -1880,6 +2136,7 @@ function showScreen(id, modeParam) {
         const _uv = document.getElementById('ult-video');
         if(_uv) { _uv.onended = null; _uv.pause(); _uv.src = ''; }
         if(_us) _us.style.display = 'none';
+        game._resetVideoActive = false;
     }
 
     document.querySelectorAll('.screen, #coin-screen, #result-screen').forEach(s => s.style.display = 'none');
@@ -2103,6 +2360,9 @@ function startGame(lvlIdx, firstTurn) {
     game.roundCount = 1;
     game._roundStarted = false;
     game.discard = [];
+    game._cardUidSeed = 0;
+    game._resetVideoActive = false;
+    game._timeAccelerationNextTurn = 'enemy';
 
     // Descobrir quais TIPOS de energia estão presentes no deck do jogador
     // (apenas personagens — ignora cartas de suporte)
@@ -2138,7 +2398,9 @@ function startGame(lvlIdx, firstTurn) {
         };
         for(let i=0;i<4;i++) drawCard(game.enemy);
         if(game.enemy.hand.length > 0) {
-            game.enemy.active = {...game.enemy.hand[0], curHP:game.enemy.hand[0].hp, attached:0, statuses:[]};
+            game.enemy.active = cloneBattleCard(game.enemy.hand[0], 'enemy', false);
+            game.enemy.active.curHP = game.enemy.active.hp;
+            stampBattleCard(game.enemy.active, 'enemy');
             game.enemy.hand.splice(0,1);
         }
     }
@@ -2152,7 +2414,10 @@ function drawCard(target) {
     if(target.deck && target.deck.length > 0) {
         const id = target.deck.pop();
         const card = CARDS_DB[id];
-        if(card) target.hand.push({...card});
+        if(card) {
+            const ownerSide = target === game.player ? 'player' : 'enemy';
+            target.hand.push(cloneBattleCard(card, ownerSide, false));
+        }
     }
 }
 
@@ -2287,7 +2552,7 @@ function updateEnergyPanel() {
 // =========================================================
 function startTimer() {
     clearInterval(game.timerInterval);
-    game.timeLeft = 30;
+    game.timeLeft = game.timeAccelerationActive ? 5 : 30;
     const td = document.getElementById('turn-timer');
     td.className = 'timer-box' + (game.turn === 'enemy' ? ' enemy' : '');
     td.innerText = game.timeLeft + 's';
@@ -2295,7 +2560,11 @@ function startTimer() {
     game.timerInterval = setInterval(() => {
         game.timeLeft--;
         td.innerText = game.timeLeft + 's';
-        if(game.timeLeft <= 5) td.classList.add('warning');
+        if(game.timeAccelerationActive) {
+            if(game.timeLeft <= 2) td.classList.add('warning');
+        } else if(game.timeLeft <= 5) {
+            td.classList.add('warning');
+        }
         if(game.timeLeft <= 0) { log("⏰ Tempo esgotado!", '#f59e0b'); endTurn(false); }
     }, 1000);
 }
@@ -2312,6 +2581,11 @@ function startTurn(who) {
 
     const td = document.getElementById('turn-timer');
     td.classList.remove('warning');
+    document.getElementById('end-turn-btn').disabled = (who === 'enemy');
+
+    if(game.timeAccelerationActive) {
+        document.getElementById('end-turn-btn').disabled = (who === 'enemy');
+    }
 
     // Rodada sobe a cada turno do jogador (1 rodada = 1 turno seu)
     if(who === 'player' && game.roundCount !== undefined) {
@@ -2539,12 +2813,11 @@ function forcePucciEvolution(attackerCard, source) {
     const dmgTaken = attackerCard.hp - attackerCard.curHP;
     
     // Evoluir diretamente
-    const evolved = {
-        ...pucciMIH,
-        curHP: pucciMIH.hp - dmgTaken,
-        attached: attackerCard.attached,
-        statuses: attackerCard.statuses || []
-    };
+    const evolved = cloneBattleCard(pucciMIH, source === 'player' ? 'player' : 'enemy', true);
+    evolved.curHP = pucciMIH.hp - dmgTaken;
+    evolved.attached = attackerCard.attached;
+    evolved.statuses = attackerCard.statuses || [];
+    stampBattleCard(evolved, source === 'player' ? 'player' : 'enemy');
 
     side.active = evolved;
     log(`⭐ ${evolved.name} entrou no campo!`, '#fbbf24');
@@ -2582,27 +2855,35 @@ function activateTimeAcceleration() {
     const ultScreen = document.getElementById('ult-screen');
     const playOverlay = document.getElementById('ult-play-overlay');
 
+    game._timeAccelerationNextTurn = (game.turn === 'player') ? 'enemy' : 'player';
     v.onended = null; // limpa handler anterior
     v.src = 'Made in Heaven JJBA Stone Ocean Concept Animation [SPOILERS] - TheDashingDoctorK (1080p, h264, youtube).mp4';
     v.load();
     if(playOverlay) playOverlay.style.display = 'none'; // autoplay sem botão
     ultScreen.style.display = 'flex';
 
-    // Quando o vídeo do Tempo Acelerado terminar → inicia countdown
+    // Quando o vídeo do Tempo Acelerado terminar → entra o turno oposto e começa o countdown
     let videoEnded = false;
     function startCountdown() {
         if(videoEnded) return;
         videoEnded = true;
         v.onended = null;
 
-        // Fecha tela de vídeo e mostra o jogo com o overlay do Tempo Acelerado
-        v.pause(); v.src = '';
+        // Fecha tela de vídeo e volta ao campo
+        v.pause();
         ultScreen.style.display = 'none';
         const musicaBatalha = document.getElementById('musicaBatalha');
         if(musicaBatalha) musicaBatalha.play().catch(()=>{});
 
         // Se o Tempo Acelerado foi cancelado (Pucci morreu durante o vídeo), para aqui
         if(!game.timeAccelerationActive) return;
+
+        // O turno passa imediatamente para o oponente antes da janela de 20s
+        const nextTurn = game._timeAccelerationNextTurn || 'enemy';
+        if(game.turn !== nextTurn) {
+            clearInterval(game.timerInterval);
+            startTurn(nextTurn);
+        }
 
         // ── PASSO 2: Ativar overlays e iniciar countdown de 20s ──────────────
         game.accelerationTimeLeft = 20;
@@ -2639,23 +2920,22 @@ function activateTimeAcceleration() {
     }
 
     v.onended = startCountdown;
-    // Fallback: se vídeo não carregar/tocar em 1s, inicia countdown direto
+    v.onerror = startCountdown;
+    // Se o vídeo não iniciar por bloqueio/autoplay, começa o fluxo sem travar a partida.
     setTimeout(() => {
-        v.play().catch(() => {
-            // Vídeo falhou — fecha e inicia countdown imediatamente
-            ultScreen.style.display = 'none';
-            startCountdown();
-        });
+        if(v.readyState < 2) {
+            v.play().catch(() => startCountdown());
+        } else {
+            v.play().catch(() => {});
+        }
     }, 300);
-    // Fallback máximo: garante que o countdown começa mesmo se o vídeo travar
-    setTimeout(startCountdown, 15000);
 }
 
-// Reset do Universo — Vitória automática para quem tem Made in Heaven
 function triggerUniverseReset() {
-    // Evita chamada dupla (onended + setTimeout)
+    // Evita chamada dupla (onended + erro/duplo disparo)
     if(game._universeResetFired) return;
     game._universeResetFired = true;
+    game._resetVideoActive = true;
 
     clearInterval(game.accelerationInterval);
     clearInterval(game.timerInterval);
@@ -2673,9 +2953,10 @@ function triggerUniverseReset() {
 
     // Tocar vídeo de reset do universo
     const v = document.getElementById('ult-video');
-    v.src = 'Made In Haven.mp4';
-    document.getElementById('ult-screen').style.display = 'flex';
+    const ultScreen = document.getElementById('ult-screen');
     const playOverlay = document.getElementById('ult-play-overlay');
+    v.src = 'Made In Haven.mp4';
+    ultScreen.style.display = 'flex';
     if(playOverlay) playOverlay.style.display = 'none';
 
     // Controle de chamada única para finishUniverseReset
@@ -2684,20 +2965,20 @@ function triggerUniverseReset() {
         if(finished) return;
         finished = true;
         v.onended = null;
+        v.onerror = null;
+        game._resetVideoActive = false;
         finishUniverseReset();
     }
 
+    v.onended = safeFinish;
+    v.onerror = safeFinish;
+
     setTimeout(() => {
         v.play().catch(() => {
-            // Vídeo não carregou — espera 2s simbólicos e finaliza
-            setTimeout(safeFinish, 2000);
+            // Se o navegador bloquear o play, termina sem prender a tela.
+            setTimeout(safeFinish, 1500);
         });
     }, 300);
-
-    v.onended = safeFinish;
-
-    // Fallback: se o vídeo travar, finaliza após 12s (tempo razoável p/ vídeo curto)
-    setTimeout(safeFinish, 12000);
 }
 
 function finishUniverseReset() {
@@ -2714,6 +2995,7 @@ function finishUniverseReset() {
     const playerWins = playerHasMIH || playerHasMIHBench;
     
     log(`🌌 RESET DO UNIVERSO CONCLUÍDO!`, '#fbbf24');
+    game._resetVideoActive = false;
     showResult(playerWins);
 }
 
@@ -2730,6 +3012,7 @@ function clearTimeAcceleration() {
     const ultScreen = document.getElementById('ult-screen');
     if(v) { v.onended = null; v.pause(); v.src = ''; }
     if(ultScreen) ultScreen.style.display = 'none';
+    game._resetVideoActive = false;
 
     // Remove overlays visuais
     const overlay = document.getElementById('time-acceleration-overlay');
@@ -2840,6 +3123,7 @@ function startUltVideo() {
 }
 
 function closeUlt() {
+    if(game._resetVideoActive) return;
     const v = document.getElementById('ult-video');
     const musicaBatalha = document.getElementById('musicaBatalha');
     v.pause(); v.src = '';
@@ -2869,6 +3153,7 @@ function executeDamage(attacker, defender, skill, source) {
     const dmg = skill.d || 0;
     if(dmg > 0) {
         defender.curHP -= dmg;
+        noteDamageDealt(attacker, dmg);
         const defId = source === 'player' ? 'e-card-active' : 'p-card-active';
         const pos = getCardCenter(defId);
         spawnFloat(pos.x, pos.y, `-${dmg}`, 'dmg');
@@ -3010,9 +3295,12 @@ function playDeathAnimation(elId, card, callback) {
 }
 
 // Adicionar carta ao descarte
-function addToDiscard(card) {
+function addToDiscard(card, ownerSide) {
     if(!card || card.isSupport) return;
-    game.discard.push({...card});
+    const side = ownerSide || card._ownerSide || (game.turn === 'player' ? 'player' : 'enemy');
+    const stored = cloneBattleCard(card, side, true);
+    stored._ownerSide = side;
+    game.discard.push(stored);
     const el = document.getElementById('discard-count');
     if(el) el.innerText = game.discard.length;
 }
@@ -3086,14 +3374,19 @@ function playCard(i) {
     if(c.isSupport) { useSupport(i); return; }
 
     if(!game.player.active && !c.evolvesFrom) {
-        game.player.active = {...c, curHP:c.hp, attached:0, statuses:[]};
+        game.player.active = cloneBattleCard(c, 'player', false);
+        game.player.active.curHP = game.player.active.hp;
+        stampBattleCard(game.player.active, 'player');
         game.player.hand.splice(i,1);
     } else if(c.evolvesFrom) {
         if(game.evolutionsThisTurn >= 1) return alert("Só uma evolução por turno!");
         let evolved = false;
         if(game.player.active && c.evolvesFrom === game.player.active.name) {
             const dmgTaken = game.player.active.hp - game.player.active.curHP;
-            game.player.active = {...c, curHP:c.hp - dmgTaken, attached:game.player.active.attached, statuses:game.player.active.statuses||[]};
+            game.player.active = cloneBattleCard(c, 'player', true);
+            game.player.active.curHP = c.hp - dmgTaken;
+            game.player.active.attached = game.player.active.attached;
+            stampBattleCard(game.player.active, 'player');
             game.player.hand.splice(i,1); game.evolutionsThisTurn++; evolved = true;
             log(`⬆️ ${c.name} evoluiu!`, '#fbbf24');
         } else {
@@ -3101,7 +3394,11 @@ function playCard(i) {
                 if(game.player.bench[j].name === c.evolvesFrom) {
                     const bCard = game.player.bench[j];
                     const d = bCard.hp - bCard.curHP;
-                    game.player.bench[j] = {...c, curHP:c.hp-d, attached:bCard.attached, statuses:bCard.statuses||[]};
+                    game.player.bench[j] = cloneBattleCard(c, 'player', true);
+                    game.player.bench[j].curHP = c.hp - d;
+                    game.player.bench[j].attached = bCard.attached;
+                    game.player.bench[j].statuses = bCard.statuses||[];
+                    stampBattleCard(game.player.bench[j], 'player');
                     game.player.hand.splice(i,1); game.evolutionsThisTurn++; evolved = true;
                     log(`⬆️ ${c.name} evoluiu no banco!`, '#fbbf24');
                     break;
@@ -3110,7 +3407,9 @@ function playCard(i) {
         }
         if(!evolved) alert(`Nenhum ${c.evolvesFrom} em campo!`);
     } else if(game.player.bench.length < 3 && !c.evolvesFrom) {
-        game.player.bench.push({...c, curHP:c.hp, attached:0, statuses:[]});
+        game.player.bench.push(cloneBattleCard(c, 'player', false));
+        game.player.bench[game.player.bench.length - 1].curHP = game.player.bench[game.player.bench.length - 1].hp;
+        stampBattleCard(game.player.bench[game.player.bench.length - 1], 'player');
         game.player.hand.splice(i,1);
         log(`📥 ${c.name} entrou no banco.`, '#94a3b8');
     }
@@ -3347,7 +3646,9 @@ function enemyAI() {
         for(let i=game.enemy.hand.length-1;i>=0;i--) {
             const c = game.enemy.hand[i];
             if(!c.evolvesFrom && game.enemy.bench.length < 3 && !c.isSupport) {
-                game.enemy.bench.push({...c, curHP:c.hp, attached:0, statuses:[]});
+                game.enemy.bench.push(cloneBattleCard(c, 'enemy', false));
+                game.enemy.bench[game.enemy.bench.length - 1].curHP = game.enemy.bench[game.enemy.bench.length - 1].hp;
+                stampBattleCard(game.enemy.bench[game.enemy.bench.length - 1], 'enemy');
                 game.enemy.hand.splice(i,1);
             }
         }
@@ -3389,7 +3690,7 @@ function checkKOs() {
     if(game.enemy.active && game.enemy.active.curHP <= 0) {
         const dead = game.enemy.active;
         log(`💀 ${dead.name} foi derrotado!`, '#ef4444');
-        addToDiscard(dead);
+        addToDiscard(dead, 'enemy');
         playDeathAnimation('e-card-active', dead, () => {
             // No modo história, boss não tem bench — vai direto para showResult
             if((game.mode === 'normal') && game.enemy.bench && game.enemy.bench.length > 0) {
@@ -3405,7 +3706,7 @@ function checkKOs() {
     } else if(game.player.active && game.player.active.curHP <= 0) {
         const dead = game.player.active;
         log(`💀 ${dead.name} caiu!`, '#ef4444');
-        addToDiscard(dead);
+        addToDiscard(dead, 'player');
         playDeathAnimation('p-card-active', dead, () => {
             if(game.player.bench.length > 0) {
                 game.player.active = game.player.bench.shift();
@@ -3428,6 +3729,8 @@ function checkKOs() {
 // =========================================================
 function showResultBase(win) {
     clearInterval(game.timerInterval);
+    clearInterval(game.accelerationInterval);
+
     const musicaBatalha = document.getElementById('musicaBatalha');
     const musicaFundo = document.getElementById('musicaFundo');
     if(musicaBatalha) musicaBatalha.pause();
@@ -3439,18 +3742,48 @@ function showResultBase(win) {
         if(musicaFundo && musicaFundo.paused) musicaFundo.play().catch(()=>{});
     }
 
-    document.getElementById('result-title').className = 'result-title ' + (win ? 'win' : 'lose');
-    document.getElementById('result-title').innerText = win ? '🏆 VITÓRIA!' : '💀 DERROTA!';
-    document.getElementById('result-coins').innerText = win ? `+${game.currentReward} moedas!` : 'Tente novamente...';
+    const data = getBattleResultData(win);
+    const resultTitle = document.getElementById('result-title');
+    const resultCoins = document.getElementById('result-coins');
+    const winnerHost = document.getElementById('result-card-winner');
+    const loserHost = document.getElementById('result-card-loser');
+    const resultScreen = document.getElementById('result-screen');
 
-    // Garante que o botão está sempre com o texto e onclick padrão (modo normal/boss)
+    resultTitle.className = 'result-title ' + (win ? 'win' : 'lose');
+    resultTitle.innerText = win ? '🏆 VITÓRIA!' : '💀 DERROTA!';
+    resultCoins.innerText = win ? `+${game.currentReward} moedas!` : 'Tente novamente...';
+
+    if(winnerHost) {
+        winnerHost.innerHTML = renderResultCard(
+            data.winnerCard,
+            'winner',
+            win ? 'MVP - Vencedor' : 'MVP - Vencedor',
+            win ? 'Carta com o maior dano causado' : 'Carta que mais impactou a batalha'
+        );
+    }
+
+    if(loserHost) {
+        loserHost.innerHTML = renderResultCard(
+            data.loserCard,
+            'loser',
+            win ? 'SVP - Derrotado' : 'SVP - Derrotado',
+            win ? 'Carta que mais causou dano do lado derrotado' : 'Carta mais perigosa do lado vencedor'
+        );
+    }
+
     const btn = document.querySelector('#result-screen .btn');
     if(btn) {
         btn.innerText = '← VOLTAR AO MENU';
         btn.onclick = () => { playClick(); showScreen('main-menu'); };
     }
 
-    document.getElementById('result-screen').style.display = 'flex';
+    resultScreen.style.display = 'flex';
+    const shells = resultScreen.querySelectorAll('.result-card-shell');
+    shells.forEach(shell => shell.classList.remove('revealed'));
+    animateResultReveal();
+    setTimeout(() => {
+        shells.forEach(shell => shell.classList.add('revealed'));
+    }, 420);
 }
 
 // =========================================================
@@ -4246,6 +4579,9 @@ function showStoryBattleTransition(scene) {
         game.roundCount = 1;
         game._roundStarted = false;
         game.discard = [];
+        game._cardUidSeed = 0;
+        game._resetVideoActive = false;
+        game._timeAccelerationNextTurn = 'enemy';
         game.hasAttacked = false;
         game.hasSwapped = false;
         game.energyUsed = false;
@@ -4295,6 +4631,7 @@ function showStoryBattleTransition(scene) {
         if(game.player.hand.length > 0) {
             const first = game.player.hand.shift();
             first.curHP = first.hp; first.attached = 0; first.statuses = [];
+            stampBattleCard(first, 'player');
             game.player.active = first;
         }
 
