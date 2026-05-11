@@ -95,7 +95,115 @@ function emitRoom(room) {
     io.to(room.code).emit("game:state", room.game);
   }
 }
+function sanitizeDeck(deck) {
+    return deck
+        .filter(card => card && card.name && card.hp && Array.isArray(card.skills))
+        .slice(0, 20)
+        .map(card => ({
+            id: String(card.id || card.name),
+            name: String(card.name),
+            type: String(card.type || "Neutro"),
+            hp: Math.max(10, Number(card.hp || 100)),
+            maxHp: Math.max(10, Number(card.hp || 100)),
+            img: String(card.img || ""),
+            isEx: !!card.isEx,
+            evolvesFrom: card.evolvesFrom || null,
+            attached: 0,
+            statuses: [],
+            skills: card.skills.slice(0, 3).map(skill => ({
+                n: String(skill.n || "Ataque"),
+                d: Math.max(0, Number(skill.d || 0)),
+                c: Math.max(0, Number(skill.c || 0)),
+                desc: String(skill.desc || ""),
+                status: skill.status || null,
+                special: skill.special || null,
+                vid: skill.vid || null
+            }))
+        }));
+}
 
+function shuffleDeck(deck) {
+    const copy = [...deck];
+
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+
+    return copy;
+}
+
+function drawCard(side) {
+    if (!side.deck || side.deck.length === 0) return null;
+    const card = side.deck.pop();
+    side.hand.push(card);
+    return card;
+}
+
+function setupPlayerFromDeck(player) {
+    const deck = shuffleDeck(player.deck || []);
+
+    const side = {
+        name: player.name,
+        energy: 1,
+        deck,
+        hand: [],
+        bench: [],
+        active: null,
+        points: 0
+    };
+
+    for (let i = 0; i < 4; i++) {
+        drawCard(side);
+    }
+
+    const firstBasicIndex = side.hand.findIndex(c => !c.evolvesFrom);
+
+    if (firstBasicIndex >= 0) {
+        side.active = side.hand.splice(firstBasicIndex, 1)[0];
+    } else {
+        side.active = side.hand.shift();
+    }
+
+    if (side.active) {
+        side.active.curHP = side.active.hp;
+        side.active.attached = side.active.attached || 0;
+        side.active.statuses = side.active.statuses || [];
+    }
+
+    while (side.bench.length < 3) {
+        const idx = side.hand.findIndex(c => !c.evolvesFrom);
+        if (idx === -1) break;
+
+        const benchCard = side.hand.splice(idx, 1)[0];
+        benchCard.curHP = benchCard.hp;
+        benchCard.attached = benchCard.attached || 0;
+        benchCard.statuses = benchCard.statuses || [];
+        side.bench.push(benchCard);
+    }
+
+    return side;
+}
+
+function createInitialGame(room) {
+    const firstTurn = Math.random() < 0.5 ? "p1" : "p2";
+
+    const p1 = room.players.find(p => p.side === "p1");
+    const p2 = room.players.find(p => p.side === "p2");
+
+    return {
+        mode: "online",
+        turn: firstTurn,
+        winner: null,
+        round: 1,
+        log: [
+            `Partida online criada.`,
+            `Moeda lançada: ${firstTurn === "p1" ? p1.name : p2.name} começa.`
+        ],
+        p1: setupPlayerFromDeck(p1),
+        p2: setupPlayerFromDeck(p2)
+    };
+}
 io.on("connection", (socket) => {
   console.log("Jogador conectado:", socket.id);
 
