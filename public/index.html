@@ -6220,7 +6220,15 @@ function mpConnect(){
     mpSocket.on('connect',()=>{mpConnected=true; mpSetConn('ONLINE', true);});
     mpSocket.on('disconnect',()=>{mpConnected=false; mpSetConn('DESCONECTADO', false);});
     mpSocket.on('room:update',(room)=>{mpRoom=room; mpRenderRoom(room);});
-    mpSocket.on('game:state',(state)=>{mpGame=state; mpRenderGame(state);});
+    socket.on("game:state", (state) => {
+    mpGame = state;
+
+    if (state && state.mode === "online") {
+        showScreen("game-ui");
+        window.UTCG_ONLINE_MODE = true;
+        renderMultiplayerGame(state);
+    }
+});
     mpSocket.on('chat:quick',(payload)=>{mpLocalLog(`💬 ${payload.name}: ${payload.message}`,'#38bdf8');});
     mpSocket.on('room:error',(msg)=>alert(msg||'Erro na sala.'));
     return mpSocket;
@@ -6243,7 +6251,50 @@ function mpGetDeckPayload(){
 }
 function mpCreateRoom(){ const s=mpConnect(); if(!s) return; s.emit('room:create',{name:mpGetName()},(res)=>{ if(!res.ok) return alert(res.error); mpRoom=res.room; mpMySide='p1'; mpRenderRoom(res.room); }); }
 function mpJoinRoom(){ const s=mpConnect(); if(!s) return; const code=($('mp-code')?.value||'').trim().toUpperCase(); if(!code) return alert('Digite o código da sala.'); s.emit('room:join',{code,name:mpGetName()},(res)=>{ if(!res.ok) return alert(res.error); mpRoom=res.room; mpMySide=res.side || (res.spectator?'spectator':'p2'); mpRenderRoom(res.room); }); }
-function mpReady(){ if(!mpSocket) return alert('Conecte primeiro.'); mpSocket.emit('room:ready',{deck:mpGetDeckPayload()},(res)=>{ if(!res.ok) alert(res.error); }); }
+function mpReady() {
+    if (!socket) {
+        alert("Você não está conectado ao multiplayer.");
+        return;
+    }
+
+    if (!user || !user.deck || user.deck.length < 5) {
+        alert("Monte um deck com pelo menos 5 cartas antes de jogar online.");
+        return;
+    }
+
+    const deckPayload = user.deck
+        .map(id => CARDS_DB[id])
+        .filter(Boolean)
+        .map(card => ({
+            id: card.id,
+            name: card.name,
+            type: card.type,
+            hp: card.hp || 100,
+            img: card.img || "",
+            isEx: !!card.isEx,
+            evolvesFrom: card.evolvesFrom || null,
+            skills: (card.skills || []).map(s => ({
+                n: s.n,
+                d: s.d || 0,
+                c: s.c || 0,
+                desc: s.desc || "",
+                status: s.status || null,
+                special: s.special || null,
+                vid: s.vid || null
+            }))
+        }));
+
+    socket.emit("room:ready", {
+        deck: deckPayload
+    }, (res) => {
+        if (!res || !res.ok) {
+            alert(res?.error || "Erro ao ficar pronto.");
+            return;
+        }
+
+        mpLogLocal("✅ Você está pronto. Aguardando o outro jogador...");
+    });
+}
 function mpLeaveRoom(){ if(mpSocket && mpRoom){ mpSocket.emit('room:leave',{},()=>{}); } mpRoom=null; mpGame=null; mpMySide=null; document.body.classList.remove('mp-active'); const panel=$('mp-room-panel'); if(panel) panel.classList.add('hidden'); }
 function mpQuick(message){ if(!mpSocket||!mpRoom) return alert('Entre em uma sala primeiro.'); mpSocket.emit('chat:quick',{message}); }
 function mpRenderRoom(room){
