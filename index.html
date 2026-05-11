@@ -2319,8 +2319,656 @@
         }
 
         /* =========================================================
-           RESPONSIVO
+           UNIVERSE RESET SCREEN CRACK EFFECT
         ========================================================= */
+        #universe-crack-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 8999;
+            pointer-events: none;
+            background: transparent;
+        }
+        #universe-crack-overlay.active {
+            display: block;
+            animation: universe-crack-anim 0.8s ease-in-out forwards;
+        }
+        @keyframes universe-crack-anim {
+            0%   { background: transparent; }
+            15%  { background: radial-gradient(ellipse at center, rgba(255,0,80,0.6) 0%, transparent 70%); }
+            30%  { background: radial-gradient(ellipse at center, rgba(160,0,255,0.8) 0%, transparent 80%); filter: invert(1); }
+            50%  { background: rgba(255,255,255,0.95); filter: invert(0); }
+            70%  { background: radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, transparent 60%); }
+            100% { background: transparent; }
+        }
+        .universe-crack-line {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9000;
+            background: linear-gradient(var(--angle, 0deg), transparent 0%, rgba(160,0,255,0.9) 40%, rgba(255,100,255,1) 50%, rgba(160,0,255,0.9) 60%, transparent 100%);
+            animation: crack-line-anim 0.8s ease-out forwards;
+        }
+        @keyframes crack-line-anim {
+            0%   { opacity: 0; transform: scaleX(0); }
+            20%  { opacity: 1; transform: scaleX(1); }
+            100% { opacity: 0; transform: scaleX(1) scaleY(0.5); }
+        }
+
+        /* =========================================================
+           CARD OVERLAY STATUS EFFECTS (FULL CARD VISUALS)
+        ========================================================= */
+        .card-status-overlay {
+            position: absolute;
+            inset: 0;
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 20;
+        }
+        /* Burn overlay — animated flame */
+        .burn-overlay {
+            background: linear-gradient(180deg, transparent 30%, rgba(249,115,22,0.25) 60%, rgba(239,68,68,0.45) 100%);
+            animation: burn-overlay-anim 0.4s infinite alternate;
+        }
+        @keyframes burn-overlay-anim {
+            0%   { background: linear-gradient(180deg, transparent 20%, rgba(249,115,22,0.2) 55%, rgba(239,68,68,0.4) 100%); }
+            100% { background: linear-gradient(180deg, transparent 10%, rgba(251,146,60,0.35) 45%, rgba(220,38,38,0.6) 100%); box-shadow: inset 0 0 15px rgba(251,115,22,0.5); }
+        }
+        .burn-flame {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 55%;
+            pointer-events: none;
+            z-index: 21;
+            overflow: hidden;
+        }
+        .burn-flame::before, .burn-flame::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 80%;
+            height: 100%;
+            background: linear-gradient(0deg, rgba(239,68,68,0.7) 0%, rgba(251,146,60,0.5) 40%, transparent 100%);
+            border-radius: 50% 50% 0 0;
+            animation: flame-wave 0.5s ease-in-out infinite alternate;
+        }
+        .burn-flame::before { left: 5%; animation-delay: 0s; }
+        .burn-flame::after  { left: 20%; width: 60%; animation-delay: 0.15s; background: linear-gradient(0deg, rgba(251,191,36,0.6) 0%, rgba(249,115,22,0.4) 50%, transparent 100%); }
+        @keyframes flame-wave {
+            0%   { transform: scaleX(1) scaleY(1); }
+            100% { transform: scaleX(0.85) scaleY(1.2) translateY(-6px); }
+        }
+
+        /* Stun overlay — sparking stars */
+        .stun-overlay {
+            background: radial-gradient(ellipse at center, rgba(167,139,250,0.15) 0%, transparent 70%);
+            animation: stun-overlay-flash 0.6s infinite;
+        }
+        @keyframes stun-overlay-flash {
+            0%, 100% { background: radial-gradient(ellipse at center, rgba(167,139,250,0.1) 0%, transparent 70%); }
+            50%       { background: radial-gradient(ellipse at center, rgba(196,181,253,0.3) 0%, transparent 70%); }
+        }
+        .stun-star {
+            position: absolute;
+            font-size: 14px;
+            animation: stun-orbit 1.2s linear infinite;
+            pointer-events: none;
+            z-index: 22;
+        }
+        @keyframes stun-orbit {
+            0%   { transform: rotate(0deg)   translateX(28px) rotate(0deg)   scale(1); opacity: 1; }
+            50%  { transform: rotate(180deg) translateX(28px) rotate(-180deg) scale(1.3); opacity: 0.8; }
+            100% { transform: rotate(360deg) translateX(28px) rotate(-360deg) scale(1); opacity: 1; }
+        }
+
+        /* Freeze overlay */
+        .freeze-overlay {
+            background: linear-gradient(135deg, rgba(147,210,255,0.25) 0%, rgba(99,179,237,0.15) 100%);
+            border: 2px solid rgba(147,210,255,0.5) !important;
+            animation: freeze-shimmer 1s ease-in-out infinite alternate;
+        }
+        @keyframes freeze-shimmer {
+            0%   { box-shadow: inset 0 0 8px rgba(147,210,255,0.3); }
+            100% { box-shadow: inset 0 0 20px rgba(147,210,255,0.6), 0 0 12px rgba(99,179,237,0.5); }
+        }
+        .card.status-freeze-effect {
+            animation: freeze-card-shake 4s ease-in-out infinite;
+            border-color: #93c5fd !important;
+        }
+        @keyframes freeze-card-shake {
+            0%, 90%, 100% { transform: translateX(0); }
+            91% { transform: translateX(-2px); }
+            93% { transform: translateX(2px); }
+            95% { transform: translateX(-1px); }
+        }
+
+        /* Poison overlay */
+        .poison-overlay {
+            background: radial-gradient(ellipse at center, rgba(74,222,128,0.2) 0%, transparent 70%);
+            animation: poison-pulse-overlay 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes poison-pulse-overlay {
+            0%   { background: radial-gradient(ellipse at center, rgba(34,197,94,0.1) 0%, transparent 70%); }
+            100% { background: radial-gradient(ellipse at center, rgba(74,222,128,0.3) 0%, transparent 70%); box-shadow: inset 0 0 12px rgba(74,222,128,0.25); }
+        }
+        .card.status-poison-effect {
+            border-color: #4ade80 !important;
+            animation: poison-card-pulse 0.9s infinite alternate;
+        }
+        @keyframes poison-card-pulse {
+            0%   { box-shadow: 0 0 6px rgba(74,222,128,0.4); }
+            100% { box-shadow: 0 0 18px rgba(74,222,128,0.7), inset 0 0 10px rgba(74,222,128,0.2); }
+        }
+
+        /* Rage overlay */
+        .rage-overlay {
+            background: linear-gradient(180deg, rgba(239,68,68,0.3) 0%, transparent 60%);
+            animation: rage-pulse-overlay 0.3s ease-in-out infinite alternate;
+        }
+        @keyframes rage-pulse-overlay {
+            0%   { opacity: 0.6; }
+            100% { opacity: 1; box-shadow: inset 0 0 20px rgba(239,68,68,0.5); }
+        }
+        .card.status-rage-effect {
+            border-color: #ef4444 !important;
+            animation: rage-card 0.2s infinite alternate;
+        }
+        @keyframes rage-card {
+            0%   { box-shadow: 0 0 12px rgba(239,68,68,0.6); }
+            100% { box-shadow: 0 0 28px rgba(239,68,68,0.9), inset 0 0 15px rgba(239,68,68,0.4); }
+        }
+
+        /* =========================================================
+           ENERGY PARTICLE ANIMATION (floating orbs to card)
+        ========================================================= */
+        .energy-particle-orb {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9200;
+            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+            box-shadow: 0 0 8px currentColor, 0 0 16px currentColor;
+            animation: none;
+        }
+
+        /* =========================================================
+           ATTACK STACK / COMBO ANIMATION
+        ========================================================= */
+        #combo-counter {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 9300;
+            pointer-events: none;
+            text-align: center;
+            font-family: 'Orbitron', monospace;
+            transition: none;
+        }
+        #combo-counter.show {
+            animation: combo-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        }
+        #combo-counter.hide {
+            animation: combo-fade 0.3s ease-out forwards;
+        }
+        @keyframes combo-pop {
+            0%   { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg);   opacity: 1; }
+        }
+        @keyframes combo-fade {
+            0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
+        }
+        .combo-num {
+            font-size: 64px;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+            letter-spacing: 2px;
+        }
+        .combo-label {
+            font-size: 16px;
+            letter-spacing: 5px;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+            margin-top: 4px;
+        }
+
+        /* =========================================================
+           CARD HOVER PREVIEW (LARGE CARD POPUP)
+        ========================================================= */
+        #card-preview-popup {
+            display: none;
+            position: fixed;
+            z-index: 7000;
+            pointer-events: none;
+            width: 180px;
+            background: linear-gradient(180deg, #0f172a, #020617);
+            border: 2px solid rgba(251,191,36,0.5);
+            border-radius: 14px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.9), 0 0 20px rgba(251,191,36,0.15);
+            overflow: hidden;
+            transition: opacity 0.15s;
+        }
+        #card-preview-popup img { width: 100%; height: 140px; object-fit: cover; display: block; }
+        #card-preview-popup .preview-body { padding: 10px; }
+        #card-preview-popup .preview-name { font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 900; margin-bottom: 4px; }
+        #card-preview-popup .preview-stats { font-size: 10px; color: #94a3b8; margin-bottom: 6px; }
+        #card-preview-popup .preview-skill { font-size: 9px; padding: 4px 6px; background: rgba(255,255,255,0.04); border-radius: 4px; margin-bottom: 3px; border-left: 2px solid #38bdf8; }
+
+        /* =========================================================
+           DRAFT MODE SCREEN
+        ========================================================= */
+        #draft-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 4800;
+            background: radial-gradient(ellipse at center, #050a1f 0%, #000 100%);
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .draft-header {
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 0 30px rgba(251,191,36,0.5);
+            margin-bottom: 8px;
+            letter-spacing: 3px;
+        }
+        .draft-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        .draft-picks-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .draft-option {
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 14px;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 140px;
+            overflow: hidden;
+            position: relative;
+        }
+        .draft-option:hover {
+            border-color: var(--gold);
+            transform: translateY(-6px);
+            box-shadow: 0 8px 30px rgba(251,191,36,0.3);
+        }
+        .draft-option img { width: 100%; height: 110px; object-fit: cover; display: block; }
+        .draft-option .draft-opt-body { padding: 8px; }
+        .draft-option .draft-opt-name { font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 900; margin-bottom: 4px; }
+        .draft-option .draft-opt-stat { font-size: 9px; color: #94a3b8; }
+        .draft-progress {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .draft-pip {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            transition: all 0.3s;
+        }
+        .draft-pip.filled { border-color: var(--gold); background: rgba(251,191,36,0.15); color: var(--gold); }
+        .draft-pip.current { border-color: #38bdf8; background: rgba(56,189,248,0.15); color: #38bdf8; animation: draft-pip-pulse 1s ease-in-out infinite; }
+        @keyframes draft-pip-pulse {
+            0%, 100% { box-shadow: 0 0 6px #38bdf8; }
+            50%       { box-shadow: 0 0 16px #38bdf8; }
+        }
+
+        /* =========================================================
+           DAILY CHALLENGE MODAL
+        ========================================================= */
+        #daily-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 4900;
+            background: rgba(0,0,0,0.88);
+            align-items: center;
+            justify-content: center;
+        }
+        .daily-box {
+            background: linear-gradient(135deg, #0a0f1e, #020617);
+            border: 2px solid rgba(251,191,36,0.6);
+            border-radius: 20px;
+            padding: 32px 28px;
+            max-width: 400px;
+            width: 92%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(251,191,36,0.2);
+            animation: result-pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .daily-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(251,191,36,0.6);
+            margin-bottom: 6px;
+        }
+        .daily-subtitle {
+            font-size: 11px;
+            color: #64748b;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        .daily-modifiers {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .daily-mod-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
+            padding: 10px 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .daily-mod-icon { font-size: 22px; }
+        .daily-mod-info { text-align: left; }
+        .daily-mod-name { font-weight: 700; font-size: 13px; color: #e2e8f0; }
+        .daily-mod-desc { font-size: 10px; color: #64748b; margin-top: 2px; }
+
+        /* =========================================================
+           TOURNAMENT MODE
+        ========================================================= */
+        #tournament-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 4700;
+            background: radial-gradient(ellipse at center, #0a0014 0%, #000 100%);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+        .tournament-bracket {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 90%;
+            max-width: 380px;
+        }
+        .bracket-round {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid #334155;
+            background: rgba(255,255,255,0.03);
+            transition: all 0.3s;
+        }
+        .bracket-round.active { border-color: var(--gold); background: rgba(251,191,36,0.06); box-shadow: 0 0 20px rgba(251,191,36,0.15); }
+        .bracket-round.done   { border-color: var(--green); background: rgba(74,222,128,0.05); }
+        .bracket-num { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; width: 32px; }
+        .bracket-info { flex: 1; }
+        .bracket-title { font-weight: 700; font-size: 14px; color: #e2e8f0; }
+        .bracket-desc { font-size: 10px; color: #64748b; margin-top: 2px; }
+        .bracket-status { font-size: 20px; }
+
+        /* =========================================================
+           ATTACK STACK ANIMATION (pile of cards lunging)
+        ========================================================= */
+        .attack-stack-card {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9100;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+        .attack-stack-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* =========================================================
+           EVOLUTION FLASH
+        ========================================================= */
+        #evolution-flash {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 8800;
+            pointer-events: none;
+        }
+        #evolution-flash.active {
+            display: block;
+            animation: evo-flash 0.9s ease-out forwards;
+        }
+        @keyframes evo-flash {
+            0%   { background: transparent; }
+            15%  { background: rgba(255,255,255,0.95); }
+            30%  { background: radial-gradient(ellipse at center, rgba(251,191,36,0.8) 0%, rgba(255,165,0,0.4) 40%, transparent 70%); }
+            60%  { background: radial-gradient(ellipse at center, rgba(251,191,36,0.3) 0%, transparent 60%); }
+            100% { background: transparent; }
+        }
+
+        /* =========================================================
+           BATTLE STATISTICS PANEL (new end-of-battle stats)
+        ========================================================= */
+        .result-stats-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .result-stat-pill {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 11px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .result-stat-pill b { color: var(--gold); }
+
+        /* =========================================================
+           NEW STATUS BADGES
+        ========================================================= */
+        .status-freeze {
+            background: #1e3a5f;
+            color: #93c5fd;
+            border: 1px solid #93c5fd;
+            animation: freeze-badge 1.5s ease-in-out infinite;
+        }
+        @keyframes freeze-badge {
+            0%, 100% { box-shadow: 0 0 4px #93c5fd; opacity: 0.9; }
+            50%       { box-shadow: 0 0 12px #93c5fd, 0 0 20px rgba(147,197,253,0.4); opacity: 1; }
+        }
+        .status-poison {
+            background: #052e16;
+            color: #4ade80;
+            border: 1px solid #4ade80;
+            animation: poison-badge 0.7s ease-in-out infinite alternate;
+        }
+        @keyframes poison-badge {
+            0%   { box-shadow: 0 0 3px #4ade80; }
+            100% { box-shadow: 0 0 10px #4ade80, inset 0 0 5px rgba(74,222,128,0.4); }
+        }
+        .status-rage {
+            background: #450a0a;
+            color: #f87171;
+            border: 1px solid #f87171;
+            animation: rage-badge 0.3s ease-in-out infinite alternate;
+        }
+        @keyframes rage-badge {
+            0%   { box-shadow: 0 0 4px #f87171; transform: scale(1); }
+            100% { box-shadow: 0 0 12px #f87171; transform: scale(1.05); }
+        }
+
+        /* =========================================================
+           ARENA BACKGROUND PARTICLES (enhanced)
+        ========================================================= */
+        #arena-particles-canvas {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* =========================================================
+           SCREEN SHAKE ON HEAVY HIT
+        ========================================================= */
+        @keyframes heavy-shake {
+            0%   { transform: translate(0,0) rotate(0deg); }
+            10%  { transform: translate(-6px, 3px) rotate(-0.5deg); }
+            20%  { transform: translate(6px, -4px) rotate(0.5deg); }
+            30%  { transform: translate(-8px, 2px) rotate(-0.3deg); }
+            40%  { transform: translate(8px, -3px) rotate(0.3deg); }
+            50%  { transform: translate(-4px, 4px) rotate(-0.2deg); }
+            60%  { transform: translate(4px, -2px) rotate(0.2deg); }
+            70%  { transform: translate(-2px, 2px); }
+            80%  { transform: translate(2px, -2px); }
+            100% { transform: translate(0,0) rotate(0deg); }
+        }
+        .heavy-hit-shake {
+            animation: heavy-shake 0.45s ease-out !important;
+        }
+
+        /* =========================================================
+           PASSIVE ABILITY INDICATOR
+        ========================================================= */
+        .passive-badge {
+            display: inline-block;
+            font-size: 7px;
+            background: rgba(139,92,246,0.2);
+            border: 1px solid rgba(139,92,246,0.5);
+            border-radius: 3px;
+            padding: 1px 4px;
+            color: #a78bfa;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* =========================================================
+           ENERGY GAIN RAIN EFFECT
+        ========================================================= */
+        .energy-rain-drop {
+            position: fixed;
+            top: -20px;
+            pointer-events: none;
+            z-index: 3800;
+            font-size: 16px;
+            animation: energy-rain 0.9s ease-in forwards;
+        }
+        @keyframes energy-rain {
+            0%   { transform: translateY(0) scale(0.8) rotate(-10deg); opacity: 1; }
+            60%  { opacity: 1; }
+            100% { transform: translateY(80vh) scale(0.5) rotate(20deg); opacity: 0; }
+        }
+
+        /* =========================================================
+           LOG IMPROVEMENTS — colored icons and highlight lines
+        ========================================================= */
+        .log-critical {
+            font-size: 10px !important;
+            background: rgba(251,191,36,0.08);
+            border-left: 2px solid var(--gold);
+            padding-left: 4px;
+        }
+        .log-ko {
+            font-size: 10px !important;
+            background: rgba(239,68,68,0.08);
+            border-left: 2px solid var(--hp-red);
+            padding-left: 4px;
+        }
+
+        /* =========================================================
+           CARD DRAW ANIMATION FROM DECK
+        ========================================================= */
+        .card-draw-anim {
+            animation: card-draw-in 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes card-draw-in {
+            0%   { transform: translateY(20px) scale(0.8); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        /* =========================================================
+           TURN TRANSITION EFFECT (banner)
+        ========================================================= */
+        #turn-banner {
+            position: fixed;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            z-index: 6000;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+        }
+        #turn-banner.show {
+            animation: turn-banner-anim 1.4s cubic-bezier(0.2,1,0.3,1) forwards;
+        }
+        @keyframes turn-banner-anim {
+            0%   { opacity: 0; transform: translateY(-50%) scaleX(0); }
+            15%  { opacity: 1; transform: translateY(-50%) scaleX(1.05); }
+            80%  { opacity: 1; transform: translateY(-50%) scaleX(1); }
+            100% { opacity: 0; transform: translateY(-50%) scaleX(0.95); }
+        }
+        .turn-banner-inner {
+            background: linear-gradient(90deg, transparent 0%, rgba(2,6,23,0.97) 10%, rgba(2,6,23,0.97) 90%, transparent 100%);
+            border-top: 1px solid;
+            border-bottom: 1px solid;
+            padding: 14px 60px;
+            text-align: center;
+            width: 100%;
+        }
+        .turn-banner-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 6px;
+        }
+        .turn-banner-sub {
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+
+
         @media screen and (max-width: 850px) {
             body {
                 height: auto;
@@ -3430,8 +4078,18 @@
                         triggerUniverseReset(); } }, 1000); }
             v.onended = startCountdown;
             v.onerror = startCountdown;
-            setTimeout(() => { if (v.readyState < 2) { v.play().catch(() => startCountdown()); } else { v.play().catch(() => {}); } },
-                1000); }
+            /* Global fallback: if video is missing/unplayable after 12s, proceed */
+            const accelFallback = setTimeout(() => startCountdown(), 12000);
+            game._accelFallback = accelFallback;
+            setTimeout(() => {
+                const playP = v.play();
+                if (playP !== undefined) {
+                    playP.catch(() => {
+                        clearTimeout(accelFallback);
+                        startCountdown();
+                    });
+                }
+            }, 500); }
 
         function triggerUniverseReset() { if (game._universeResetFired) return;
             game._universeResetFired = true;
@@ -3440,25 +4098,57 @@
             clearInterval(game.timerInterval);
             game.timeAccelerationActive = false;
             game.battleEnded = true;
-            game.pendingAttack = null; const ov = document.getElementById('time-acceleration-overlay'); const te = document
-                .getElementById('acceleration-timer'); const gu = document.getElementById('game-ui'); if (ov)
-            ov.classList.remove('active'); if (te) { te.classList.remove('active');
-                te.style.animation = ''; } if (gu) gu.classList.remove('time-accelerated-shake');
-            log(`🌌 O UNIVERSO ESTÁ SENDO RESETADO...`, '#ef4444'); const v = document.getElementById('ult-video'); const
-            ultScreen = document.getElementById('ult-screen'); const playOverlay = document.getElementById('ult-play-overlay');
-            v.src = 'Made In Haven.mp4';
-            ultScreen.style.display = 'flex'; if (playOverlay) playOverlay.style.display = 'none';
-            pauseAllBackgroundMusicForVideo(); let finished = false; let fallbackTimer = null;
+            game.pendingAttack = null;
+            const ov = document.getElementById('time-acceleration-overlay');
+            const te = document.getElementById('acceleration-timer');
+            const gu = document.getElementById('game-ui');
+            if (ov) ov.classList.remove('active');
+            if (te) { te.classList.remove('active'); te.style.animation = ''; }
+            if (gu) gu.classList.remove('time-accelerated-shake');
+            /* === UNIVERSE RESET DRAMATIC EFFECT === */
+            spawnUniverseResetEffect();
+            log(`🌌 O UNIVERSO ESTÁ SENDO RESETADO...`, '#ef4444');
+            const v = document.getElementById('ult-video');
+            const ultScreen = document.getElementById('ult-screen');
+            const playOverlay = document.getElementById('ult-play-overlay');
+            let finished = false;
+            let fallbackTimer = null;
 
-            function safeFinish() { if (finished) return;
-                finished = true; if (fallbackTimer) clearTimeout(fallbackTimer);
+            function safeFinish() {
+                if (finished) return;
+                finished = true;
+                if (fallbackTimer) clearTimeout(fallbackTimer);
                 v.onended = null;
                 v.onerror = null;
+                v.pause();
                 game._resetVideoActive = false;
-                finishUniverseReset(); }
-            v.onended = safeFinish;
-            v.onerror = safeFinish;
-            setTimeout(() => { v.play().catch(() => {}); }, 1000); }
+                ultScreen.style.display = 'none';
+                restoreBackgroundMusicAfterVideo(false);
+                finishUniverseReset();
+            }
+
+            /* Delay for dramatic screen effect, then show video */
+            setTimeout(() => {
+                v.onended = safeFinish;
+                v.onerror = safeFinish;
+                /* Set src, then load(), then play — proper sequence */
+                v.src = 'Made In Haven.mp4';
+                v.load();
+                if (playOverlay) playOverlay.style.display = 'none';
+                ultScreen.style.display = 'flex';
+                pauseAllBackgroundMusicForVideo();
+                /* Fallback: if video never ends after 30s, proceed anyway */
+                fallbackTimer = setTimeout(safeFinish, 30000);
+                /* Attempt to play; if blocked/not found, fall back immediately */
+                const playPromise = v.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                        clearTimeout(fallbackTimer);
+                        safeFinish();
+                    });
+                }
+            }, 800);
+        }
 
         function finishUniverseReset() { document.getElementById('ult-screen').style.display = 'none'; const phm = game.player
             .active && game.player.active.id === 'pucci3'; const ehm = game.enemy.active && game.enemy.active.id === 'pucci3'; const
