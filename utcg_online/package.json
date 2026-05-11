@@ -1,11 +1,10 @@
 {
   "name": "utcg-online",
   "version": "1.0.0",
-  "description": "UTCG multiplayer online server",
+  "description": "UTCG multiplayer online",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.3",
