@@ -157,29 +157,56 @@ io.on("connection", (socket) => {
     emitRoom(room);
   });
 
-  socket.on("room:ready", (callback) => {
+socket.on("room:ready", (payload, callback) => {
+    if (typeof payload === "function") {
+        callback = payload;
+        payload = {};
+    }
+
     const room = getRoomBySocket(socket.id);
 
     if (!room) {
-      return callback({ ok: false, error: "Você não está em uma sala." });
+        if (typeof callback === "function") {
+            callback({ ok: false, error: "Você não está em uma sala." });
+        }
+        return;
     }
 
     const player = room.players.find(p => p.id === socket.id);
 
     if (!player) {
-      return callback({ ok: false, error: "Espectadores não podem ficar prontos." });
+        if (typeof callback === "function") {
+            callback({ ok: false, error: "Espectadores não podem ficar prontos." });
+        }
+        return;
+    }
+
+    const receivedDeck = Array.isArray(payload?.deck) ? payload.deck : [];
+
+    if (receivedDeck.length < 5) {
+        if (typeof callback === "function") {
+            callback({ ok: false, error: "Seu deck precisa ter pelo menos 5 cartas." });
+        }
+        return;
     }
 
     player.ready = true;
+    player.deck = sanitizeDeck(receivedDeck);
 
-    if (room.players.length === 2 && room.players.every(p => p.ready)) {
-      room.status = "playing";
-      room.game = createInitialGame(room);
+    room.gameLog = room.gameLog || [];
+    room.gameLog.push(${player.name} está pronto.);
+
+    if (room.players.length === 2 && room.players.every(p => p.ready && p.deck && p.deck.length >= 5)) {
+        room.status = "playing";
+        room.game = createInitialGame(room);
     }
 
-    callback({ ok: true });
+    if (typeof callback === "function") {
+        callback({ ok: true });
+    }
+
     emitRoom(room);
-  });
+});
 
   socket.on("game:action", ({ action }, callback) => {
     const room = getRoomBySocket(socket.id);
