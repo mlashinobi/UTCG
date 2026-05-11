@@ -3135,6 +3135,7 @@
             <button class="btn btn-sec" style="background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(56,189,248,0.1));border-color:#38bdf8;color:#38bdf8;" onclick="playClick();showScreen('deck-select','normal')">⚔️ Batalhar!</button>
             <button class="btn btn-play" onclick="playClick();showScreen('deck-select','boss')">☠️ Raid Boss</button>
             <button class="btn btn-gold" onclick="playClick();showScreen('story-modal')">📖 Modo História</button>
+            <button class="btn btn-sec" data-mp-menu="true" style="background:linear-gradient(135deg,rgba(16,185,129,0.20),rgba(56,189,248,0.10));border-color:#10b981;color:#a7f3d0;" onclick="playClick();mpOpenMultiplayer()">🌐 Multiplayer Online</button>
             <button class="btn btn-sec" onclick="playClick();openEditor()">🃏 Meu Deck</button>
             <button class="btn btn-sec" onclick="playClick();openStore()">🏪 Loja de Cartas</button>
             <button class="btn btn-sec" onclick="playClick();saveGame()">💾 Salvar Dados</button>
@@ -3211,6 +3212,85 @@
         <div id="story-end-reward" style="font-size:20px;color:var(--green);font-weight:700;">+500 moedas de ouro!</div>
         <div id="story-end-lore" style="max-width:320px;text-align:center;font-size:13px;color:#64748b;line-height:1.7;font-style:italic;padding:0 20px;"></div>
         <button class="btn btn-gold" style="padding:13px 40px;letter-spacing:2px;margin-top:8px;" onclick="claimStoryReward()">💰 COLETAR RECOMPENSA</button>
+    </div>
+
+
+    <!-- ===================== MULTIPLAYER ONLINE ===================== -->
+    <div id="multiplayer-screen" class="screen">
+        <div class="mp-shell">
+            <div class="mp-header">
+                <div>
+                    <div class="mp-kicker">ONLINE REAL-TIME</div>
+                    <h2>🌐 Multiplayer Online</h2>
+                    <p>Crie uma sala, chame outro jogador pelo código e batalhe em tempo real pelo navegador.</p>
+                </div>
+                <div class="mp-status-pill" id="mp-conn-status">OFFLINE</div>
+            </div>
+
+            <div class="mp-grid">
+                <section class="mp-panel">
+                    <h3>Identidade</h3>
+                    <label>Seu nome</label>
+                    <input id="mp-name" class="mp-input" maxlength="18" placeholder="Ex: Daniel">
+                    <div class="mp-note">O seu deck atual do editor será enviado para a sala quando você clicar em “Pronto”.</div>
+                </section>
+
+                <section class="mp-panel">
+                    <h3>Criar sala</h3>
+                    <button class="btn btn-play mp-wide" onclick="mpCreateRoom()">Criar Sala</button>
+                    <div class="mp-note">Você será o Jogador 1. O código aparece no painel da sala.</div>
+                </section>
+
+                <section class="mp-panel">
+                    <h3>Entrar em sala</h3>
+                    <label>Código</label>
+                    <div class="mp-row">
+                        <input id="mp-code" class="mp-input" maxlength="8" placeholder="ABC123" style="text-transform:uppercase">
+                        <button class="btn btn-sec" onclick="mpJoinRoom()">Entrar</button>
+                    </div>
+                    <div class="mp-note">Se a sala já tiver 2 jogadores, você entra como espectador.</div>
+                </section>
+            </div>
+
+            <div id="mp-room-panel" class="mp-room-panel hidden">
+                <div class="mp-room-top">
+                    <div>
+                        <div class="mp-kicker">SALA</div>
+                        <div class="mp-room-code" id="mp-room-code">------</div>
+                    </div>
+                    <div class="mp-status-pill" id="mp-room-status">AGUARDANDO</div>
+                </div>
+                <div id="mp-room-players" class="mp-players"></div>
+                <div class="mp-actions">
+                    <button class="btn btn-gold" onclick="mpReady()">Estou pronto</button>
+                    <button class="btn btn-sec" onclick="mpLeaveRoom()">Sair da sala</button>
+                </div>
+            </div>
+
+            <div class="mp-quick-panel">
+                <h3>Respostas rápidas</h3>
+                <div class="mp-quick-grid">
+                    <button onclick="mpQuick('Boa luta!')">Boa luta!</button>
+                    <button onclick="mpQuick('Agora ficou sério.')">Agora ficou sério.</button>
+                    <button onclick="mpQuick('Você caiu na armadilha.')">Armadilha</button>
+                    <button onclick="mpQuick('GG!')">GG!</button>
+                </div>
+            </div>
+
+            <button class="btn btn-sec mp-back" onclick="mpLeaveRoom();showScreen('main-menu')">← Voltar ao menu</button>
+        </div>
+    </div>
+
+    <div id="mp-game-panel">
+        <div class="mp-game-title">🌐 ONLINE</div>
+        <div id="mp-game-room">Sala: —</div>
+        <div id="mp-game-turn">Turno: —</div>
+        <div class="mp-game-actions">
+            <button onclick="mpQuick('Boa luta!')">Boa luta!</button>
+            <button onclick="mpQuick('Estou pensando...')">Pensando...</button>
+            <button onclick="mpQuick('Agora vai!')">Agora vai!</button>
+            <button onclick="mpConcede()">Desistir</button>
+        </div>
     </div>
 
     <!-- ===================== EDITOR DE DECK ===================== -->
@@ -3489,7 +3569,9 @@
         // =========================================================
         //  ESTADO DO JOGO
         // =========================================================
-        let user = { coins: 500, inventory: ['n1', 'g1', 'n1', 'g1', 'n1'], deck: [''], completedChapters: [] };
+        let user = { coins: 500, inventory: ['pucci1', 'pucci2', 'pucci3', 'n1', 'g1', 'n1', 'g1', 'n1', 'g1', 'j1', 'bl1',
+                'op1', 'bl1', 'hxh1', 'sup1', 'sup2'
+            ], deck: ['pucci1', 'pucci2', 'pucci3', 'n1', 'g1'], completedChapters: [] };
         let game = { player: {}, enemy: {}, turn: '', energyUsed: false, currentReward: 0, evolutionsThisTurn: 0,
             hasSwapped: false, hasAttacked: false, mode: '', pendingAttack: null, timerInterval: null, timeLeft: 30,
             roundCount: 1, deckTypes: [], discard: [], energies: { Chakra: 0, Ki: 0, Amaldiçoada: 0, Stand: 0, Haki: 0, Reiatsu: 0,
@@ -5091,5 +5173,1152 @@
                 showScreen('main-menu');
                 document.getElementById('menu-coins').innerText = user.coins; }, 800); }
     </script>
+
+
+<!-- =========================================================
+     UTCG ULTRA MAX PATCH — DESKTOP, MODES, ANIMATIONS, MIH FIX
+========================================================= -->
+<style id="utcg-ultra-max-patch-css">
+:root{
+    --ultra-cyan:#38bdf8; --ultra-gold:#fbbf24; --ultra-red:#ef4444;
+    --ultra-violet:#a855f7; --ultra-dark:#020617; --ultra-panel:rgba(2,6,23,.96);
+}
+body.ultra-desktop-ready{background:#000 radial-gradient(circle at 50% 20%,rgba(56,189,248,.10),transparent 35%) fixed;}
+body.ultra-desktop-ready #game-ui{grid-template-columns:300px minmax(860px,1fr);grid-template-rows:minmax(610px,1fr) 178px;background-attachment:fixed;}
+body.ultra-desktop-ready .sidebar{padding:12px;gap:10px;box-shadow:12px 0 40px rgba(0,0,0,.55);}
+body.ultra-desktop-ready .arena{padding:18px 14px;background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.58));}
+body.ultra-desktop-ready .zone-row{gap:14px;min-height:168px;}
+body.ultra-desktop-ready footer#p-hand{min-height:178px;padding:14px 18px;gap:12px;}
+body.ultra-desktop-ready .card{width:112px;height:158px;border-radius:13px;box-shadow:0 10px 24px rgba(0,0,0,.48);}
+body.ultra-desktop-ready .card.active{width:168px;height:238px;border-radius:16px;}
+body.ultra-desktop-ready .card:hover{transform:translateY(-8px) scale(1.035);box-shadow:0 18px 38px rgba(0,0,0,.72),0 0 24px rgba(56,189,248,.13);}
+body.ultra-desktop-ready .card.active:hover{transform:translateY(-5px) scale(1.025);}
+body.ultra-desktop-ready .btn-skill{font-size:11px;padding:5px 5px;border-radius:5px;margin-top:4px;text-shadow:0 1px 3px #000;}
+body.ultra-desktop-ready .card.active .btn-skill{font-size:11px;}
+body.ultra-desktop-ready .game-title{font-size:72px;}
+body.ultra-desktop-ready .menu-buttons{width:330px;}
+body.ultra-desktop-ready .btn{font-size:15px;padding:14px 18px;}
+body.ultra-desktop-ready .terminal{font-size:11px;}
+body.ultra-desktop-ready .inspect{height:150px;font-size:12px;}
+body.ultra-desktop-ready .timer-box{font-size:34px;padding:10px;}
+body.ultra-desktop-ready #round-counter .round-num{font-size:28px;}
+body.ultra-desktop-ready #update-notes{width:280px;max-height:310px;font-size:12px;}
+
+/* Cartas padrão: imagem, vida canto superior, nome e ataques separados */
+.card.ultra-normal{background:linear-gradient(180deg,#18233a 0%,#07111f 100%);border:2px solid rgba(148,163,184,.55);}
+.card.ultra-normal::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.12),transparent 30%,rgba(56,189,248,.08) 70%,transparent);pointer-events:none;z-index:2;}
+.card.ultra-normal img{height:55%;border-bottom:1px solid rgba(148,163,184,.25);}
+.card.ultra-normal .card-content{background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(2,6,23,.99));}
+.card.ultra-normal .ultra-card-title{padding:2px 4px 3px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:3px;}
+.card.ultra-normal .btn-skill{background:linear-gradient(90deg,rgba(15,23,42,.98),rgba(30,41,59,.96));}
+
+/* Cartas EX full-art cromadas */
+.card.ex.ultra-ex{border:2px solid rgba(251,191,36,.95);background:#000;box-shadow:0 0 18px rgba(251,191,36,.45),0 18px 34px rgba(0,0,0,.7);}
+.card.ex.ultra-ex img{height:100%;filter:saturate(1.15) contrast(1.08);}
+.card.ex.ultra-ex .card-content{bottom:0;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.42) 12%,rgba(2,6,23,.88) 46%,rgba(2,6,23,.98) 100%);backdrop-filter:blur(3px);border-top:1px solid rgba(251,191,36,.65);padding-top:16px;}
+.card.ex.ultra-ex::before{content:'';position:absolute;inset:-2px;z-index:3;pointer-events:none;background:linear-gradient(120deg,transparent 0%,rgba(255,255,255,.0) 35%,rgba(255,255,255,.55) 48%,rgba(56,189,248,.35) 52%,transparent 65%);mix-blend-mode:screen;animation:ultraChromeSweep 3.8s linear infinite;}
+.card.ex.ultra-ex::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(circle at 20% 12%,rgba(255,255,255,.28),transparent 18%),linear-gradient(135deg,rgba(251,191,36,.22),transparent 35%,rgba(56,189,248,.16) 70%,transparent);}
+@keyframes ultraChromeSweep{0%{transform:translateX(-120%) translateY(-40%) rotate(8deg)}100%{transform:translateX(120%) translateY(45%) rotate(8deg)}}
+.ultra-ex-name{display:block;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:.7px;color:#fff;background:linear-gradient(90deg,#fff7ad,#fbbf24,#67e8f9,#fef3c7);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 14px rgba(251,191,36,.5);filter:drop-shadow(0 1px 2px #000);text-align:center;}
+.card.active .ultra-ex-name{font-size:13px;}
+.card.ex.ultra-ex .btn-skill{background:linear-gradient(90deg,rgba(0,0,0,.72),rgba(15,23,42,.88));border-color:rgba(251,191,36,.75);box-shadow:inset 0 0 14px rgba(251,191,36,.07),0 0 8px rgba(0,0,0,.4);}
+.card.ex.ultra-ex .btn-skill:hover:not(:disabled){background:linear-gradient(90deg,rgba(251,191,36,.22),rgba(56,189,248,.12));box-shadow:0 0 18px rgba(251,191,36,.25);}
+
+/* Tooltip detalhado */
+#ultra-tooltip{position:fixed;display:none;z-index:20000;pointer-events:none;max-width:260px;background:rgba(2,6,23,.98);border:1px solid rgba(251,191,36,.65);border-radius:10px;padding:10px 12px;box-shadow:0 14px 36px rgba(0,0,0,.85),0 0 22px rgba(251,191,36,.15);font-size:12px;color:#e2e8f0;line-height:1.45;}
+#ultra-tooltip b{color:var(--ultra-gold);font-family:'Orbitron',monospace;font-size:11px;}
+#ultra-tooltip .cost{color:#38bdf8;font-weight:900;}
+#ultra-tooltip .dmg{color:#f87171;font-weight:900;}
+
+/* Camadas de FX */
+#fx-layer{position:fixed;inset:0;z-index:9400;pointer-events:none;overflow:hidden;}
+.ultra-action-banner{position:fixed;left:50%;top:24%;transform:translate(-50%,-50%) scale(.8);z-index:9600;pointer-events:none;font-family:'Orbitron',monospace;font-weight:900;letter-spacing:3px;text-align:center;color:#fff;text-shadow:0 0 20px currentColor,0 4px 20px #000;opacity:0;animation:ultraBanner 1.2s cubic-bezier(.2,1,.3,1) forwards;}
+.ultra-action-banner .main{font-size:30px;}
+.ultra-action-banner .sub{font-family:'Rajdhani';font-size:13px;letter-spacing:2px;color:#cbd5e1;margin-top:3px;}
+@keyframes ultraBanner{0%{opacity:0;transform:translate(-50%,-50%) scale(.35)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-80%) scale(.95)}}
+.ultra-energy-orb{position:fixed;width:14px;height:14px;border-radius:50%;z-index:9500;pointer-events:none;box-shadow:0 0 10px currentColor,0 0 24px currentColor;animation:ultraEnergyOrb .62s ease-in forwards;}
+@keyframes ultraEnergyOrb{0%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(.4)}18%{opacity:1}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(1.1)}}
+.ultra-spark{position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:9500;animation:ultraSpark .65s ease-out forwards;background:currentColor;box-shadow:0 0 10px currentColor;}
+@keyframes ultraSpark{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(0)}}
+.ultra-beam{position:fixed;height:10px;transform-origin:left center;z-index:9300;pointer-events:none;border-radius:999px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),currentColor,transparent);box-shadow:0 0 18px currentColor,0 0 42px currentColor;animation:ultraBeam .38s ease-out forwards;}
+@keyframes ultraBeam{0%{opacity:0;filter:blur(10px);transform:translate(var(--x),var(--y)) rotate(var(--r)) scaleX(0)}20%{opacity:1;filter:blur(0)}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(var(--r)) scaleX(1)}}
+.attack-stack-card.ultra-stack{border:2px solid rgba(255,255,255,.5);box-shadow:0 0 30px rgba(255,255,255,.45),0 0 55px currentColor;animation:stackCardFlash .48s ease-out forwards;}
+@keyframes stackCardFlash{0%{opacity:0;transform:translate(var(--sx),var(--sy)) rotate(var(--rot)) scale(.55)}20%{opacity:1}100%{opacity:0;transform:translate(var(--tx),var(--ty)) rotate(var(--rot2)) scale(1.18)}}
+
+/* Status visuais fortes */
+.card .card-status-overlay{border-radius:inherit;}
+.card.status-burn-effect{animation:burn-card-glow .38s infinite alternate, ultraHeatWave 1.4s ease-in-out infinite!important;}
+@keyframes ultraHeatWave{0%,100%{filter:saturate(1)}50%{filter:saturate(1.5) contrast(1.08)}}
+.status-freeze-effect .card-content,.card.status-freeze-effect{filter:brightness(.9) saturate(.75);}
+.card.status-freeze-effect{border-color:#93c5fd!important;box-shadow:0 0 20px rgba(147,197,253,.55),inset 0 0 20px rgba(147,197,253,.15);}
+.card.status-poison-effect{border-color:#4ade80!important;box-shadow:0 0 20px rgba(74,222,128,.55),inset 0 0 18px rgba(74,222,128,.15);}
+.card.status-rage-effect{border-color:#ef4444!important;box-shadow:0 0 24px rgba(239,68,68,.72),inset 0 0 18px rgba(239,68,68,.18);animation:rage-card .18s infinite alternate;}
+.status-freeze{background:#1e3a5f;color:#93c5fd;border:1px solid #93c5fd;}
+.status-poison{background:#052e16;color:#4ade80;border:1px solid #4ade80;}
+.status-rage{background:#450a0a;color:#f87171;border:1px solid #f87171;}
+
+/* Modos novos */
+.ultra-mode-card{background:linear-gradient(135deg,rgba(15,23,42,.96),rgba(2,6,23,.98));border:1px solid rgba(56,189,248,.25);border-radius:14px;padding:18px;width:min(360px,92vw);box-shadow:0 16px 44px rgba(0,0,0,.62);}
+.ultra-mode-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px;max-width:760px;width:92vw;}
+.ultra-mode-card h3{font-family:'Orbitron';font-size:15px;color:var(--ultra-gold);margin-bottom:8px;}
+.ultra-mode-card p{font-size:12px;color:#94a3b8;line-height:1.5;margin-bottom:12px;}
+#ultra-draft-picks{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:18px;}
+.ultra-draft-card{width:150px;background:#0f172a;border:2px solid #334155;border-radius:12px;overflow:hidden;cursor:pointer;transition:.2s;}
+.ultra-draft-card:hover{transform:translateY(-8px);border-color:var(--ultra-gold);box-shadow:0 14px 28px rgba(251,191,36,.18);}
+.ultra-draft-card img{width:100%;height:115px;object-fit:cover;display:block;}
+.ultra-draft-card div{padding:8px;font-weight:800;font-size:12px;}
+
+/* Universe Reset / MIH fix UI */
+#ult-screen.ultra-reset-mode #ult-video{border-color:#a855f7;box-shadow:0 0 60px rgba(168,85,247,.55),0 0 120px rgba(239,68,68,.22);}
+#ult-screen.ultra-reset-mode::before{content:'UNIVERSAL RESET';position:absolute;top:20px;left:50%;transform:translateX(-50%);font-family:'Orbitron';font-size:26px;font-weight:900;letter-spacing:6px;color:#fff;text-shadow:0 0 24px #a855f7;z-index:12;pointer-events:none;}
+#ult-screen.ultra-reset-mode #ult-play-overlay{background:rgba(0,0,0,.82)!important;}
+#ult-screen.ultra-reset-mode button{display:none!important;}
+
+/* Result stats */
+#battle-stats-panel{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px auto 12px;}
+.battle-stat-chip{font-size:11px;color:#cbd5e1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:6px 12px;}
+.battle-stat-chip b{color:var(--ultra-gold)}
+
+@media (max-width:1100px){body.ultra-desktop-ready #game-ui{grid-template-columns:270px 1fr}.ultra-mode-grid{grid-template-columns:1fr}.game-title{font-size:46px!important}}
+</style>
+
+
+<script id="utcg-ultra-max-patch-js">
+(function(){
+    'use strict';
+    window.UTCGX = window.UTCGX || {};
+    const X = window.UTCGX;
+    X.version = 'Ultra Max Patch 4.0';
+    X.tempDeck = null;
+    X.pendingMode = null;
+    X.stats = {turns:0, damagePlayer:0, damageEnemy:0, energyAttached:0, cardsPlayed:0, ultimates:0};
+    X._old = {
+        render: window.render,
+        updateUI: window.updateUI,
+        attachEnergyTyped: window.attachEnergyTyped,
+        attachEnergyToBench: window.attachEnergyToBench,
+        applyStatus: window.applyStatus,
+        getStatusHTML: window.getStatusHTML,
+        processBurnDamage: window.processBurnDamage,
+        processStunCheck: window.processStunCheck,
+        triggerAttack: window.triggerAttack,
+        executeDamage: window.executeDamage,
+        flashCard: window.flashCard,
+        triggerUniverseReset: window.triggerUniverseReset,
+        activateTimeAcceleration: window.activateTimeAcceleration,
+        closeUlt: window.closeUlt,
+        startUltVideo: window.startUltVideo,
+        startGame: window.startGame,
+        showResultBase: window.showResultBase,
+        showScreen: window.showScreen,
+        startTurn: window.startTurn,
+        playCard: window.playCard,
+        useSupport: window.useSupport
+    };
+
+    function safe(fn){ try { return fn(); } catch(e){ console.error('[UTCGX]', e); } }
+    function $(id){ return document.getElementById(id); }
+    function cardCenter(id){ return (typeof getCardCenter === 'function') ? getCardCenter(id) : {x:innerWidth/2,y:innerHeight/2}; }
+    function typeColor(t){ return (typeof getTypeColor === 'function') ? getTypeColor(t) : '#38bdf8'; }
+    function logX(msg,color){ if(typeof log === 'function') log(msg,color||'#38bdf8'); }
+
+    document.body.classList.add('ultra-desktop-ready');
+
+    function ensureFx(){
+        if(!$('fx-layer')){
+            const fx=document.createElement('div'); fx.id='fx-layer'; document.body.appendChild(fx);
+        }
+        if(!$('ultra-tooltip')){
+            const tt=document.createElement('div'); tt.id='ultra-tooltip'; document.body.appendChild(tt);
+        }
+    }
+    ensureFx();
+
+    X.banner = function(main, sub, color){
+        ensureFx();
+        const b=document.createElement('div');
+        b.className='ultra-action-banner';
+        b.style.color=color||'#fbbf24';
+        b.innerHTML=`<div class="main">${main}</div>${sub?`<div class="sub">${sub}</div>`:''}`;
+        document.body.appendChild(b);
+        setTimeout(()=>b.remove(),1300);
+    };
+
+    X.tooltip = function(ev, skill, card){
+        const tt=$('ultra-tooltip'); if(!tt || !skill) return;
+        const status = skill.status ? `<br><span style="color:#a78bfa">Efeito: ${statusName(skill.status.type)} por ${skill.status.turns||1} turno(s)</span>` : '';
+        const special = skill.special ? `<br><span style="color:#fbbf24">Especial: ${specialName(skill.special)}</span>` : '';
+        const ult = skill.vid || skill.special === 'timeAcceleration' ? '<br><span style="color:#f87171;font-weight:900">ULTIMATE / VÍDEO</span>' : '';
+        tt.innerHTML=`<b>${skill.n}</b><br><span class="dmg">Dano: ${skill.d||0}</span> | <span class="cost">Custo: ${skill.c||0} EN</span><br>${skill.desc||'Sem descrição.'}${status}${special}${ult}`;
+        tt.style.display='block';
+        X.moveTooltip(ev);
+    };
+    X.moveTooltip = function(ev){
+        const tt=$('ultra-tooltip'); if(!tt || tt.style.display==='none') return;
+        const pad=18; let x=ev.clientX+pad, y=ev.clientY+pad;
+        const r=tt.getBoundingClientRect();
+        if(x+r.width>innerWidth) x=ev.clientX-r.width-pad;
+        if(y+r.height>innerHeight) y=ev.clientY-r.height-pad;
+        tt.style.left=x+'px'; tt.style.top=y+'px';
+    };
+    X.hideTooltip = function(){ const tt=$('ultra-tooltip'); if(tt) tt.style.display='none'; };
+
+    function statusName(t){ return {burn:'Queimado',stun:'Atordoado',dodge:'Esquiva',shield:'Escudo',freeze:'Congelado',poison:'Envenenado',rage:'Fúria'}[t] || t; }
+    function specialName(t){ return {copySkill:'Copiar ataque',forcedEvolution:'Evolução forçada',timeAcceleration:'Tempo Acelerado'}[t] || t; }
+
+    X.energyParticles = function(fromId, toId, color){
+        const fx=$('fx-layer'); if(!fx) return;
+        const a=cardCenter(fromId), b=cardCenter(toId); color=color||'#fbbf24';
+        for(let i=0;i<12;i++){
+            const o=document.createElement('i'); o.className='ultra-energy-orb'; o.style.color=color; o.style.background=color;
+            const sx=(a.x-innerWidth/2 + (Math.random()*80-40))+'px';
+            const sy=(a.y-innerHeight/2 + (Math.random()*80-40))+'px';
+            const tx=(b.x-innerWidth/2 + (Math.random()*22-11))+'px';
+            const ty=(b.y-innerHeight/2 + (Math.random()*22-11))+'px';
+            o.style.setProperty('--sx',sx); o.style.setProperty('--sy',sy); o.style.setProperty('--tx',tx); o.style.setProperty('--ty',ty);
+            o.style.left='50%'; o.style.top='50%'; o.style.animationDelay=(i*0.025)+'s'; fx.appendChild(o); setTimeout(()=>o.remove(),900);
+        }
+        X.banner('+ ENERGIA', 'energia anexada', color);
+    };
+
+    X.statusBurst = function(targetId, status){
+        const fx=$('fx-layer'); if(!fx) return;
+        const p=cardCenter(targetId); const c={burn:'#f97316',stun:'#a78bfa',freeze:'#93c5fd',poison:'#4ade80',rage:'#ef4444',shield:'#38bdf8',dodge:'#4ade80'}[status]||'#fff';
+        const icons={burn:'🔥',stun:'⚡',freeze:'❄️',poison:'☠️',rage:'💢',shield:'🛡️',dodge:'💨'};
+        for(let i=0;i<18;i++){
+            const s=document.createElement('span'); s.className='ultra-spark'; s.textContent=icons[status]||'✦'; s.style.color=c; s.style.background='transparent'; s.style.fontSize=(12+Math.random()*12)+'px'; s.style.left=p.x+'px'; s.style.top=p.y+'px';
+            s.style.setProperty('--x',(Math.random()*160-80)+'px'); s.style.setProperty('--y',(Math.random()*130-65)+'px');
+            fx.appendChild(s); setTimeout(()=>s.remove(),800);
+        }
+    };
+
+    X.beam = function(fromId,toId,color){
+        const fx=$('fx-layer'); if(!fx) return;
+        const a=cardCenter(fromId), b=cardCenter(toId); const dx=b.x-a.x, dy=b.y-a.y; const len=Math.hypot(dx,dy); const ang=Math.atan2(dy,dx)*180/Math.PI;
+        const beam=document.createElement('div'); beam.className='ultra-beam'; beam.style.color=color||'#38bdf8'; beam.style.width=len+'px'; beam.style.left='0'; beam.style.top='0'; beam.style.setProperty('--x',a.x+'px'); beam.style.setProperty('--y',a.y+'px'); beam.style.setProperty('--r',ang+'deg');
+        fx.appendChild(beam); setTimeout(()=>beam.remove(),520);
+    };
+
+    X.attackStack = function(source){
+        const active = source==='player' ? (game && game.player && game.player.active) : (game && game.enemy && game.enemy.active);
+        const from = source==='player' ? 'p-card-active' : 'e-card-active'; const to = source==='player' ? 'e-card-active' : 'p-card-active';
+        const fx=$('fx-layer'); const a=cardCenter(from), b=cardCenter(to); if(!fx || !active) return;
+        const color=typeColor(active.type);
+        for(let i=0;i<4;i++){
+            const c=document.createElement('div'); c.className='attack-stack-card ultra-stack'; c.style.color=color; c.style.width='72px'; c.style.height='100px'; c.style.left='50%'; c.style.top='50%';
+            c.style.setProperty('--sx',(a.x-innerWidth/2 + i*8 - 14)+'px'); c.style.setProperty('--sy',(a.y-innerHeight/2 + i*5 - 10)+'px');
+            c.style.setProperty('--tx',(b.x-innerWidth/2 + i*10 - 18)+'px'); c.style.setProperty('--ty',(b.y-innerHeight/2 + i*6 - 12)+'px');
+            c.style.setProperty('--rot',(-12+i*8)+'deg'); c.style.setProperty('--rot2',(12-i*7)+'deg'); c.style.animationDelay=(i*.055)+'s';
+            c.innerHTML=`<img src="${active.img||'https://i.imgur.com/HWERuem.png'}" alt="">`;
+            fx.appendChild(c); setTimeout(()=>c.remove(),760);
+        }
+    };
+
+    X.heavyShake = function(power){
+        const el=$('game-ui'); if(!el) return; el.classList.remove('heavy-hit-shake'); void el.offsetWidth; el.classList.add('heavy-hit-shake'); setTimeout(()=>el.classList.remove('heavy-hit-shake'),520);
+    };
+
+    function statusOverlayHTML(card){
+        if(!card || !card.statuses) return '';
+        let html='';
+        if(card.statuses.some(s=>s.type==='burn')) html += '<div class="card-status-overlay burn-overlay"><div class="burn-flame"></div></div>';
+        if(card.statuses.some(s=>s.type==='stun')) html += '<div class="card-status-overlay stun-overlay"><span class="stun-star" style="left:45%;top:18%;">✦</span><span class="stun-star" style="left:40%;top:30%;animation-delay:.2s">✧</span></div>';
+        if(card.statuses.some(s=>s.type==='freeze')) html += '<div class="card-status-overlay freeze-overlay"></div>';
+        if(card.statuses.some(s=>s.type==='poison')) html += '<div class="card-status-overlay poison-overlay"></div>';
+        if(card.statuses.some(s=>s.type==='rage')) html += '<div class="card-status-overlay rage-overlay"></div>';
+        return html;
+    }
+
+    window.getStatusHTML = function(card){
+        if(!card || !card.statuses || card.statuses.length===0) return '';
+        const label={burn:'🔥 Queimado',stun:'💫 Atordoado',dodge:'💨 Esquiva',shield:'🛡 Escudo',freeze:'❄ Congelado',poison:'☠ Veneno',rage:'💢 Fúria'};
+        const cls={burn:'status-burn',stun:'status-stun',dodge:'status-dodge',shield:'status-shield',freeze:'status-freeze',poison:'status-poison',rage:'status-rage'};
+        return card.statuses.map(s=>`<span class="status-badge ${cls[s.type]||''}">${label[s.type]||s.type}(${s.turns})</span>`).join('');
+    };
+
+    window.updateCardStatusEffectsClass = function(card, el){
+        if(!el || !card) return;
+        el.classList.remove('status-burn-effect','status-stun-effect','status-shield-effect','status-freeze-effect','status-poison-effect','status-rage-effect');
+        if(typeof hasStatus==='function'){
+            if(hasStatus(card,'burn')) el.classList.add('status-burn-effect');
+            if(hasStatus(card,'stun')) el.classList.add('status-stun-effect');
+            if(hasStatus(card,'shield')) el.classList.add('status-shield-effect');
+            if(hasStatus(card,'freeze')) el.classList.add('status-freeze-effect');
+            if(hasStatus(card,'poison')) el.classList.add('status-poison-effect');
+            if(hasStatus(card,'rage')) el.classList.add('status-rage-effect');
+        }
+    };
+
+    window.render = function(id, card, isP, type, index){
+        const area=$(id); if(!area) return;
+        if(type==='active') area.innerHTML='';
+        if(!card){ if(type==='active') area.innerHTML='<div class="card active" style="border:2px dashed #1e293b;background:rgba(0,0,0,.2);border-radius:12px;"></div>'; return; }
+        const div=document.createElement('div');
+        const isEX=!!card.isEx;
+        div.className=`card ${type==='active'?'active':''} ${isEX?'ex ultra-ex':'ultra-normal'} ${card.isSupport?'support':''} card-draw-anim`;
+        if(type==='active'){ div.id=isP?'p-card-active':'e-card-active'; window.updateCardStatusEffectsClass(card, div); }
+        div.onclick=()=>{ inspectCard(card); if(isP && type==='active') attachEnergyTyped(card); };
+        div.onmouseenter=(ev)=>{ inspectCard(card); X.showCardPreview(card, ev); };
+        div.onmousemove=(ev)=>{ X.movePreview(ev); };
+        div.onmouseleave=()=>{ X.hideCardPreview(); X.hideTooltip(); };
+        const tc=typeColor(card.type); const es=(typeof getEnergyStyle==='function')?getEnergyStyle(card.type):`background:${tc};color:#000;`;
+        const maxHP=card.hp||1; const cur=(card.curHP!==undefined?card.curHP:card.hp)||0; const hpPct=Math.max(0,Math.min(100,(cur/maxHP)*100));
+        const hpColor=hpPct>50?'#4ade80':hpPct>25?'#f59e0b':'#ef4444'; const hpTagClass=hpPct<=25?' low':'';
+        const hpBarHTML=`<div class="hp-bar-wrap"><div class="hp-bar" style="width:${hpPct}%;background:${hpColor};"></div></div>`;
+        const statusHTML=window.getStatusHTML(card);
+        let skillsHTML='';
+        if(type==='active' && isP && !card.isSupport){
+            const ae=card.attached||0;
+            skillsHTML=card.skills.map((s,i)=>{
+                const ca=ae>=(s.c||0); const cls=ca?'btn-skill affordable':'btn-skill'; const vi=(s.vid||s.special==='timeAcceleration')?' ⚡':''; const costColor=ca?tc:'#64748b';
+                const dmg=s.d||0; const effect=s.status?`<span class="penalty-txt">${statusName(s.status.type)}</span>`:'';
+                return `<button class="${cls}" ${!ca?'disabled':''} onmouseenter='UTCGX.tooltip(event, ${JSON.stringify(s).replace(/'/g,"&#39;")}, null)' onmousemove='UTCGX.moveTooltip(event)' onmouseleave='UTCGX.hideTooltip()' onclick="event.stopPropagation();triggerAttack(${i},'player')"><span>${s.n}${vi}</span> <span style="color:${costColor}">[${s.c||0}]</span><br><small>${dmg?dmg+'💥':'util'} ${effect}</small></button>`;
+            }).join('');
+        } else if(type==='active' && !isP && !card.isSupport){
+            skillsHTML=card.skills.map(s=>`<div class="btn-skill" onmouseenter='UTCGX.tooltip(event, ${JSON.stringify(s).replace(/'/g,"&#39;")}, null)' onmousemove='UTCGX.moveTooltip(event)' onmouseleave='UTCGX.hideTooltip()' style="cursor:default">${s.n} [${s.d||0}💥|${s.c||0}⚡]</div>`).join('');
+        }
+        const swapBtn=(type==='bench' && isP && game.turn==='player')?`<button class="btn-skill" style="background:var(--gold);color:#000;border:none;margin-bottom:3px;font-weight:900;" onclick="event.stopPropagation();swapCard(${index})">⇄ TROCAR</button>`:'';
+        const benchEnergyBtn=(type==='bench' && isP && game.turn==='player')?`<button class="btn-skill" style="border-color:#fbbf24;color:#fbbf24;margin-bottom:3px;" onclick="event.stopPropagation();attachEnergyToBench(${index})">⚡ +Energia</button>`:'';
+        const img=card.img||'https://i.imgur.com/HWERuem.png';
+        const title = isEX ? `<span class="ultra-ex-name">${card.name}</span>` : `<b class="ultra-card-title" style="color:${tc};font-size:10px;text-align:center;display:block;line-height:1.2;">${card.name}</b>`;
+        const passive = card.passive ? `<span class="passive-badge">${card.passive.name||'PASSIVA'}</span>` : '';
+        div.innerHTML=`<img src="${img}">${card.curHP!==undefined?`<div class="hp-tag${hpTagClass}">${cur}</div>`:''}<div class="energy-tag" style="${es}">${card.attached||0}</div>${hpBarHTML}${statusOverlayHTML(card)}<div class="card-content">${title}${passive}${statusHTML?`<div style="margin:2px 0;text-align:center;">${statusHTML}</div>`:''}<div style="flex:1;overflow-y:auto;margin-top:3px;">${benchEnergyBtn}${swapBtn}${skillsHTML}</div></div>`;
+        area.appendChild(div);
+    };
+
+    X.showCardPreview = function(card, ev){
+        if(!card) return;
+        let p=$('card-preview-popup');
+        if(!p){ p=document.createElement('div'); p.id='card-preview-popup'; document.body.appendChild(p); }
+        const tc=typeColor(card.type);
+        p.innerHTML=`<img src="${card.img||'https://i.imgur.com/HWERuem.png'}"><div class="preview-body"><div class="preview-name" style="color:${tc}">${card.name}</div><div class="preview-stats">${card.isSupport?'Suporte':`HP ${card.curHP||card.hp}/${card.hp} • ${card.type} • EN ${card.attached||0}`}</div>${card.isSupport?`<div class="preview-skill">${card.desc||''}</div>`:(card.skills||[]).map(s=>`<div class="preview-skill"><b>${s.n}</b> — ${s.d||0} dmg / ${s.c||0} en<br>${s.desc||''}</div>`).join('')}</div>`;
+        p.style.display='block'; X.movePreview(ev);
+    };
+    X.movePreview = function(ev){ const p=$('card-preview-popup'); if(!p || p.style.display==='none') return; let x=ev.clientX+22,y=ev.clientY+20; const r=p.getBoundingClientRect(); if(x+r.width>innerWidth) x=ev.clientX-r.width-22; if(y+r.height>innerHeight) y=innerHeight-r.height-12; p.style.left=x+'px'; p.style.top=y+'px'; };
+    X.hideCardPreview = function(){ const p=$('card-preview-popup'); if(p) p.style.display='none'; };
+
+    window.updateUI = function(){
+        const tkm={Chakra:'chakra',Ki:'ki','Amaldiçoada':'amaldicoada',Stand:'stand',Haki:'haki',Reiatsu:'reiatsu',Nen:'nen'};
+        if(game && game.energies){ Object.keys(game.energies).forEach(k=>{ const key=tkm[k]; const el=$('e-'+key); if(el) el.innerText=game.energies[k]; const mv=$('mob-ev-'+key); if(mv) mv.innerText=game.energies[k]; }); }
+        const allTypes=['Chakra','Ki','Amaldiçoada','Stand','Haki','Reiatsu','Nen'];
+        allTypes.forEach(t=>{ const key=tkm[t]; const chip=$('mob-e-'+key); if(chip){ if(game.deckTypes && game.deckTypes.includes(t)){ chip.classList.remove('inactive'); chip.classList.add('active-type'); } else { chip.classList.add('inactive'); chip.classList.remove('active-type'); } } });
+        const dc=$('discard-count'); if(dc) dc.innerText=game.discard?game.discard.length:0;
+        window.render('p-active', game.player && game.player.active, true, 'active');
+        window.render('e-active', game.enemy && game.enemy.active, false, 'active');
+        const pb=$('p-bench'); if(pb){ pb.innerHTML=''; (game.player && game.player.bench || []).forEach((c,i)=>window.render('p-bench',c,true,'bench',i)); }
+        const eb=$('e-bench'); if(eb){ eb.innerHTML=''; if(game.mode==='normal' && game.enemy && game.enemy.bench){ game.enemy.bench.forEach((c,i)=>window.render('e-bench',c,false,'bench',i)); } }
+        const hand=$('p-hand'); if(hand){ const label=hand.querySelector('.hand-label'); hand.innerHTML=''; if(label) hand.appendChild(label); (game.player && game.player.hand || []).forEach((c,i)=>{ const div=document.createElement('div'); div.className=`card ${c.isEx?'ex ultra-ex':'ultra-normal'} ${c.isSupport?'support':''} card-draw-anim`; div.onclick=()=>playCard(i); div.onmouseenter=(ev)=>{ inspectCard(c); X.showCardPreview(c,ev); }; div.onmousemove=(ev)=>X.movePreview(ev); div.onmouseleave=()=>X.hideCardPreview(); const tc=typeColor(c.type); const tag=c.isEx?'⭐':(c.isSupport?'🌿':''); const img=c.img||'https://i.imgur.com/HWERuem.png'; div.innerHTML=`<img src="${img}"><div class="card-content" style="align-items:center;justify-content:center;text-align:center;"><b style="${c.isEx?'color:var(--gold);':(c.isSupport?'color:#4ade80;':`color:${tc};`)}font-size:10px;line-height:1.2;">${tag} ${c.name}</b>${c.isSupport?`<div style="font-size:8px;color:#4ade80;margin-top:2px;">${c.desc?c.desc.substring(0,34)+'...':''}</div>`:''}</div>`; hand.appendChild(div); }); }
+        X.updateModeHud();
+    };
+
+    window.attachEnergyTyped = function(card){
+        if(game.energyUsed) return;
+        const type=card.type; const before=(card.attached||0);
+        if(type && game.energies && game.energies[type] !== undefined){ if(game.energies[type]<=0){ logX(`⚠️ Sem ${type} disponível!`,'#f59e0b'); return; } game.energies[type]--; game.player.energy--; }
+        else { if(game.player.energy<=0) return; game.player.energy--; }
+        card.attached=before+1; game.energyUsed=true; X.stats.energyAttached++;
+        X.energyParticles('turn-timer','p-card-active',typeColor(type));
+        const pos=cardCenter('p-card-active'); if(typeof spawnFloat==='function') spawnFloat(pos.x,pos.y,`+${type||'EN'}`,'energy');
+        logX(`⚡ +1 ${type||'EN'} anexado a ${card.name}.`, typeColor(type));
+        window.updateUI();
+    };
+
+    window.attachEnergyToBench = function(index){
+        if(game.turn!=='player') return; if(game.energyUsed) return alert('Você já anexou energia neste turno!');
+        const card=game.player.bench[index]; if(!card) return; const type=card.type;
+        if(type && game.energies && game.energies[type] !== undefined){ if(game.energies[type]<=0){ logX(`⚠️ Sem ${type} disponível!`,'#f59e0b'); return; } game.energies[type]--; game.player.energy--; }
+        else { if(game.player.energy<=0){ logX('⚠️ Sem energia disponível!','#f59e0b'); return; } game.player.energy--; }
+        card.attached=(card.attached||0)+1; game.energyUsed=true; X.stats.energyAttached++;
+        X.energyParticles('turn-timer', null, typeColor(type));
+        logX(`⚡ +1 ${type||'EN'} anexado a ${card.name} (banco).`, typeColor(type)); window.updateUI();
+    };
+
+    window.applyStatus = function(card, statusType, turns){
+        if(!card || !statusType || !turns) return;
+        if(!card.statuses) card.statuses=[];
+        const existing=card.statuses.find(s=>s.type===statusType);
+        if(existing) existing.turns=Math.max(existing.turns, turns); else card.statuses.push({type:statusType,turns});
+        const id = card._ownerSide==='player' ? 'p-card-active' : (card._ownerSide==='enemy' ? 'e-card-active' : null);
+        if(id) X.statusBurst(id,statusType);
+        logX(`✨ ${card.name} recebeu ${statusName(statusType)} (${turns}).`, '#a855f7');
+        if(typeof updateCardStatusEffects === 'function') updateCardStatusEffects(card);
+    };
+
+    window.processBurnDamage = function(who){
+        const side=who==='player'?game.player:game.enemy; const card=side.active; if(!card) return;
+        const id=who==='player'?'p-card-active':'e-card-active'; const pos=cardCenter(id);
+        let total=0;
+        if(typeof hasStatus==='function' && hasStatus(card,'burn')) total += 20;
+        if(typeof hasStatus==='function' && hasStatus(card,'poison')) total += 15;
+        if(total>0){ card.curHP -= total; X.statusBurst(id, hasStatus(card,'burn')?'burn':'poison'); logX(`☠️ ${card.name} sofreu ${total} de dano por status!`, '#fb923c'); if(typeof spawnFloat==='function') spawnFloat(pos.x,pos.y,`-${total}☠`,'dmg'); if(typeof flashCard==='function') flashCard(id, card.curHP); if(card.curHP<=0) setTimeout(()=>checkKOs(),420); }
+    };
+
+    window.processStunCheck = function(who){
+        const side=who==='player'?game.player:game.enemy; const card=side.active; if(!card) return false;
+        if(typeof hasStatus==='function' && (hasStatus(card,'stun') || hasStatus(card,'freeze'))){
+            const st=hasStatus(card,'freeze')?'Congelado':'Atordoado'; const icon=hasStatus(card,'freeze')?'❄':'💫';
+            logX(`${icon} ${card.name} está ${st} e perdeu este turno!`, '#a5b4fc');
+            X.statusBurst(who==='player'?'p-card-active':'e-card-active', hasStatus(card,'freeze')?'freeze':'stun');
+            setTimeout(()=>endTurn(false),1300); return true;
+        }
+        return false;
+    };
+
+    window.triggerAttack = function(idx, source){
+        if(game && game.battleEnded) return;
+        const attacker=source==='player'?game.player.active:game.enemy.active;
+        const defender=source==='player'?game.enemy.active:game.player.active;
+        const skill=attacker && attacker.skills ? attacker.skills[idx] : null;
+        if(skill){ X.banner(skill.n, `${attacker.name} • ${skill.d||0} dano`, skill.vid?'#fbbf24':typeColor(attacker.type)); if(!skill.special) { X.attackStack(source); X.beam(source==='player'?'p-card-active':'e-card-active', source==='player'?'e-card-active':'p-card-active', typeColor(attacker.type)); } if(skill.vid || skill.special==='timeAcceleration') X.stats.ultimates++; }
+        return X._old.triggerAttack.apply(this, arguments);
+    };
+
+    window.executeDamage = function(attacker, defender, skill, source){
+        const before = defender ? defender.curHP : null;
+        if(skill && (skill.d||0)>=100) X.heavyShake(skill.d);
+        const r = X._old.executeDamage.apply(this, arguments);
+        if(defender && before!=null && defender.curHP < before){
+            const dealt = before - defender.curHP;
+            if(source==='player') X.stats.damagePlayer += dealt; else X.stats.damageEnemy += dealt;
+        }
+        return r;
+    };
+
+    window.flashCard = function(elId,newHP){
+        const r = X._old.flashCard ? X._old.flashCard.apply(this, arguments) : null;
+        const el=$(elId); if(el){ for(let i=0;i<10;i++){ const p=cardCenter(elId); const sp=document.createElement('i'); sp.className='ultra-spark'; sp.style.left=p.x+'px'; sp.style.top=p.y+'px'; sp.style.color='#f87171'; sp.style.background='#f87171'; sp.style.setProperty('--x',(Math.random()*120-60)+'px'); sp.style.setProperty('--y',(Math.random()*100-50)+'px'); $('fx-layer')?.appendChild(sp); setTimeout(()=>sp.remove(),700); } }
+        return r;
+    };
+
+    // Corrige MIH / Universal Reset: não encerra no play().catch, só no fim do vídeo, skip oculto, tenta nomes alternativos.
+    X.resetVideoSources = ['Made In Haven.mp4','Made in Haven.mp4','Made In Heaven.mp4','Made in Heaven.mp4'];
+    X.playResetVideoSequence = function(onFinish){
+        const v=$('ult-video'), ult=$('ult-screen'), overlay=$('ult-play-overlay');
+        if(!v || !ult){ onFinish(); return; }
+        let idx=0, finished=false, hardFallback=null;
+        function cleanup(){ if(hardFallback) clearTimeout(hardFallback); v.onended=null; v.onerror=null; ult.classList.remove('ultra-reset-mode'); if(overlay) overlay.style.display='flex'; }
+        function finish(){ if(finished) return; finished=true; cleanup(); v.pause(); v.removeAttribute('src'); v.load(); ult.style.display='none'; onFinish(); }
+        function trySource(){
+            if(idx>=X.resetVideoSources.length){ logX('⚠️ Vídeo do Universal Reset não encontrado. Finalizando sem travar.','#f59e0b'); finish(); return; }
+            const src=X.resetVideoSources[idx++];
+            v.onended=finish;
+            v.onerror=()=>{ logX(`⚠️ Não carregou ${src}; tentando próximo nome...`,'#f59e0b'); setTimeout(trySource,120); };
+            v.src=src; v.load();
+            if(overlay){ overlay.style.display='flex'; overlay.querySelector('div:nth-child(2)') && (overlay.querySelector('div:nth-child(2)').innerText='UNIVERSAL RESET'); }
+            ult.classList.add('ultra-reset-mode'); ult.style.display='flex'; pauseAllBackgroundMusicForVideo();
+            const p=v.play();
+            if(p && p.catch){ p.catch(()=>{ if(overlay) overlay.style.display='flex'; logX('▶️ Clique no vídeo para iniciar o Universal Reset.','#fbbf24'); }); }
+        }
+        hardFallback=setTimeout(()=>{ logX('⚠️ Segurança: vídeo demorou demais. Encerrando reset.','#f59e0b'); finish(); }, 180000);
+        trySource();
+    };
+
+    window.startUltVideo = function(){
+        const overlay=$('ult-play-overlay'); if(overlay) overlay.style.display='none';
+        const v=$('ult-video'); if(!v) return;
+        v.play().catch(()=>{ if(overlay) overlay.style.display='flex'; });
+    };
+
+    window.closeUlt = function(){
+        if(game._resetVideoActive) return; // reset só termina no onended/erro controlado
+        return X._old.closeUlt.apply(this, arguments);
+    };
+
+    window.triggerUniverseReset = function(){
+        if(game._universeResetFired) return;
+        game._universeResetFired=true; game._resetVideoActive=true; game.battleEnded=true; game.pendingAttack=null;
+        clearInterval(game.accelerationInterval); clearInterval(game.timerInterval); game.timeAccelerationActive=false;
+        const ov=$('time-acceleration-overlay'), te=$('acceleration-timer'), gu=$('game-ui');
+        if(ov) ov.classList.remove('active'); if(te){ te.classList.remove('active'); te.style.animation=''; } if(gu) gu.classList.remove('time-accelerated-shake');
+        if(typeof spawnUniverseResetEffect==='function') spawnUniverseResetEffect();
+        X.banner('UNIVERSAL RESET','Made in Heaven ativado','#a855f7'); logX('🌌 O UNIVERSO ESTÁ SENDO RESETADO...','#ef4444');
+        setTimeout(()=>{
+            X.playResetVideoSequence(()=>{
+                restoreBackgroundMusicAfterVideo(false);
+                game._resetVideoActive=false;
+                if(typeof finishUniverseReset==='function') finishUniverseReset();
+            });
+        },850);
+    };
+
+    // Tempo Acelerado: corrige fallback que pulava o vídeo cedo demais.
+    window.activateTimeAcceleration = function(){
+        if(game.timeAccelerationActive){ logX('⏰ Tempo Acelerado já está ativo!','#f59e0b'); return; }
+        game.timeAccelerationActive=true; game._universeResetFired=false; clearInterval(game.timerInterval);
+        logX('⏰⚡ TEMPO ACELERADO ATIVADO! Derrote Pucci em 20s ou o UNIVERSO SERÁ RESETADO!','#ef4444');
+        const v=$('ult-video'), ult=$('ult-screen'), overlay=$('ult-play-overlay');
+        game._timeAccelerationNextTurn=(game.turn==='player')?'enemy':'player';
+        let videoEnded=false;
+        function startCountdown(){
+            if(videoEnded) return; videoEnded=true; v.onended=null; v.onerror=null; v.pause(); ult.style.display='none'; if(overlay) overlay.style.display='flex'; restoreBackgroundMusicAfterVideo(true);
+            if(!game.timeAccelerationActive) return; const nt=game._timeAccelerationNextTurn||'enemy'; if(game.turn!==nt){ clearInterval(game.timerInterval); startTurn(nt); }
+            game.accelerationTimeLeft=20; const ov=$('time-acceleration-overlay'), te=$('acceleration-timer'), gu=$('game-ui'); if(ov) ov.classList.add('active'); if(te){ te.classList.add('active'); te.style.animation=''; te.innerText='20'; } if(gu) gu.classList.add('time-accelerated-shake');
+            clearInterval(game.accelerationInterval); game.accelerationInterval=setInterval(()=>{ if(!game.timeAccelerationActive){ clearInterval(game.accelerationInterval); return; } game.accelerationTimeLeft--; if(te) te.innerText=game.accelerationTimeLeft; if(game.accelerationTimeLeft<=5 && te) te.style.animation='count-pulse 0.3s infinite'; if(game.accelerationTimeLeft<=0){ clearInterval(game.accelerationInterval); triggerUniverseReset(); } },1000);
+        }
+        v.onended=startCountdown; v.onerror=startCountdown; v.src='Made in Heaven JJBA Stone Ocean Concept Animation [SPOILERS] - TheDashingDoctorK (1080p, h264, youtube).mp4'; v.load(); if(overlay) overlay.style.display='none'; ult.style.display='flex'; pauseAllBackgroundMusicForVideo();
+        const p=v.play(); if(p && p.catch) p.catch(()=>{ if(overlay) overlay.style.display='flex'; logX('▶️ Clique para iniciar a animação de Made in Heaven.','#fbbf24'); });
+        game._accelFallback=setTimeout(()=>{ if(!videoEnded && v.readyState===0) startCountdown(); },20000);
+    };
+
+    // Novos modos e botões no menu
+    X.installModes = function(){
+        const menu=document.querySelector('#main-menu .menu-buttons'); if(menu && !document.querySelector('[data-ultra-mode="draft"]')){
+            const mk=(txt,fn,cls='btn-sec')=>{ const b=document.createElement('button'); b.className='btn '+cls; b.dataset.ultraMode='draft'; b.innerHTML=txt; b.onclick=()=>{ playClick(); fn(); }; return b; };
+            menu.insertBefore(mk('🎲 Draft Rápido', X.openDraft, 'btn-gold'), menu.children[3]||null);
+            menu.insertBefore(mk('🔥 Sobrevivência', X.startSurvival, 'btn-sec'), menu.children[4]||null);
+            menu.insertBefore(mk('🎯 Desafio Diário', X.openDaily, 'btn-sec'), menu.children[5]||null);
+            menu.insertBefore(mk('🧪 Laboratório', X.startTraining, 'btn-sec'), menu.children[6]||null);
+        }
+        if(!$('ultra-mode-screen')){
+            const s=document.createElement('div'); s.id='ultra-mode-screen'; s.className='screen';
+            s.innerHTML=`<div class="screen-header" id="ultra-mode-title">NOVO MODO</div><div id="ultra-mode-content"></div><button class="btn btn-sec" style="margin-top:18px;width:230px" onclick="playClick();showScreen('main-menu')">← VOLTAR</button>`;
+            document.body.appendChild(s);
+        }
+    };
+
+    X.openDraft = function(){
+        showScreen('ultra-mode-screen'); const title=$('ultra-mode-title'), cont=$('ultra-mode-content'); title.innerText='🎲 DRAFT RÁPIDO';
+        X.tempDraft=[]; X.draftPick=0; X.renderDraftPack();
+    };
+    X.renderDraftPack = function(){
+        const cont=$('ultra-mode-content'); const pool=Object.values(CARDS_DB).filter(c=>!c.storyOnly && !c.isSupport && c.price!==0);
+        const picks=[]; while(picks.length<3 && pool.length){ picks.push(pool[Math.floor(Math.random()*pool.length)]); }
+        cont.innerHTML=`<div class="ultra-mode-card" style="width:min(780px,92vw)"><h3>Escolha ${X.draftPick+1}/8</h3><p>Monte um deck temporário. Cartas básicas extras serão adicionadas automaticamente para fechar o mínimo.</p><div id="ultra-draft-picks">${picks.map(c=>`<div class="ultra-draft-card" onclick="UTCGX.pickDraft('${c.id}')"><img src="${c.img||'https://i.imgur.com/HWERuem.png'}"><div style="color:${typeColor(c.type)}">${c.name}</div></div>`).join('')}</div></div>`;
+    };
+    X.pickDraft = function(id){ X.tempDraft.push(id); X.draftPick++; if(X.draftPick<8) X.renderDraftPack(); else { X.tempDeck=[...X.tempDraft,'n1','g1','j1','op1','bl1'].slice(0,12); X.pendingMode='draft'; game.mode='normal'; X.banner('DRAFT PRONTO','batalha temporária','#fbbf24'); const idx=0; setTimeout(()=>initCoinFlip(idx),600); } };
+    X.startSurvival = function(){ X.pendingMode='survival'; const lvl={name:'Sobrevivência Ultra',reward:1200,deck:['n2','g2','j2','op2','bl2','hxh2','j4','jjba1'],narrativa:false}; LEVELS_NORMAL.push(lvl); game.mode='normal'; initCoinFlip(LEVELS_NORMAL.length-1); };
+    X.startTraining = function(){ X.pendingMode='training'; const lvl={name:'Laboratório de Treino',reward:25,deck:['n1','g1','j1','bl1','op1'],narrativa:false}; LEVELS_NORMAL.push(lvl); game.mode='normal'; initCoinFlip(LEVELS_NORMAL.length-1); };
+    X.openDaily = function(){
+        X.pendingMode='daily'; const mods=[['Energia Instável','Toda rodada gera uma energia extra aleatória.'],['Boss Agressivo','O inimigo começa com +2 energias anexadas.'],['Campo Ardente','Todo dano acima de 80 aplica Queimado.']];
+        X.dailyMods=mods; showScreen('ultra-mode-screen'); $('ultra-mode-title').innerText='🎯 DESAFIO DIÁRIO'; $('ultra-mode-content').innerHTML=`<div class="ultra-mode-grid">${mods.map(m=>`<div class="ultra-mode-card"><h3>${m[0]}</h3><p>${m[1]}</p></div>`).join('')}</div><button class="btn btn-gold" style="margin-top:20px;width:260px" onclick="UTCGX.startDaily()">INICIAR DESAFIO</button>`;
+    };
+    X.startDaily = function(){ const lvl={name:'Desafio Diário',reward:900,deck:['j2','g2','op2','bl2','hxh2','j4'],narrativa:false}; LEVELS_NORMAL.push(lvl); game.mode='normal'; initCoinFlip(LEVELS_NORMAL.length-1); };
+
+    // Wrappers de início/resultado para modos temporários e estatísticas
+    window.startGame = function(lvlIdx, firstTurn){
+        X.stats={turns:0,damagePlayer:0,damageEnemy:0,energyAttached:0,cardsPlayed:0,ultimates:0};
+        if(X.tempDeck){ const old=user.deck; user.deck=[...X.tempDeck]; const r=X._old.startGame.call(this,lvlIdx,firstTurn); user.deck=old; X.tempDeck=null; return r; }
+        return X._old.startGame.call(this,lvlIdx,firstTurn);
+    };
+    window.startTurn = function(who){ X.stats.turns++; return X._old.startTurn.call(this,who); };
+    window.playCard = function(i){ X.stats.cardsPlayed++; return X._old.playCard.call(this,i); };
+    window.useSupport = function(i){ X.stats.cardsPlayed++; return X._old.useSupport.call(this,i); };
+    window.showResultBase = function(win){
+        const r=X._old.showResultBase.call(this,win);
+        setTimeout(()=>{ const shell=document.querySelector('#result-screen .result-shell'); if(shell && !$('battle-stats-panel')){ const panel=document.createElement('div'); panel.id='battle-stats-panel'; panel.innerHTML=`<span class="battle-stat-chip">Turnos: <b>${X.stats.turns}</b></span><span class="battle-stat-chip">Seu dano: <b>${X.stats.damagePlayer}</b></span><span class="battle-stat-chip">Dano inimigo: <b>${X.stats.damageEnemy}</b></span><span class="battle-stat-chip">Energias: <b>${X.stats.energyAttached}</b></span><span class="battle-stat-chip">Ultimates: <b>${X.stats.ultimates}</b></span>`; const coins=$('result-coins'); if(coins) coins.insertAdjacentElement('afterend',panel); } },80);
+        X.pendingMode=null; return r;
+    };
+
+    X.updateModeHud = function(){
+        let badge=$('ultra-mode-badge'); const sidebar=document.querySelector('.sidebar');
+        if(!sidebar) return;
+        if(!badge){ badge=document.createElement('div'); badge.id='ultra-mode-badge'; badge.style.cssText='font-family:Orbitron;font-size:10px;letter-spacing:1px;color:#fbbf24;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:6px;padding:6px;text-align:center;'; sidebar.insertBefore(badge, sidebar.firstChild); }
+        badge.textContent = X.pendingMode ? `MODO: ${X.pendingMode.toUpperCase()}` : `UTCG ULTRA MAX`;
+    };
+
+    // Cartas e status extras — aumenta o conteúdo sem remover nada.
+    X.installExtraCards = function(){
+        if(!window.CARDS_DB && typeof CARDS_DB==='undefined') return;
+        const DB = CARDS_DB;
+        Object.assign(DB, {
+            'sup_freeze': {id:'sup_freeze',name:'Selo Congelante',type:'Suporte',isSupport:true,hp:0,img:'',effect:{type:'status',status:'freeze',turns:1,target:'enemy'},desc:'Aplica Congelado no inimigo ativo por 1 turno.',price:500},
+            'sup_poison': {id:'sup_poison',name:'Veneno Maldito',type:'Suporte',isSupport:true,hp:0,img:'',effect:{type:'status',status:'poison',turns:3,target:'enemy'},desc:'Aplica Veneno no inimigo ativo por 3 turnos.',price:520},
+            'mugen1': {id:'mugen1',name:'Espadachim Errante',type:'Haki',hp:110,img:'https://i.imgur.com/HWERuem.png',skills:[{n:'Corte Rápido',d:60,c:2,desc:'Ataque veloz de espada.'},{n:'Postura de Fúria',d:20,c:1,desc:'Entra em estado de fúria.',status:{target:'self',type:'rage',turns:2}}],price:650},
+            'ice1': {id:'ice1',name:'Usuário de Gelo',type:'Nen',hp:100,img:'https://i.imgur.com/HWERuem.png',skills:[{n:'Agulhas de Gelo',d:45,c:1,desc:'Dano leve com chance de controle.',status:{target:'enemy',type:'freeze',turns:1}},{n:'Prisão Glacial',d:90,c:3,desc:'Congela o alvo.',status:{target:'enemy',type:'freeze',turns:1}}],price:750}
+        });
+        ['sup_freeze','sup_poison','mugen1','ice1'].forEach(id=>{ if(!user.inventory.includes(id)) user.inventory.push(id); });
+    };
+
+    // Aprimora suporte status para alvo inimigo também.
+    window.useSupport = function(cardIndex){
+        const card=game.player.hand[cardIndex]; if(!card || !card.isSupport) return; if(game.turn!=='player') return alert('Só no seu turno!');
+        const eff=card.effect; if(eff && eff.type==='status' && eff.target==='enemy'){
+            if(!game.enemy.active) return alert('Sem inimigo ativo!'); applyStatus(game.enemy.active, eff.status, eff.turns||1); game.player.hand.splice(cardIndex,1); logX(`✨ ${card.name} aplicou ${statusName(eff.status)} em ${game.enemy.active.name}!`,'#4ade80'); playSFX('sfxBuy'); updateUI(); return;
+        }
+        return X._old.useSupport.call(this,cardIndex);
+    };
+
+    safe(()=>{ X.installExtraCards(); X.installModes(); updateUI && updateUI(); });
+    window.addEventListener('resize', ()=>document.body.classList.add('ultra-desktop-ready'));
+    logX('✅ Ultra Max Patch carregado: visual desktop, modos novos, animações e MIH corrigido.','#fbbf24');
+})();
+</script>
+
+
+<!-- =========================================================
+     UTCG ULTRA MAX PATCH 4.1 — BATTLEFIELD / FORFEIT / MODES
+     Adicionado depois do patch principal para não reduzir código.
+========================================================= -->
+<style id="utcg-ultra-patch-41-css">
+/* Campo de batalha mais organizado para Chrome/PC */
+body.ultra-desktop-ready #game-ui{
+    grid-template-columns: 270px minmax(980px,1fr) !important;
+    grid-template-rows: 1fr 170px !important;
+}
+body.ultra-desktop-ready #game-ui main.arena{
+    padding: 14px 150px 14px 18px !important;
+    overflow: hidden;
+}
+body.ultra-desktop-ready #game-ui .zone-row{
+    width: 100%;
+    padding-right: 8px;
+}
+body.ultra-desktop-ready #game-ui .divider{
+    width: 88% !important;
+    margin-right: 40px !important;
+}
+
+/* Pilha de descarte maior e fixa no meio-direita do campo */
+.ultra-discard-holder{
+    position: absolute !important;
+    right: 26px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 20 !important;
+    width: 112px !important;
+    min-height: 152px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px 8px !important;
+    border-radius: 16px !important;
+    background: linear-gradient(180deg, rgba(2,6,23,.92), rgba(0,0,0,.92)) !important;
+    border: 1px solid rgba(251,191,36,.42) !important;
+    box-shadow: 0 0 28px rgba(0,0,0,.75), inset 0 0 18px rgba(251,191,36,.05) !important;
+    backdrop-filter: blur(8px);
+}
+.ultra-discard-holder > div:first-child{
+    font-size: 10px !important;
+    color: rgba(251,191,36,.8) !important;
+    letter-spacing: 2px !important;
+    margin-bottom: 8px !important;
+    text-transform: uppercase !important;
+}
+.ultra-discard-holder .discard-pile{
+    width: 76px !important;
+    height: 108px !important;
+}
+.ultra-discard-holder .discard-card{
+    border-radius: 12px !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 18px rgba(251,191,36,.22) !important;
+}
+.ultra-discard-holder .discard-logo{
+    width: 46px !important;
+    height: 46px !important;
+}
+.ultra-discard-holder .discard-count{
+    font-size: 14px !important;
+    margin-top: 5px !important;
+}
+.ultra-discard-holder .discard-label{
+    font-size: 8px !important;
+}
+.ultra-discard-holder:hover{
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 30px rgba(251,191,36,.25), inset 0 0 24px rgba(251,191,36,.08) !important;
+}
+
+/* Botão de desistir da batalha */
+#forfeit-battle-btn{
+    background: rgba(127,29,29,.78) !important;
+    border: 1px solid rgba(248,113,113,.65) !important;
+    color: #fecaca !important;
+    letter-spacing: 1px !important;
+    padding: 9px 10px !important;
+}
+#forfeit-battle-btn:hover{
+    background: rgba(220,38,38,.92) !important;
+    color: #fff !important;
+    box-shadow: 0 0 22px rgba(239,68,68,.35) !important;
+}
+#forfeit-modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:9600;
+    background:rgba(0,0,0,.86);
+    align-items:center;
+    justify-content:center;
+}
+#forfeit-modal.active{display:flex;}
+.forfeit-box{
+    width:min(440px,92vw);
+    padding:26px 24px;
+    border-radius:18px;
+    background:linear-gradient(180deg,#111827,#020617);
+    border:2px solid rgba(239,68,68,.65);
+    box-shadow:0 0 60px rgba(0,0,0,.85),0 0 28px rgba(239,68,68,.24);
+    text-align:center;
+    animation: result-pop .28s ease-out;
+}
+.forfeit-title{
+    font-family:'Orbitron',monospace;
+    color:#f87171;
+    font-size:24px;
+    font-weight:900;
+    text-shadow:0 0 22px rgba(239,68,68,.55);
+    margin-bottom:10px;
+}
+.forfeit-text{
+    color:#cbd5e1;
+    font-size:14px;
+    line-height:1.6;
+    margin-bottom:18px;
+}
+.forfeit-actions{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+}
+
+/* Botões de modo com sentido visual */
+#main-menu .menu-buttons .mode-label{
+    display:block;
+    font-size:14px;
+    line-height:1.1;
+}
+#main-menu .menu-buttons .mode-sub{
+    display:block;
+    font-size:9px;
+    opacity:.72;
+    font-weight:600;
+    letter-spacing:.7px;
+    margin-top:3px;
+    text-transform:none;
+}
+#ultra-modes-explainer{
+    position:fixed;
+    left:20px;
+    top:50%;
+    transform:translateY(-50%);
+    width:250px;
+    max-height:70vh;
+    overflow:auto;
+    z-index:6;
+    background:rgba(2,6,23,.76);
+    border:1px solid rgba(56,189,248,.25);
+    border-radius:14px;
+    padding:14px;
+    box-shadow:0 0 35px rgba(0,0,0,.55);
+    backdrop-filter: blur(8px);
+}
+#ultra-modes-explainer h4{
+    color:var(--gold);
+    font-family:'Orbitron',monospace;
+    font-size:12px;
+    letter-spacing:1px;
+    margin-bottom:10px;
+}
+#ultra-modes-explainer .mode-line{
+    border-left:2px solid rgba(251,191,36,.35);
+    padding-left:8px;
+    margin-bottom:9px;
+    font-size:10px;
+    color:#94a3b8;
+    line-height:1.35;
+}
+#ultra-modes-explainer .mode-line b{
+    color:#e2e8f0;
+    font-size:11px;
+}
+#ultra-mode-badge small{
+    display:block;
+    color:#94a3b8;
+    margin-top:3px;
+    font-family:'Rajdhani',sans-serif;
+    font-size:9px;
+    letter-spacing:.5px;
+}
+@media (max-width:1100px){
+    #ultra-modes-explainer{display:none;}
+    body.ultra-desktop-ready #game-ui main.arena{padding-right:118px!important;}
+    .ultra-discard-holder{right:12px!important;width:96px!important;}
+    .ultra-discard-holder .discard-pile{width:64px!important;height:92px!important;}
+}
+</style>
+
+<script id="utcg-ultra-patch-41-js">
+(function(){
+    'use strict';
+    window.UTCGX = window.UTCGX || {};
+    const X = window.UTCGX;
+    X.patch41 = true;
+    const prev = {
+        updateUI: window.updateUI,
+        showScreen: window.showScreen,
+        startGame: window.startGame,
+        startTurn: window.startTurn,
+        executeDamage: window.executeDamage,
+        showResultBase: window.showResultBase
+    };
+    const $ = (id)=>document.getElementById(id);
+    const modeData = {
+        draft: {
+            title:'DRAFT RÁPIDO',
+            short:'monte um deck temporário escolhendo cartas aleatórias',
+            rule:'Você escolhe 8 cartas em pacotes de 3. O jogo completa o mínimo com cartas base. Ideal para testar cartas que você ainda não comprou.'
+        },
+        survival: {
+            title:'SOBREVIVÊNCIA',
+            short:'sequência de inimigos fortes com recompensa alta',
+            rule:'O inimigo vem com um deck longo de cartas EX. A cada 3 rodadas, o ativo inimigo ganha Fúria por 2 turnos. Vencer rende recompensa elevada.'
+        },
+        daily: {
+            title:'DESAFIO DIÁRIO',
+            short:'modificadores especiais mudam a partida',
+            rule:'Energia instável: +1 energia extra aleatória no seu turno. Boss agressivo: inimigo começa com energia anexada. Campo ardente: ataques altos aplicam Queimado.'
+        },
+        training: {
+            title:'LABORATÓRIO',
+            short:'treino seguro para testar deck, energia e combos',
+            rule:'O dano inimigo é reduzido e a recompensa é baixa. Use para testar evolução, suporte e status sem pressão competitiva.'
+        },
+        normal: {
+            title:'BATALHA NORMAL',
+            short:'duelo clássico contra deck equilibrado',
+            rule:'Modo padrão com recompensa média. Bom para farmar moedas e testar consistência do deck.'
+        },
+        boss: {
+            title:'RAID BOSS',
+            short:'um inimigo gigante com HP absurdo',
+            rule:'O boss tem muito HP e exige preparação. Ideal para usar ultimates, status e cartas EX.'
+        }
+    };
+
+    function logX(msg,color){ if(typeof log==='function') log(msg,color||'#38bdf8'); }
+    function typeColor(t){ return (typeof getTypeColor==='function') ? getTypeColor(t) : '#38bdf8'; }
+
+    X.modeInfo = modeData;
+
+    X.layoutDiscardPile = function(){
+        const pile = document.querySelector('.discard-pile');
+        if(!pile) return;
+        const holder = pile.parentElement;
+        if(holder && !holder.classList.contains('ultra-discard-holder')) holder.classList.add('ultra-discard-holder');
+    };
+
+    X.ensureForfeitUI = function(){
+        const sidebar = document.querySelector('#game-ui .sidebar');
+        if(sidebar && !$('forfeit-battle-btn')){
+            const btn = document.createElement('button');
+            btn.id = 'forfeit-battle-btn';
+            btn.className = 'btn btn-sec';
+            btn.innerHTML = '⛔ Sair da Batalha';
+            btn.onclick = function(){ if(typeof playClick==='function') playClick(); X.openForfeitModal(); };
+            const endBtn = $('end-turn-btn');
+            if(endBtn && endBtn.parentElement) endBtn.insertAdjacentElement('afterend', btn);
+            else sidebar.appendChild(btn);
+        }
+        if(!$('forfeit-modal')){
+            const modal = document.createElement('div');
+            modal.id = 'forfeit-modal';
+            modal.innerHTML = `
+                <div class="forfeit-box">
+                    <div class="forfeit-title">ATENÇÃO</div>
+                    <div class="forfeit-text">
+                        Se você sair agora, a batalha será contada como <b style="color:#f87171">DERROTA AUTOMÁTICA</b>.<br>
+                        Você não receberá recompensa e perderá o progresso desta luta.
+                    </div>
+                    <div class="forfeit-actions">
+                        <button class="btn btn-sec" onclick="UTCGX.closeForfeitModal()">Cancelar</button>
+                        <button class="btn btn-play" onclick="UTCGX.confirmForfeitBattle()">Sair e perder</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+        }
+    };
+
+    X.openForfeitModal = function(){
+        if(!game || game.battleEnded) return;
+        const m = $('forfeit-modal');
+        if(m) m.classList.add('active');
+    };
+    X.closeForfeitModal = function(){ const m=$('forfeit-modal'); if(m) m.classList.remove('active'); };
+    X.confirmForfeitBattle = function(){
+        X.closeForfeitModal();
+        if(!game || game.battleEnded) return;
+        logX('⛔ Você saiu da batalha. Derrota automática aplicada.', '#f87171');
+        game._forfeit = true;
+        game.currentReward = 0;
+        clearInterval(game.timerInterval);
+        clearInterval(game.accelerationInterval);
+        game.timeAccelerationActive = false;
+        const ov=$('time-acceleration-overlay'), te=$('acceleration-timer'), gu=$('game-ui');
+        if(ov) ov.classList.remove('active');
+        if(te){ te.classList.remove('active'); te.style.animation=''; }
+        if(gu) gu.classList.remove('time-accelerated-shake');
+        if(typeof showResult === 'function') showResult(false);
+        else if(typeof showResultBase === 'function') showResultBase(false);
+    };
+
+    X.modeKey = function(){
+        if(X.pendingMode) return X.pendingMode;
+        if(game && game.mode === 'boss') return 'boss';
+        return 'normal';
+    };
+
+    X.updateModeHud41 = function(){
+        const sidebar=document.querySelector('#game-ui .sidebar');
+        if(!sidebar) return;
+        let badge=$('ultra-mode-badge');
+        if(!badge){
+            badge=document.createElement('div');
+            badge.id='ultra-mode-badge';
+            badge.style.cssText='font-family:Orbitron;font-size:10px;letter-spacing:1px;color:#fbbf24;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:6px;padding:7px;text-align:center;';
+            sidebar.insertBefore(badge, sidebar.firstChild);
+        }
+        const key=X.modeKey(); const data=modeData[key] || modeData.normal;
+        badge.innerHTML = `MODO: ${data.title}<small>${data.short}</small>`;
+    };
+
+    X.installModeDescriptions = function(){
+        const menu=document.querySelector('#main-menu .menu-buttons');
+        if(menu){
+            [...menu.querySelectorAll('button')].forEach(btn=>{
+                const t=btn.textContent || '';
+                if(t.includes('Batalhar')) btn.innerHTML='<span class="mode-label">⚔️ Batalhar</span><span class="mode-sub">duelo clássico com recompensa equilibrada</span>';
+                if(t.includes('Raid Boss')) btn.innerHTML='<span class="mode-label">☠️ Raid Boss</span><span class="mode-sub">boss único com HP absurdo</span>';
+                if(t.includes('Draft')) btn.innerHTML='<span class="mode-label">🎲 Draft Rápido</span><span class="mode-sub">monte deck temporário com escolhas aleatórias</span>';
+                if(t.includes('Sobreviv')) btn.innerHTML='<span class="mode-label">🔥 Sobrevivência</span><span class="mode-sub">sequência brutal de cartas EX</span>';
+                if(t.includes('Desafio')) btn.innerHTML='<span class="mode-label">🎯 Desafio Diário</span><span class="mode-sub">modificadores especiais de arena</span>';
+                if(t.includes('Laboratório')) btn.innerHTML='<span class="mode-label">🧪 Laboratório</span><span class="mode-sub">treine combos com menor pressão</span>';
+            });
+        }
+        const main=$('main-menu');
+        if(main && !$('ultra-modes-explainer')){
+            const panel=document.createElement('div');
+            panel.id='ultra-modes-explainer';
+            panel.innerHTML=`<h4>MODOS DE JOGO</h4>${['normal','boss','draft','survival','daily','training'].map(k=>`<div class="mode-line"><b>${modeData[k].title}</b><br>${modeData[k].rule}</div>`).join('')}`;
+            main.appendChild(panel);
+        }
+    };
+
+    X.applyModeRulesAfterStart = function(){
+        const mode=X.pendingMode;
+        if(!mode) return;
+        if(mode==='draft'){
+            game.currentReward = Math.max(game.currentReward||0, 350);
+            logX('🎲 Draft: deck temporário ativo. A vitória rende recompensa de teste.', '#fbbf24');
+        }
+        if(mode==='survival'){
+            game.currentReward = Math.max(game.currentReward||0, 1600);
+            const extra=['n2','g2','j2','op2','bl2','hxh2','j4','jjba1','n4','g2'];
+            if(game.enemy.deck) game.enemy.deck.push(...extra.sort(()=>0.5-Math.random()));
+            if(game.enemy.active){
+                game.enemy.active.curHP = Math.ceil((game.enemy.active.curHP||game.enemy.active.hp||100) * 1.25);
+                game.enemy.active.hp = Math.max(game.enemy.active.hp||0, game.enemy.active.curHP);
+            }
+            logX('🔥 Sobrevivência: inimigo recebeu deck estendido e HP aumentado.', '#f87171');
+        }
+        if(mode==='training'){
+            game.currentReward = 25;
+            logX('🧪 Laboratório: dano inimigo reduzido. Use para testar combos.', '#38bdf8');
+        }
+        if(mode==='daily'){
+            game.currentReward = Math.max(game.currentReward||0, 1100);
+            if(game.enemy.active){ game.enemy.active.attached = (game.enemy.active.attached||0) + 2; }
+            logX('🎯 Desafio Diário: energia instável, boss agressivo e campo ardente ativos.', '#fbbf24');
+        }
+        updateUI && updateUI();
+    };
+
+    window.updateUI = function(){
+        const r = prev.updateUI ? prev.updateUI.apply(this, arguments) : undefined;
+        try{ X.layoutDiscardPile(); X.ensureForfeitUI(); X.updateModeHud41(); }catch(e){ console.warn('[UTCGX 4.1 updateUI]', e); }
+        return r;
+    };
+
+    window.showScreen = function(id, modeParam){
+        const r = prev.showScreen ? prev.showScreen.apply(this, arguments) : undefined;
+        try{
+            X.installModeDescriptions();
+            if(id === 'game-ui'){ X.layoutDiscardPile(); X.ensureForfeitUI(); X.updateModeHud41(); }
+        }catch(e){ console.warn('[UTCGX 4.1 showScreen]', e); }
+        return r;
+    };
+
+    window.startGame = function(lvlIdx, firstTurn){
+        const r = prev.startGame ? prev.startGame.apply(this, arguments) : undefined;
+        try{ X.applyModeRulesAfterStart(); X.layoutDiscardPile(); X.ensureForfeitUI(); }catch(e){ console.warn('[UTCGX 4.1 startGame]', e); }
+        return r;
+    };
+
+    window.startTurn = function(who){
+        const r = prev.startTurn ? prev.startTurn.apply(this, arguments) : undefined;
+        try{
+            const mode=X.pendingMode;
+            if(mode==='daily' && who==='player' && game && game.energies){
+                const types=(game.deckTypes && game.deckTypes.length) ? game.deckTypes : Object.keys(game.energies);
+                const t=types[Math.floor(Math.random()*types.length)];
+                if(t && game.energies[t]!==undefined){ game.energies[t]++; game.player.energy++; logX(`🎯 Energia Instável: +1 ${t} extra.`, typeColor(t)); }
+            }
+            if(mode==='survival' && who==='enemy' && game.roundCount && game.roundCount % 3 === 0 && game.enemy && game.enemy.active && typeof applyStatus==='function'){
+                applyStatus(game.enemy.active, 'rage', 2);
+                logX('🔥 Sobrevivência: o inimigo entrou em Fúria!', '#ef4444');
+            }
+            X.updateModeHud41(); updateUI && updateUI();
+        }catch(e){ console.warn('[UTCGX 4.1 startTurn]', e); }
+        return r;
+    };
+
+    window.executeDamage = function(attacker, defender, skill, source){
+        let s = skill;
+        try{
+            if(X.pendingMode==='training' && source==='enemy' && skill && skill.d){
+                s = Object.assign({}, skill, { d: Math.max(1, Math.ceil(skill.d * 0.55)) });
+                logX('🧪 Laboratório: dano inimigo reduzido para treino.', '#38bdf8');
+            }
+            if(X.pendingMode==='daily' && source==='player' && skill && (skill.d||0) >= 80 && !skill.status){
+                s = Object.assign({}, skill, { status:{ target:'enemy', type:'burn', turns:2 } });
+                logX('🎯 Campo Ardente: ataque alto aplicará Queimado.', '#fb923c');
+            }
+        }catch(e){ console.warn('[UTCGX 4.1 executeDamage prep]', e); }
+        return prev.executeDamage ? prev.executeDamage.call(this, attacker, defender, s, source) : undefined;
+    };
+
+    window.showResultBase = function(win){
+        try{
+            if(game && game._forfeit){ game.currentReward = 0; }
+            if(X.pendingMode==='survival' && win && game){ game.currentReward = Math.max(game.currentReward||0, 1600 + (game.roundCount||0)*35); }
+            if(X.pendingMode==='training'){ game.currentReward = win ? 25 : 0; }
+        }catch(e){ console.warn('[UTCGX 4.1 result prep]', e); }
+        const r = prev.showResultBase ? prev.showResultBase.apply(this, arguments) : undefined;
+        try{
+            if(game) game._forfeit = false;
+        }catch(e){}
+        return r;
+    };
+
+    try{ X.installModeDescriptions(); X.ensureForfeitUI(); X.layoutDiscardPile(); }catch(e){ console.warn('[UTCGX 4.1 init]', e); }
+    logX('✅ Patch 4.1 aplicado: campo ajustado, descarte reposicionado, desistência com derrota e modos com regras reais.', '#fbbf24');
+})();
+</script>
+
+
+<style id="mp-online-style">
+#multiplayer-screen{background:radial-gradient(ellipse at top,#06221d 0%,#020617 48%,#000 100%);padding:28px;overflow:auto;}
+.mp-shell{width:min(1120px,96vw);background:linear-gradient(180deg,rgba(15,23,42,.92),rgba(2,6,23,.97));border:1px solid rgba(16,185,129,.35);border-radius:22px;padding:24px;box-shadow:0 0 60px rgba(0,0,0,.75),inset 0 0 40px rgba(16,185,129,.04)}
+.mp-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:16px}
+.mp-kicker{font-family:Orbitron,monospace;font-size:10px;letter-spacing:3px;color:#10b981;text-transform:uppercase}.mp-header h2{font-family:Orbitron,monospace;margin:4px 0 6px;font-size:30px;color:#fff;text-shadow:0 0 24px rgba(16,185,129,.4)}.mp-header p{color:#94a3b8;font-size:13px;max-width:640px;line-height:1.6}.mp-status-pill{font-family:Orbitron,monospace;font-size:11px;letter-spacing:2px;color:#a7f3d0;border:1px solid rgba(16,185,129,.45);background:rgba(16,185,129,.08);border-radius:999px;padding:8px 12px;white-space:nowrap}.mp-grid{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:14px}.mp-panel,.mp-room-panel,.mp-quick-panel{background:rgba(0,0,0,.32);border:1px solid rgba(51,65,85,.75);border-radius:14px;padding:16px}.mp-panel h3,.mp-quick-panel h3{font-size:16px;margin-bottom:10px;color:#e2e8f0}.mp-panel label{display:block;font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}.mp-input{width:100%;padding:12px;border-radius:8px;border:1px solid #334155;background:#020617;color:#fff;font-family:Rajdhani,sans-serif;font-weight:700;outline:none}.mp-input:focus{border-color:#10b981;box-shadow:0 0 0 2px rgba(16,185,129,.15)}.mp-note{font-size:11px;color:#64748b;line-height:1.5;margin-top:10px}.mp-row{display:flex;gap:8px}.mp-wide{width:100%;height:46px}.mp-room-panel{margin-top:14px}.mp-room-panel.hidden{display:none}.mp-room-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.mp-room-code{font-family:Orbitron,monospace;font-size:26px;color:#fbbf24;letter-spacing:4px;text-shadow:0 0 20px rgba(251,191,36,.45)}.mp-players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.mp-player-row{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);border-radius:10px;padding:10px}.mp-player-row b{color:#fff}.mp-player-row small{color:#94a3b8}.mp-actions{display:flex;gap:10px;margin-top:12px}.mp-quick-panel{margin-top:14px}.mp-quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.mp-quick-grid button,#mp-game-panel button{background:rgba(15,23,42,.9);border:1px solid rgba(56,189,248,.35);color:#fff;border-radius:8px;padding:8px;cursor:pointer;font-family:Rajdhani,sans-serif;font-weight:700}.mp-quick-grid button:hover,#mp-game-panel button:hover{border-color:#10b981;color:#a7f3d0}.mp-back{margin-top:16px;width:100%}#mp-game-panel{display:none;position:fixed;top:12px;right:12px;z-index:6100;width:250px;background:rgba(2,6,23,.94);border:1px solid rgba(16,185,129,.45);border-radius:14px;padding:12px;box-shadow:0 0 30px rgba(0,0,0,.6)}body.mp-active #mp-game-panel{display:block}.mp-game-title{font-family:Orbitron,monospace;color:#10b981;font-weight:900;font-size:13px;letter-spacing:2px}.mp-game-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}#mp-game-room,#mp-game-turn{font-size:11px;color:#cbd5e1;margin-top:4px}.mp-card-tools{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.mp-card-tools button{font-size:9px;padding:3px 5px;border-radius:4px;border:1px solid #334155;background:#0f172a;color:#fff;cursor:pointer}.mp-waiting{opacity:.55;filter:grayscale(.35)}.mp-log-line{border-bottom:1px solid #0f172a;padding:2px 0}.mp-spectator-badge{color:#fbbf24;font-size:10px;text-transform:uppercase;letter-spacing:1px}
+@media(max-width:850px){.mp-grid{grid-template-columns:1fr}.mp-players{grid-template-columns:1fr}.mp-quick-grid{grid-template-columns:1fr 1fr}#mp-game-panel{left:8px;right:8px;top:8px;width:auto}.mp-header{flex-direction:column}.mp-shell{padding:16px}}
+</style>
+<script src="/socket.io/socket.io.js"></script>
+<script id="mp-online-client">
+(function(){
+'use strict';
+let mpSocket=null, mpRoom=null, mpGame=null, mpMySide=null, mpLastEventId=null, mpConnected=false;
+const $ = (id)=>document.getElementById(id);
+function mpSetConn(text, ok){const el=$('mp-conn-status'); if(el){el.textContent=text; el.style.borderColor=ok?'rgba(16,185,129,.7)':'rgba(239,68,68,.65)'; el.style.color=ok?'#a7f3d0':'#fecaca';}}
+function mpConnect(){
+    if(mpSocket) return mpSocket;
+    if(typeof io==='undefined'){ alert('Socket.IO não carregou. Abra pelo servidor Node: http://localhost:3000'); return null; }
+    mpSocket=io();
+    mpSetConn('CONECTANDO', false);
+    mpSocket.on('connect',()=>{mpConnected=true; mpSetConn('ONLINE', true);});
+    mpSocket.on('disconnect',()=>{mpConnected=false; mpSetConn('DESCONECTADO', false);});
+    mpSocket.on('room:update',(room)=>{mpRoom=room; mpRenderRoom(room);});
+    mpSocket.on('game:state',(state)=>{mpGame=state; mpRenderGame(state);});
+    mpSocket.on('chat:quick',(payload)=>{mpLocalLog(`💬 ${payload.name}: ${payload.message}`,'#38bdf8');});
+    mpSocket.on('room:error',(msg)=>alert(msg||'Erro na sala.'));
+    return mpSocket;
+}
+function mpOpenMultiplayer(){ mpConnect(); if(typeof showScreen==='function') showScreen('multiplayer-screen'); }
+function mpGetName(){return ($('mp-name')?.value||'Jogador').trim().slice(0,18)||'Jogador';}
+function mpGetDeckPayload(){
+    let ids=[];
+    try{ ids=(window.user && Array.isArray(user.deck) && user.deck.length? user.deck : ['n1','g1','j1','bl1','op1']).slice(0,20); }catch(e){ ids=['n1','g1','j1','bl1','op1']; }
+    const cards=[];
+    ids.forEach(id=>{ const c=window.CARDS_DB && CARDS_DB[id]; if(!c) return; cards.push({
+        id:c.id, name:c.name, type:c.type, hp:c.hp||0, img:c.img||'', isEx:!!c.isEx, isSupport:!!c.isSupport,
+        evolvesFrom:c.evolvesFrom||null, desc:c.desc||'', effect:c.effect||null,
+        skills:(c.skills||[]).slice(0,3).map(s=>({n:s.n,d:Number(s.d||0),c:Number(s.c||0),desc:s.desc||'',status:s.status||null,vid:s.vid||'',special:s.special||''}))
+    }); });
+    if(cards.filter(c=>!c.isSupport && !c.evolvesFrom).length===0){
+        cards.push({id:'mp_base',name:'Lutador Online',type:'Chakra',hp:100,img:'',skills:[{n:'Ataque Online',d:30,c:1,desc:'Ataque básico online.'}]});
+    }
+    return cards;
+}
+function mpCreateRoom(){ const s=mpConnect(); if(!s) return; s.emit('room:create',{name:mpGetName()},(res)=>{ if(!res.ok) return alert(res.error); mpRoom=res.room; mpMySide='p1'; mpRenderRoom(res.room); }); }
+function mpJoinRoom(){ const s=mpConnect(); if(!s) return; const code=($('mp-code')?.value||'').trim().toUpperCase(); if(!code) return alert('Digite o código da sala.'); s.emit('room:join',{code,name:mpGetName()},(res)=>{ if(!res.ok) return alert(res.error); mpRoom=res.room; mpMySide=res.side || (res.spectator?'spectator':'p2'); mpRenderRoom(res.room); }); }
+function mpReady(){ if(!mpSocket) return alert('Conecte primeiro.'); mpSocket.emit('room:ready',{deck:mpGetDeckPayload()},(res)=>{ if(!res.ok) alert(res.error); }); }
+function mpLeaveRoom(){ if(mpSocket && mpRoom){ mpSocket.emit('room:leave',{},()=>{}); } mpRoom=null; mpGame=null; mpMySide=null; document.body.classList.remove('mp-active'); const panel=$('mp-room-panel'); if(panel) panel.classList.add('hidden'); }
+function mpQuick(message){ if(!mpSocket||!mpRoom) return alert('Entre em uma sala primeiro.'); mpSocket.emit('chat:quick',{message}); }
+function mpRenderRoom(room){
+    const panel=$('mp-room-panel'); if(panel) panel.classList.remove('hidden');
+    if($('mp-room-code')) $('mp-room-code').textContent=room.code||'------';
+    if($('mp-room-status')) $('mp-room-status').textContent=(room.status||'waiting').toUpperCase();
+    const list=$('mp-room-players'); if(list){ list.innerHTML=(room.players||[]).map(p=>`<div class="mp-player-row"><b>${p.ready?'✅':'⏳'} ${escapeHTML(p.name)}</b><br><small>${p.side.toUpperCase()} ${p.connected===false?'— desconectado':''}</small></div>`).join('') + (room.spectatorCount?`<div class="mp-player-row"><span class="mp-spectator-badge">👁 ${room.spectatorCount} espectador(es)</span></div>`:''); }
+}
+function mpRenderGame(state){
+    if(!state) return; mpGame=state; mpMySide=state.youSide || mpMySide;
+    if(document.getElementById('game-ui').style.display==='none'){ if(typeof showScreen==='function') showScreen('game-ui'); }
+    document.body.classList.add('mp-active');
+    if($('mp-game-room')) $('mp-game-room').textContent='Sala: '+(state.roomCode||'—');
+    if($('mp-game-turn')) $('mp-game-turn').textContent= state.winner ? 'Partida finalizada' : (state.isYourTurn?'Turno: VOCÊ':'Turno: OPONENTE');
+    renderMpBattlefield(state);
+    renderMpLog(state);
+    if(state.lastEvent && state.lastEvent.id!==mpLastEventId){ mpLastEventId=state.lastEvent.id; handleMpEvent(state.lastEvent); }
+    if(state.winner){ setTimeout(()=>{ alert(state.winner===mpMySide?'VITÓRIA ONLINE!':'DERROTA ONLINE!'); document.body.classList.remove('mp-active'); if(typeof showScreen==='function') showScreen('main-menu'); },300); }
+}
+function renderMpBattlefield(state){
+    const you=state.you, enemy=state.enemy;
+    if($('energy-pool')) $('energy-pool').textContent=you.energyPool||0;
+    updateMpEnergyPanel(you.energies||{});
+    const endBtn=$('end-turn-btn'); if(endBtn){ endBtn.disabled=!state.isYourTurn || !!state.winner; endBtn.textContent=state.isYourTurn?'Passar Turno ▶':'Aguardando oponente...'; endBtn.onclick=function(){playClick&&playClick(); mpPassTurn();}; }
+    const pa=$('p-active'), ea=$('e-active'), pb=$('p-bench'), eb=$('e-bench'), hand=$('p-hand');
+    if(pa) pa.innerHTML=you.active?mpCardHTML(you.active,'player','active',0,state):'<div class="card active" style="border:2px dashed #334155;background:rgba(0,0,0,.3)"></div>';
+    if(ea) ea.innerHTML=enemy.active?mpCardHTML(enemy.active,'enemy','active',0,state):'<div class="card active" style="border:2px dashed #334155;background:rgba(0,0,0,.3)"></div>';
+    if(pb) pb.innerHTML=(you.bench||[]).map((c,i)=>mpCardHTML(c,'player','bench',i,state)).join('');
+    if(eb) eb.innerHTML=(enemy.bench||[]).map((c,i)=>mpCardHTML(c,'enemy','bench',i,state)).join('');
+    if(hand) hand.innerHTML='<span class="hand-label">MÃO ONLINE</span>'+(you.hand||[]).map((c,i)=>mpHandCardHTML(c,i,state)).join('');
+    const dc=$('discard-count'); if(dc) dc.textContent=you.discardCount||0;
+}
+function mpCardHTML(c,side,zone,index,state){
+    const isP=side==='player'; const can=state.isYourTurn && isP && !state.winner;
+    const hpPct=Math.max(0,Math.min(100,Math.round((c.curHP/(c.hp||1))*100)));
+    const skills=(zone==='active'&&isP)?(c.skills||[]).map((s,i)=>`<button class="btn-skill ${((c.attached||0)>=(s.c||0))?'affordable':''}" onclick="mpAttack(${i})" onmouseover="inspect&&inspect('${esc(s.n)}','${esc(s.desc||'')}','${s.d||0}','${s.c||0}')">${escapeHTML(s.n)}<br><small>${s.d||0} DMG | ${s.c||0} EN</small></button>`).join(''):'';
+    const tools=(can)?`<div class="mp-card-tools"><button onclick="mpAttach('${zone}',${index})">+ Energia</button>${zone==='bench'?`<button onclick="mpPromote(${index})">Ativo</button>`:''}</div>`:'';
+    return `<div id="${side==='player'?'p':'e'}-card-${zone}${zone==='bench'?'-'+index:''}" class="card ${zone==='active'?'active':''} ${c.isEx?'ex':''} ${state.isYourTurn&&isP?'':'mp-waiting'}"><div class="hp-tag ${hpPct<=30?'low':''}">${c.curHP}/${c.hp}</div><div class="energy-tag" style="${getEnergyStyleSafe(c.type)}">${c.attached||0}</div><img src="${c.img||''}"><div class="card-content"><b style="color:${typeColorSafe(c.type)}">${escapeHTML(c.name)}</b>${statusHTML(c)}${skills}${tools}</div><div class="hp-bar-wrap"><div class="hp-bar" style="width:${hpPct}%;background:${hpPct<=30?'#ef4444':hpPct<=55?'#f59e0b':'#4ade80'}"></div></div></div>`;
+}
+function mpHandCardHTML(c,i,state){
+    const playable=state.isYourTurn && !state.winner;
+    const label=c.isSupport?'USAR':(c.evolvesFrom?'EVOLUIR':'JOGAR');
+    return `<div class="card ${c.isEx?'ex':''} ${c.isSupport?'support':''}" onmouseover="mpPreview(event,${i})" onmouseout="hideCardPreview&&hideCardPreview()"><img src="${c.img||''}"><div class="card-content"><b style="color:${typeColorSafe(c.type)}">${escapeHTML(c.name)}</b><button class="btn-skill" ${playable?'':'disabled'} onclick="mpPlayCard(${i})">${label}</button></div></div>`;
+}
+function renderMpLog(state){ const term=$('log'); if(!term) return; term.innerHTML=(state.log||[]).slice(-18).reverse().map(l=>`<div class="mp-log-line" style="color:${l.color||'#4ade80'}">&gt; ${escapeHTML(l.text||l)}</div>`).join(''); }
+function updateMpEnergyPanel(energies){ const map={Chakra:'chakra',Ki:'ki','Amaldiçoada':'amaldicoada',Stand:'stand',Haki:'haki',Reiatsu:'reiatsu',Nen:'nen'}; Object.keys(map).forEach(t=>{ const id=map[t]; const v=energies[t]||0; const el=$('e-'+id); if(el) el.textContent=v; const mel=$('mob-ev-'+id); if(mel) mel.textContent=v; }); }
+function mpPlayCard(i){ mpEmitAction({type:'playCard',handIndex:i}); }
+function mpAttach(zone,index){ mpEmitAction({type:'attachEnergy',target:{zone,index}}); }
+function mpPromote(i){ mpEmitAction({type:'promote',benchIndex:i}); }
+function mpAttack(i){ mpEmitAction({type:'attack',skillIndex:i}); }
+function mpPassTurn(){ mpEmitAction({type:'pass'}); }
+function mpConcede(){ if(confirm('Atenção: se você desistir agora, perderá a batalha automaticamente.')) mpEmitAction({type:'concede'}); }
+function mpEmitAction(action){ if(!mpSocket||!mpGame) return; mpSocket.emit('game:action',{action},(res)=>{ if(!res.ok) alert(res.error); }); }
+function handleMpEvent(ev){
+    if(ev.type==='attack'){
+        const atk=ev.source===mpMySide?'p-card-active':'e-card-active'; const def=ev.source===mpMySide?'e-card-active':'p-card-active';
+        if(typeof flyCardTo==='function'){
+            const sourceCard = ev.source===mpMySide ? mpGame.you.active : mpGame.enemy.active;
+            flyCardTo(atk,def,sourceCard||{img:''},ev.source===mpMySide?'player':'enemy',()=>{});
+        }else{ document.getElementById(def)?.classList.add('hit-flash'); setTimeout(()=>document.getElementById(def)?.classList.remove('hit-flash'),500); }
+        if(ev.skill && ev.skill.vid) playMpUlt(ev.skill.vid);
+    }
+    if(ev.type==='energy'){ const id=ev.source===mpMySide?'p-card-'+ev.zone+(ev.zone==='bench'?'-'+ev.index:''):'e-card-'+ev.zone+(ev.zone==='bench'?'-'+ev.index:''); const pos=getCardCenter?getCardCenter(id):{x:innerWidth/2,y:innerHeight/2}; spawnFloat&&spawnFloat(pos.x,pos.y,'+EN','energy'); }
+}
+function playMpUlt(src){ const v=$('ult-video'), screen=$('ult-screen'), overlay=$('ult-play-overlay'); if(!v||!screen) return; if(typeof pauseAllBackgroundMusicForVideo==='function') pauseAllBackgroundMusicForVideo(); v.src=src; v.load(); if(overlay) overlay.style.display='none'; screen.style.display='flex'; v.onended=()=>{ screen.style.display='none'; v.pause(); v.src=''; if(typeof restoreBackgroundMusicAfterVideo==='function') restoreBackgroundMusicAfterVideo(true); }; v.play().catch(()=>{}); }
+function mpPreview(e,i){ try{ const c=mpGame.you.hand[i]; if(window.showCardPreview) showCardPreview(e,c); }catch(err){} }
+function typeColorSafe(t){ return (window.getTypeColor?getTypeColor(t):({Chakra:'#3b82f6',Ki:'#f59e0b','Amaldiçoada':'#a855f7',Stand:'#10b981',Haki:'#dc2626',Reiatsu:'#06b6d4',Nen:'#84cc16',Suporte:'#4ade80'}[t]||'#94a3b8')); }
+function getEnergyStyleSafe(t){ return `background:${typeColorSafe(t)};color:#000;`; }
+function statusHTML(c){ if(!c.statuses||!c.statuses.length) return ''; return c.statuses.map(s=>`<span class="status-badge status-${s.type}">${s.type}(${s.turns})</span>`).join(''); }
+function escapeHTML(s){ return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m])); }
+function esc(s){ return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' '); }
+function mpLocalLog(text,color){ if(typeof log==='function') log(text,color||'#38bdf8'); }
+window.mpOpenMultiplayer=mpOpenMultiplayer; window.mpCreateRoom=mpCreateRoom; window.mpJoinRoom=mpJoinRoom; window.mpReady=mpReady; window.mpLeaveRoom=mpLeaveRoom; window.mpQuick=mpQuick; window.mpPlayCard=mpPlayCard; window.mpAttach=mpAttach; window.mpPromote=mpPromote; window.mpAttack=mpAttack; window.mpPassTurn=mpPassTurn; window.mpConcede=mpConcede; window.mpPreview=mpPreview;
+})();
+</script>
+
 </body>
 </html>
