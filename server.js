@@ -198,17 +198,29 @@ function addLog(game,text,color="#4ade80"){
 }
 
 function addPublicEvent(game,type,source,payload={}){
-  game.lastEvent = { id:`${Date.now()}-${Math.random().toString(36).slice(2)}`, type, source, ...payload };
+  const ev = { id:`${Date.now()}-${Math.random().toString(36).slice(2)}`, type, source, ...payload };
+  game.lastEvent = ev;
+  if(!Array.isArray(game.recentEvents)) game.recentEvents = [];
+  game.recentEvents.push(ev);
+  if(game.recentEvents.length > 30) game.recentEvents = game.recentEvents.slice(-30);
+  return ev;
 }
 
 function gainEnergy(side){
   side.energyPool = Number(side.energyPool || 0) + 1;
   side.energy = side.energyPool;
   let chosen = null;
-  if(side.deckTypes && side.deckTypes.length){
+
+  // Prioriza a energia do ativo para evitar turno morto no online/raid.
+  // Se a carta for Neutro ou um tipo fora da lista, a energia fica genérica no pool.
+  const activeType = side && side.active ? side.active.type : null;
+  if(activeType && side.energies && side.energies[activeType] !== undefined){
+    chosen = activeType;
+  }else if(side.deckTypes && side.deckTypes.length){
     chosen = side.deckTypes[Math.floor(Math.random() * side.deckTypes.length)];
-    if(chosen && side.energies[chosen] !== undefined) side.energies[chosen] += 1;
   }
+
+  if(chosen && side.energies && side.energies[chosen] !== undefined) side.energies[chosen] += 1;
   return chosen;
 }
 
@@ -224,6 +236,7 @@ function createGame(room){
     winner:null,
     round:0,
     lastEvent:null,
+    recentEvents:[],
     log:[],
     p1:setupSide(p1),
     p2:setupSide(p2)
@@ -285,14 +298,14 @@ function gameFor(room, side){
   if(side !== "p1" && side !== "p2"){
     return {
       mode:"online", roomCode:room.code, youSide:"spectator", isYourTurn:false, turn:g.turn,
-      winner:g.winner, round:g.round, log:g.log, lastEvent:g.lastEvent,
+      winner:g.winner, round:g.round, log:g.log, lastEvent:g.lastEvent, recentEvents:g.recentEvents || [],
       you:pubSide(g.p1,true), enemy:pubSide(g.p2,true)
     };
   }
   const enemy = enemyOf(side);
   return {
     mode:"online", roomCode:room.code, youSide:side, isYourTurn:g.turn === side && !g.winner,
-    turn:g.turn, winner:g.winner, round:g.round, log:g.log, lastEvent:g.lastEvent,
+    turn:g.turn, winner:g.winner, round:g.round, log:g.log, lastEvent:g.lastEvent, recentEvents:g.recentEvents || [],
     you:pubSide(g[side],false), enemy:pubSide(g[enemy],true)
   };
 }
@@ -743,11 +756,14 @@ function raidGameFor(room, viewerSide){
     difficultyLabel:(EVENT_DIFFICULTIES[room.difficulty] || EVENT_DIFFICULTIES.normal).label,
     youSide:viewerSide || "spectator",
     turn:g.turn,
+    turnName:(g.turn === "boss" ? (g.boss && g.boss.name) : (g.sides[g.turn] && g.sides[g.turn].name)) || g.turn || "—",
+    turnOrder:g.playersOrder.map(side => ({ side, name:(g.sides[side] && g.sides[side].name) || side, eliminated:!!(g.sides[side] && g.sides[side].eliminated), acted:(g.acted || []).includes(side) })).concat([{ side:"boss", name:(g.boss && g.boss.name) || "Boss", eliminated:false, acted:false }]),
     isYourTurn:g.turn === viewerSide && !g.winner,
     winner:g.winner,
     round:g.round,
     log:g.log,
     lastEvent:g.lastEvent,
+    recentEvents:g.recentEvents || [],
     boss:pubCard(g.boss),
     bossEnergy:g.bossEnergy || 0,
     players:sides,
@@ -797,7 +813,13 @@ function finishRaid(room, winner){
   addLog(g, won ? "Raid vencida! Boosters liberados para todos." : "O boss venceu a raid.", won ? "#fbbf24" : "#ef4444");
   addPublicEvent(g, "raidEnd", winner, { winner });
   room.rewards = room.rewards || {};
-  for(const p of room.players){ const reward = rollRaidReward(room, won); reward.claimId = `${room.code}:${p.side}:${winner}`; room.rewards[p.side] = reward; }
+  for(const p of room.players){
+    if(!room.rewards[p.side]){
+      const reward = rollRaidReward(room, won);
+      reward.claimId = `${room.code}:${p.side}:${winner}`;
+      room.rewards[p.side] = reward;
+    }
+  }
 }
 
 function createRaidGame(room){
@@ -826,6 +848,7 @@ function createRaidGame(room){
     bossEnergy:0,
     winner:null,
     lastEvent:null,
+    recentEvents:[],
     log:[]
   };
   room.game = game;
@@ -848,17 +871,22 @@ function startRaidRound(room){
   g.round += 1;
   g.acted = [];
   g.bossEnergy = Number(g.bossEnergy || 0) + diff.bossEnergyGain;
+  const energyGains = [];
   for(const sideName of g.playersOrder){
     const side = g.sides[sideName];
     if(!side || side.eliminated) continue;
     resetTurnFlags(side);
-    gainEnergy(side);
+    const gainedType = gainEnergy(side);
+    energyGains.push({ side:sideName, name:side.name, type:gainedType || "Genérica", pool:Number(side.energyPool || 0), activeAttached:side.active ? Number(side.active.attached || 0) : 0 });
     draw(side);
   }
   const alive = aliveRaidSides(g);
   g.turn = alive[0] || null;
   addLog(g, `Rodada ${g.round}: boss recebeu +${diff.bossEnergyGain} energia.`, "#fbbf24");
-  addPublicEvent(g, "raidRound", "boss", { round:g.round, bossEnergy:g.bossEnergy });
+  if(energyGains.length){
+    addLog(g, `Energia dos jogadores: ${energyGains.map(e => `${e.name} +1 ${e.type}`).join(" • ")}.`, "#38bdf8");
+  }
+  addPublicEvent(g, "raidRound", "boss", { round:g.round, bossEnergy:g.bossEnergy, energyGains });
 }
 
 function raidCheckPlayerKO(room, sideName){
@@ -923,11 +951,17 @@ function handleRaidAction(room, player, action){
   const type = String(action.type);
   if(type === "concede" || type === "surrender"){
     if(side && !side.eliminated){ side.eliminated = true; side.active = null; }
+    room.rewards = room.rewards || {};
+    if(!room.rewards[sideName]){
+      const reward = rollRaidReward(room, false);
+      reward.claimId = `${room.code}:${sideName}:concede:${Date.now()}`;
+      room.rewards[sideName] = reward;
+    }
     addLog(g, `${player.name} desistiu da raid.`, "#ef4444");
-    addPublicEvent(g, "raidConcede", sideName, {});
+    addPublicEvent(g, "raidConcede", sideName, { reward:room.rewards[sideName] });
     if(!aliveRaidSides(g).length) finishRaid(room, "boss");
     else if(g.turn === sideName) advanceRaidTurn(room, sideName);
-    return { ok:true };
+    return { ok:true, personalEnded:true, reward:room.rewards[sideName] };
   }
   if(g.winner) return { ok:false, error:"A raid já terminou." };
   if(!side || side.eliminated) return { ok:false, error:"Você está eliminado." };
@@ -1155,18 +1189,27 @@ io.on("connection", socket => {
     const room = eventRoomBySocket(socket.id);
     if(!room) return cb(callback, { ok:true });
     const leaving = eventPlayerBySocket(room, socket.id);
+    let leavingReward = null;
     if(room.status === "playing" && room.game && leaving && !room.game.winner){
       const side = room.game.sides[leaving.side];
       if(side){ side.eliminated = true; side.active = null; }
+      room.rewards = room.rewards || {};
+      if(!room.rewards[leaving.side]){
+        leavingReward = rollRaidReward(room, false);
+        leavingReward.claimId = `${room.code}:${leaving.side}:leave:${Date.now()}`;
+        room.rewards[leaving.side] = leavingReward;
+      }else leavingReward = room.rewards[leaving.side];
       addLog(room.game, `${leaving.name} saiu da raid.`, "#ef4444");
+      addPublicEvent(room.game, "raidConcede", leaving.side, { reward:leavingReward });
       if(!aliveRaidSides(room.game).length) finishRaid(room, "boss");
+      io.to(socket.id).emit("event:reward", leavingReward);
     }
     room.players = room.players.filter(p => p.id !== socket.id);
     room.spectators = room.spectators.filter(id => id !== socket.id);
     socket.leave(room.code);
     if(!room.players.length) eventRooms.delete(room.code);
     else emitEventRoom(room);
-    cb(callback, { ok:true });
+    cb(callback, { ok:true, reward:leavingReward });
   });
 
   socket.on("event:ready", (payload={}, callback) => {
@@ -1196,6 +1239,14 @@ io.on("connection", socket => {
     const player = eventPlayerBySocket(room, socket.id);
     if(!player) return cb(callback, { ok:false, error:"Espectador não pode jogar." });
     const result = handleRaidAction(room, player, payload.action || payload);
+    if(result && result.ok){
+      if(result.reward) io.to(socket.id).emit("event:reward", result.reward);
+      if(room.game && room.game.winner){
+        result.ended = true;
+        result.state = raidGameFor(room, player.side);
+        result.reward = room.rewards ? room.rewards[player.side] || result.reward || null : result.reward || null;
+      }
+    }
     cb(callback, result);
     emitEventRoom(room);
   });
