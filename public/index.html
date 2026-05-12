@@ -6698,15 +6698,52 @@ function escHTML(v){
 }
 
 function cssEsc(v){
-  return String(v == null ? '' : v).replace(/\/g,'\\').replace(/'/g,"\'").replace(/
-/g,' ');
+  const raw = String(v == null ? '' : v);
+  if(window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(raw);
+  return raw.split('\\').join('\\\\').split("'").join("\\'").split('\r').join(' ').split('\n').join(' ');
 }
-
 function typeColor(t){
   try{
     if(typeof getTypeColor === 'function') return getTypeColor(t);
   }catch(e){}
   return MP5_TYPES[t] || MP5_TYPES.Neutro;
+}
+
+function canonicalSide(side){
+  const s = String(side == null ? '' : side).toLowerCase().trim();
+  if(['p1','player1','player_1','player-1','jogador1','jogador_1','host','owner','1'].includes(s)) return 'p1';
+  if(['p2','player2','player_2','player-2','jogador2','jogador_2','guest','challenger','2'].includes(s)) return 'p2';
+  if(s === 'spectator' || s === 'spec') return 'spectator';
+  return side || null;
+}
+
+function isPlayingStatus(status){
+  const s = String(status || '').toLowerCase().trim();
+  return ['playing','started','running','battle','in_game','ingame','match','active'].includes(s);
+}
+
+function ingestRoom(room){
+  if(!room) return;
+  mp5Room = room;
+  window.mpRoom = room;
+  renderRoom(room);
+  if(isPlayingStatus(room.status)){
+    localLog('⚔️ Partida iniciada. Abrindo tela online...', '#fbbf24');
+    openBattle();
+  }
+}
+
+function ingestGameState(state){
+  const normalized = normalizeState(state);
+  if(!normalized) return;
+  mp5Game = normalized;
+  mp5Side = canonicalSide(normalized.youSide || mp5Side) || mp5Side;
+  normalized.youSide = mp5Side || normalized.youSide;
+  window.mpGame = normalized;
+  window.mpMySide = mp5Side;
+  if(!normalized.winner) mp5ResultShown = false;
+  openBattle();
+  renderGame(normalized);
 }
 
 function setConn(text, ok){
@@ -6756,7 +6793,10 @@ function openBattle(){
 }
 
 function connect(){
-  if(mp5Socket) return mp5Socket;
+  if(mp5Socket){
+    try{ if(!mp5Socket.connected && typeof mp5Socket.connect === 'function') mp5Socket.connect(); }catch(e){}
+    return mp5Socket;
+  }
 
   if(typeof io === 'undefined'){
     alert('Socket.IO não carregou. Use o link do Render/Node, não o GitHub Pages.');
@@ -6784,25 +6824,17 @@ function connect(){
     alert('Erro de conexão com o servidor: ' + (err && err.message ? err.message : 'desconhecido'));
   });
 
-  mp5Socket.on('room:update', function(room){
-    mp5Room = room;
-    window.mpRoom = room;
-    renderRoom(room);
-    if(room && room.status === 'playing'){
-      localLog('⚔️ Partida iniciada. Abrindo tela online...', '#fbbf24');
-      openBattle();
-    }
+  mp5Socket.on('room:update', ingestRoom);
+  mp5Socket.on('room:started', function(payload){
+    if(payload && payload.room) ingestRoom(payload.room);
+    if(payload && (payload.state || payload.game)) ingestGameState(payload.state || payload.game);
   });
 
-  mp5Socket.on('game:state', function(state){
-    const normalized = normalizeState(state);
-    if(!normalized) return;
-    mp5Game = normalized;
-    mp5Side = normalized.youSide || mp5Side;
-    window.mpGame = normalized;
-    window.mpMySide = mp5Side;
-    openBattle();
-    renderGame(normalized);
+  ['game:state','game:update','state:update','game:start','battle:start','match:start'].forEach(function(eventName){
+    mp5Socket.on(eventName, function(payload){
+      if(payload && payload.room) ingestRoom(payload.room);
+      ingestGameState(payload && (payload.state || payload.game || payload.match) ? (payload.state || payload.game || payload.match) : payload);
+    });
   });
 
   mp5Socket.on('chat:quick', function(payload){
@@ -6817,19 +6849,33 @@ function connect(){
 function normalizeState(state){
   if(!state) return null;
 
-  if(state.you && state.enemy) return state;
+  if(state.you && state.enemy){
+    const side = canonicalSide(state.youSide || state.side || state.playerSide || state.mySide || mp5Side || 'p1') || 'p1';
+    const turn = canonicalSide(state.turn);
+    const winner = state.winner ? canonicalSide(state.winner) : null;
+    const copy = Object.assign({}, state);
+    copy.youSide = side;
+    copy.turn = turn || state.turn;
+    copy.winner = winner;
+    copy.isYourTurn = !!state.isYourTurn || (turn === side && !winner);
+    copy.you = normalizeSide(state.you);
+    copy.enemy = normalizeSide(state.enemy);
+    return copy;
+  }
 
   // Compatibilidade com servidor antigo que manda p1/p2.
   if(state.p1 && state.p2){
-    const side = mp5Side || state.youSide || 'p1';
-    const enemy = side === 'p1' ? 'p2' : 'p1';
+    const side = canonicalSide(mp5Side || state.youSide || state.side || state.playerSide || state.mySide || 'p1') || 'p1';
+    const enemy = side === 'p2' ? 'p1' : 'p2';
+    const turn = canonicalSide(state.turn);
+    const winner = state.winner ? canonicalSide(state.winner) : null;
     return {
       mode:'online',
-      roomCode: state.roomCode || (mp5Room && mp5Room.code) || '',
+      roomCode: state.roomCode || state.code || (mp5Room && mp5Room.code) || '',
       youSide: side,
-      turn: state.turn,
-      isYourTurn: state.turn === side && !state.winner,
-      winner: state.winner,
+      turn: turn || state.turn,
+      isYourTurn: turn === side && !winner,
+      winner: winner,
       round: state.round || 1,
       lastEvent: state.lastEvent || null,
       log: Array.isArray(state.log) ? state.log.map(function(l){
@@ -6939,10 +6985,11 @@ function createRoom(){
   s.emit('room:create', {name:getName()}, function(res){
     if(!res || !res.ok) return alert((res && res.error) || 'Erro ao criar sala.');
     mp5Room = res.room;
-    mp5Side = res.side || 'p1';
+    mp5Side = canonicalSide(res.side) || 'p1';
     window.mpRoom = mp5Room;
     window.mpMySide = mp5Side;
     renderRoom(mp5Room);
+    if(res.state || res.game) ingestGameState(res.state || res.game);
     localLog('✅ Sala criada: ' + mp5Room.code, '#4ade80');
   });
 }
@@ -6957,10 +7004,11 @@ function joinRoom(){
   s.emit('room:join', {code:code, name:getName()}, function(res){
     if(!res || !res.ok) return alert((res && res.error) || 'Erro ao entrar na sala.');
     mp5Room = res.room;
-    mp5Side = res.side || (res.spectator ? 'spectator' : 'p2');
+    mp5Side = canonicalSide(res.side) || (res.spectator ? 'spectator' : 'p2');
     window.mpRoom = mp5Room;
     window.mpMySide = mp5Side;
     renderRoom(mp5Room);
+    if(res.state || res.game) ingestGameState(res.state || res.game);
     localLog('✅ Entrou na sala: ' + mp5Room.code, '#4ade80');
   });
 }
@@ -6978,7 +7026,9 @@ function ready(){
 
   s.emit('room:ready', {deck:deck}, function(res){
     if(!res || !res.ok) return alert((res && res.error) || 'Erro ao ficar pronto.');
-    localLog('✅ Você está pronto. Aguardando o outro jogador...', '#4ade80');
+    if(res.room) ingestRoom(res.room);
+    if(res.state || res.game) ingestGameState(res.state || res.game);
+    localLog(isPlayingStatus(res.status || (res.room && res.room.status)) ? '⚔️ Partida liberada pelo servidor.' : '✅ Você está pronto. Aguardando o outro jogador...', '#4ade80');
 
     const btn = document.querySelector('#mp-room-panel .btn-gold');
     if(btn){
