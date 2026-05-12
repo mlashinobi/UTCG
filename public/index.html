@@ -3533,7 +3533,7 @@ body.mp-online-playing #mp-battle-screen{display:flex;}
         <div class="game-subtitle">Ultimate Trading Card Game</div>
         <div class="coins-badge">💰 <span id="menu-coins">0</span> moedas</div>
         <div class="menu-buttons">
-            <button class="btn btn-sec" style="background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(56,189,248,0.1));border-color:#38bdf8;color:#38bdf8;" onclick="playClick();showScreen('deck-select','normal')">⚔️ Batalhar!</button>
+            <button class="btn btn-sec" style="background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(56,189,248,0.1));border-color:#38bdf8;color:#38bdf8;" onclick="playClick();showScreen('deck-select','normal')">⚔️ Jogar</button>
             <button class="btn btn-play" onclick="playClick();showScreen('deck-select','boss')">☠️ Raid Boss</button>
             <button class="btn btn-gold" onclick="playClick();showScreen('story-modal')">📖 Modo História</button>
             <button class="btn btn-sec" data-mp-menu="true" style="background:linear-gradient(135deg,rgba(16,185,129,0.20),rgba(56,189,248,0.10));border-color:#10b981;color:#a7f3d0;" onclick="playClick();mpOpenMultiplayer()">🌐 Multiplayer Online</button>
@@ -6533,7 +6533,7 @@ body.ultra-desktop-ready #game-ui .divider{
         if(menu){
             [...menu.querySelectorAll('button')].forEach(btn=>{
                 const t=btn.textContent || '';
-                if(t.includes('Batalhar')) btn.innerHTML='<span class="mode-label">⚔️ Batalhar</span><span class="mode-sub">duelo clássico com recompensa equilibrada</span>';
+                if(t.includes('Batalhar') || t.includes('Jogar')) btn.innerHTML='<span class="mode-label">⚔️ Jogar</span><span class="mode-sub">duelo clássico com recompensa equilibrada</span>';
                 if(t.includes('Raid Boss')) btn.innerHTML='<span class="mode-label">☠️ Raid Boss</span><span class="mode-sub">boss único com HP absurdo</span>';
                 if(t.includes('Draft')) btn.innerHTML='<span class="mode-label">🎲 Draft Rápido</span><span class="mode-sub">monte deck temporário com escolhas aleatórias</span>';
                 if(t.includes('Sobreviv')) btn.innerHTML='<span class="mode-label">🔥 Sobrevivência</span><span class="mode-sub">sequência brutal de cartas EX</span>';
@@ -6791,7 +6791,7 @@ function connect(){
     if(payload && (payload.state || payload.game)) ingestGameState(payload.state || payload.game);
   });
 
-  ['game:state','game:update','state:update','game:start','battle:start','match:start'].forEach(function(eventName){
+  ['game:state','game:update','state:update','game:start','battle:start','match:start','game:ended','battle:ended','match:ended'].forEach(function(eventName){
     mpSocket.on(eventName, function(payload){
       if(payload && payload.room) ingestRoom(payload.room);
       ingestGameState(payload && (payload.state || payload.game || payload.match) ? (payload.state || payload.game || payload.match) : payload);
@@ -6851,7 +6851,7 @@ function normalizeState(state){
   if(state.you && state.enemy){
     const side = canonicalSide(state.youSide || state.side || state.playerSide || state.mySide || mpSide || 'p1') || 'p1';
     const turn = canonicalSide(state.turn);
-    const winner = state.winner ? canonicalSide(state.winner) : null;
+    const winner = (state.winner || state.winnerSide || state.result || state.vencedor) ? canonicalSide(state.winner || state.winnerSide || state.result || state.vencedor) : null;
     const copy = Object.assign({}, state);
     copy.youSide = side;
     copy.turn = turn || state.turn;
@@ -6867,7 +6867,7 @@ function normalizeState(state){
     const side = canonicalSide(mpSide || state.youSide || state.side || state.playerSide || state.mySide || 'p1') || 'p1';
     const enemy = side === 'p2' ? 'p1' : 'p2';
     const turn = canonicalSide(state.turn);
-    const winner = state.winner ? canonicalSide(state.winner) : null;
+    const winner = (state.winner || state.winnerSide || state.result || state.vencedor) ? canonicalSide(state.winner || state.winnerSide || state.result || state.vencedor) : null;
     return {
       mode:'online',
       roomCode: state.roomCode || state.code || (mpRoom && mpRoom.code) || '',
@@ -7116,6 +7116,15 @@ function animateOnlineAttack(ev, state){
   const atkId = fromMe ? 'p-card-active' : 'e-card-active';
   const defId = fromMe ? 'e-card-active' : 'p-card-active';
   const attacker = fromMe ? (game && game.player && game.player.active) : (game && game.enemy && game.enemy.active);
+  const source = fromMe ? 'player' : 'enemy';
+
+  try{
+    if(window.UTCGX && ev.skill){
+      if(typeof UTCGX.banner === 'function') UTCGX.banner(ev.skill.n || 'ATAQUE', ((attacker && attacker.name) || 'Carta') + ' • ' + (ev.damage || 0) + ' dano', ev.skill.vid ? '#fbbf24' : typeColor((attacker && attacker.type) || 'Neutro'));
+      if(typeof UTCGX.attackStack === 'function') UTCGX.attackStack(source);
+      if(typeof UTCGX.beam === 'function') UTCGX.beam(atkId, defId, typeColor((attacker && attacker.type) || 'Neutro'));
+    }
+  }catch(e){}
 
   if(ev.skill && ev.skill.vid) playOnlineUlt(ev.skill.vid);
 
@@ -7124,11 +7133,12 @@ function animateOnlineAttack(ev, state){
     const label = ev.blocked ? 'BLOQUEIO' : (ev.dodged ? 'ESQUIVA' : '-' + (ev.damage || 0));
     try{ if(typeof spawnFloat === 'function') spawnFloat(pos.x, pos.y, label, ev.damage >= 100 ? 'critical' : 'dmg', ev.damage >= 100); }catch(e){ floatFallback(label, pos.x, pos.y); }
     try{ if(typeof flashCard === 'function') flashCard(defId, 0); }catch(e){}
+    try{ if(window.UTCGX && typeof UTCGX.heavyShake === 'function' && Number(ev.damage || 0) >= 80) UTCGX.heavyShake(1); }catch(e){}
   };
 
   try{
     if(typeof flyCardTo === 'function' && attacker){
-      flyCardTo(atkId, defId, attacker, fromMe ? 'player' : 'enemy', done);
+      flyCardTo(atkId, defId, attacker, source, done);
     }else{
       const target = q(defId);
       if(target){ target.classList.add('hit-flash'); setTimeout(function(){ target.classList.remove('hit-flash'); }, 450); }
@@ -7481,6 +7491,414 @@ console.log('UTCG Multiplayer V6 carregado na arena normal.');
 })();
 </script>
 
+
+
+
+<style id="utcg-final-mobile-online-fix-css">
+/* =========================================================
+   PATCH FINAL — menu, batalha normal/online e celular em pé
+========================================================= */
+body.mp-online-playing #mp-battle-screen,
+#mp-battle-screen{
+  display:none!important;
+  pointer-events:none!important;
+}
+body.mp-active #mp-game-panel{
+  display:none!important;
+}
+.menu-buttons .mode-label{display:block;font-size:14px;line-height:1.1}
+.menu-buttons .mode-sub{display:block;font-size:10px;line-height:1.25;color:#94a3b8;margin-top:2px;text-transform:none;letter-spacing:.4px;font-weight:600}
+
+.zone-row{
+  align-content:center;
+  position:relative;
+}
+.card{
+  flex:0 0 auto;
+  max-width:100%;
+}
+.card-content,
+.card .card-content{
+  min-height:0;
+  overflow:hidden;
+}
+.card .card-content > div:last-child{
+  min-height:0;
+}
+
+@media screen and (max-width: 850px), screen and (pointer: coarse) and (max-width: 980px){
+  html, body{
+    width:100%;
+    height:100dvh!important;
+    overflow:hidden!important;
+  }
+
+  #main-menu{
+    justify-content:flex-start!important;
+    overflow-y:auto!important;
+    padding:18px 10px 110px!important;
+    min-height:100dvh!important;
+    height:100dvh!important;
+  }
+  #main-menu .game-title{
+    font-size:clamp(30px,10vw,42px)!important;
+    line-height:.95!important;
+    margin-top:8px!important;
+    letter-spacing:2px!important;
+  }
+  #main-menu .game-subtitle{
+    font-size:10px!important;
+    letter-spacing:3px!important;
+    margin-bottom:12px!important;
+  }
+  #main-menu .coins-badge{
+    margin-bottom:12px!important;
+    padding:6px 14px!important;
+    font-size:14px!important;
+  }
+  #main-menu .menu-buttons{
+    width:min(92vw,360px)!important;
+    min-width:0!important;
+    margin:0 auto!important;
+    gap:8px!important;
+  }
+  #main-menu .btn{
+    min-height:42px!important;
+    padding:9px 10px!important;
+    font-size:12px!important;
+    border-radius:9px!important;
+  }
+  #update-notes{
+    display:none!important;
+  }
+
+  #multiplayer-screen{
+    align-items:flex-start!important;
+    justify-content:flex-start!important;
+    overflow-y:auto!important;
+    height:100dvh!important;
+    padding:12px!important;
+  }
+  #multiplayer-screen .mp-shell{
+    width:100%!important;
+    padding:14px!important;
+    border-radius:16px!important;
+  }
+  #multiplayer-screen .mp-header h2{font-size:22px!important;}
+  #multiplayer-screen .mp-grid{grid-template-columns:1fr!important;}
+  #multiplayer-screen .mp-actions{flex-direction:column!important;}
+  #multiplayer-screen .mp-actions .btn{width:100%!important;}
+  #multiplayer-screen .mp-quick-grid{grid-template-columns:1fr 1fr!important;}
+
+  #game-ui{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    grid-template-rows:54px minmax(0,1fr) 122px!important;
+    width:100vw!important;
+    height:100dvh!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  #game-ui .sidebar{
+    grid-column:1!important;
+    grid-row:1!important;
+    width:100%!important;
+    height:54px!important;
+    min-height:54px!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:5px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:4px 6px!important;
+    border-right:0!important;
+    border-bottom:1px solid rgba(56,189,248,.35)!important;
+  }
+  #game-ui .sidebar #ultra-mode-badge,
+  #game-ui .sidebar .inspect{
+    display:none!important;
+  }
+  #game-ui .sidebar .terminal{
+    order:20!important;
+    flex:1 0 150px!important;
+    height:44px!important;
+    max-height:44px!important;
+    min-width:150px!important;
+    font-size:8px!important;
+    padding:4px!important;
+  }
+  #game-ui .sidebar .timer-box{
+    flex:0 0 auto!important;
+    min-width:58px!important;
+    height:42px!important;
+    font-size:16px!important;
+    padding:5px 8px!important;
+  }
+  #game-ui .sidebar .energy-panel{
+    display:none!important;
+  }
+  #game-ui .sidebar .btn{
+    flex:0 0 auto!important;
+    height:40px!important;
+    padding:6px 8px!important;
+    font-size:10px!important;
+    white-space:nowrap!important;
+  }
+  #mobile-energy-bar{
+    display:flex!important;
+    position:absolute!important;
+    top:54px!important;
+    left:0!important;
+    right:0!important;
+    height:27px!important;
+    overflow-x:auto!important;
+    flex-wrap:nowrap!important;
+    z-index:8!important;
+    padding:4px 6px!important;
+  }
+  .arena{
+    grid-column:1!important;
+    grid-row:2!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    padding:30px 4px 4px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:space-between!important;
+    gap:3px!important;
+  }
+  .arena-label{
+    font-size:8px!important;
+    left:6px!important;
+    opacity:.75!important;
+    z-index:3!important;
+  }
+  .arena-label.enemy{top:31px!important;}
+  .arena-label.player{bottom:6px!important;}
+  .divider{
+    flex:0 0 1px!important;
+    margin:1px 0!important;
+  }
+  .zone-row{
+    width:100%!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:100%!important;
+    flex-wrap:nowrap!important;
+    justify-content:center!important;
+    align-items:center!important;
+    gap:4px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:1px 2px!important;
+  }
+  #e-bench,#p-bench{
+    flex:0 0 74px!important;
+    justify-content:flex-start!important;
+    padding-left:18px!important;
+    padding-right:18px!important;
+  }
+  #e-active,#p-active{
+    flex:1 1 112px!important;
+    min-height:104px!important;
+    overflow:visible!important;
+  }
+  .card{
+    width:56px!important;
+    height:80px!important;
+    border-radius:7px!important;
+    flex:0 0 56px!important;
+  }
+  .card.active{
+    width:90px!important;
+    height:126px!important;
+    flex-basis:90px!important;
+  }
+  .card:not(.ex) img,
+  .card.support img{
+    height:46%!important;
+  }
+  .hp-tag{
+    font-size:8px!important;
+    padding:1px 3px!important;
+    top:2px!important;
+    right:2px!important;
+  }
+  .energy-tag{
+    width:16px!important;
+    height:16px!important;
+    font-size:8px!important;
+    top:2px!important;
+    left:2px!important;
+  }
+  .card-content{
+    padding:2px!important;
+  }
+  .ultra-card-title,
+  .ultra-ex-name,
+  .card-content b{
+    font-size:7.5px!important;
+    line-height:1.05!important;
+  }
+  .card.active .ultra-card-title,
+  .card.active .ultra-ex-name,
+  .card.active .card-content b{
+    font-size:8.5px!important;
+  }
+  .status-badge{
+    font-size:5.8px!important;
+    padding:1px 2px!important;
+    margin:0!important;
+  }
+  .btn-skill{
+    font-size:6.5px!important;
+    padding:1px 2px!important;
+    margin-top:1px!important;
+    line-height:1.05!important;
+    border-radius:3px!important;
+  }
+  .btn-skill small{
+    font-size:5.5px!important;
+    line-height:1!important;
+  }
+  footer#p-hand{
+    grid-column:1!important;
+    grid-row:3!important;
+    width:100%!important;
+    height:122px!important;
+    min-height:122px!important;
+    max-height:122px!important;
+    padding:6px 6px!important;
+    gap:5px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    align-items:center!important;
+    flex-wrap:nowrap!important;
+  }
+  footer#p-hand .hand-label{
+    flex:0 0 auto!important;
+    font-size:8px!important;
+    writing-mode:vertical-rl!important;
+  }
+  footer#p-hand .card{
+    width:68px!important;
+    height:96px!important;
+    flex:0 0 68px!important;
+  }
+  footer#p-hand .card-content b{font-size:8px!important;}
+  #turn-indicator{
+    font-size:17px!important;
+    padding:9px 18px!important;
+    max-width:92vw!important;
+  }
+  #result-screen .result-shell{
+    width:96vw!important;
+    max-height:96dvh!important;
+    overflow-y:auto!important;
+    padding:18px 10px!important;
+  }
+  #result-screen .result-title{font-size:34px!important;}
+  #result-screen .result-card-showcase{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+  }
+  #result-screen .result-vs-orb{display:none!important;}
+  #result-screen .result-card-shell{
+    width:min(210px,62vw)!important;
+  }
+  #result-screen .result-card-stage{
+    min-height:290px!important;
+  }
+}
+</style>
+
+<script id="utcg-final-online-offline-fix-js">
+(function(){
+  'use strict';
+  function $(id){ return document.getElementById(id); }
+  function hasButton(menu, needle){
+    return Array.from(menu.querySelectorAll('button')).some(function(b){ return (b.textContent || '').toLowerCase().includes(needle.toLowerCase()); });
+  }
+  function normalizeMainMenu(){
+    const menu = document.querySelector('#main-menu .menu-buttons');
+    if(!menu) return;
+
+    Array.from(menu.querySelectorAll('button')).forEach(function(btn){
+      const t = btn.textContent || '';
+      if(t.includes('Batalhar')) btn.innerHTML = '<span class="mode-label">⚔️ Jogar</span><span class="mode-sub">duelo clássico offline</span>';
+      if(t.trim() === '⚔️ Jogar' || t.includes('Jogar')) btn.setAttribute('data-offline-mode','normal');
+      if(t.includes('Raid Boss')) btn.setAttribute('data-offline-mode','boss');
+    });
+
+    const make = function(key, html, fn, cls){
+      if(hasButton(menu, key)) return;
+      const b = document.createElement('button');
+      b.className = 'btn ' + (cls || 'btn-sec');
+      b.setAttribute('data-offline-mode', key);
+      b.innerHTML = html;
+      b.onclick = function(){ try{ if(typeof playClick === 'function') playClick(); }catch(e){} fn(); };
+      const mp = Array.from(menu.children).find(function(x){ return (x.textContent || '').includes('Multiplayer'); });
+      menu.insertBefore(b, mp || menu.children[menu.children.length] || null);
+    };
+
+    make('Draft Rápido','<span class="mode-label">🎲 Draft Rápido</span><span class="mode-sub">deck temporário por escolhas</span>', function(){ if(window.UTCGX && UTCGX.openDraft) UTCGX.openDraft(); }, 'btn-gold');
+    make('Sobrevivência','<span class="mode-label">🔥 Sobrevivência</span><span class="mode-sub">sequência de inimigos fortes</span>', function(){ if(window.UTCGX && UTCGX.startSurvival) UTCGX.startSurvival(); }, 'btn-sec');
+    make('Desafio Diário','<span class="mode-label">🎯 Desafio Diário</span><span class="mode-sub">modificadores especiais</span>', function(){ if(window.UTCGX && UTCGX.openDaily) UTCGX.openDaily(); }, 'btn-sec');
+    make('Laboratório','<span class="mode-label">🧪 Laboratório</span><span class="mode-sub">treino para combos e cartas</span>', function(){ if(window.UTCGX && UTCGX.startTraining) UTCGX.startTraining(); }, 'btn-sec');
+  }
+
+  function installOnlineForfeitBridge(){
+    if(!window.UTCGX || UTCGX._onlineForfeitBridge) return;
+    UTCGX._onlineForfeitBridge = true;
+    const old = UTCGX.forfeitBattle;
+    UTCGX.forfeitBattle = function(){
+      if(window.UTCG_ONLINE_MODE && window.mpGame && window.mpSocket){
+        if(confirm('Desistir da batalha online? O oponente receberá vitória.')){
+          window.mpSocket.emit('game:action', {action:{type:'concede'}}, function(res){
+            if(!res || !res.ok) alert((res && res.error) || 'Não foi possível desistir.');
+          });
+        }
+        return;
+      }
+      if(typeof old === 'function') return old.apply(this, arguments);
+    };
+  }
+
+  function forceGameGridOnMobile(){
+    const gu = $('game-ui');
+    if(gu && gu.style.display !== 'none' && window.innerWidth <= 850){
+      gu.style.display = 'grid';
+    }
+  }
+
+  const oldShowScreen = window.showScreen;
+  if(typeof oldShowScreen === 'function' && !oldShowScreen._utcgFinalWrapped){
+    const wrapped = function(id){
+      const r = oldShowScreen.apply(this, arguments);
+      if(id === 'game-ui') setTimeout(forceGameGridOnMobile, 0);
+      if(id === 'main-menu') setTimeout(normalizeMainMenu, 0);
+      return r;
+    };
+    wrapped._utcgFinalWrapped = true;
+    window.showScreen = wrapped;
+    try{ showScreen = wrapped; }catch(e){}
+  }
+
+  window.addEventListener('resize', forceGameGridOnMobile);
+  window.addEventListener('orientationchange', function(){ setTimeout(forceGameGridOnMobile, 150); });
+  window.addEventListener('load', function(){
+    setTimeout(normalizeMainMenu, 80);
+    setTimeout(normalizeMainMenu, 500);
+    setTimeout(installOnlineForfeitBridge, 500);
+  });
+  setTimeout(normalizeMainMenu, 150);
+  setTimeout(installOnlineForfeitBridge, 150);
+})();
+</script>
 
 </body>
 </html>
