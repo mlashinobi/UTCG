@@ -7930,7 +7930,7 @@ body.mp-active #mp-game-panel{
 .editor-toolbar,.store-toolbar{width:min(1120px,96vw);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:rgba(2,6,23,.82);border:1px solid rgba(148,163,184,.16);border-radius:14px;padding:10px 12px;margin:0 auto 10px;}
 .editor-toolbar label{display:flex;align-items:center;gap:7px;color:#94a3b8;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px;}
 .editor-toolbar select{background:#020617;color:#fff;border:1px solid #334155;border-radius:8px;padding:7px 9px;font-family:'Rajdhani',sans-serif;font-weight:700;}
-#clear-active-slot,#save-active-slot{padding:8px 12px!important;font-size:11px!important;}
+#clear-active-slot{padding:8px 12px!important;font-size:11px!important;}
 #deck-editor .editor-container{width:min(1120px,96vw)!important;height:min(64vh,620px)!important;gap:12px!important;}
 #deck-editor .editor-column{background:linear-gradient(180deg,rgba(15,23,42,.94),rgba(2,6,23,.98))!important;border-color:rgba(56,189,248,.22)!important;box-shadow:0 12px 34px rgba(0,0,0,.28)!important;}
 #deck-editor .editor-column h3{font-family:'Orbitron',monospace!important;font-size:13px!important;letter-spacing:1px!important;color:var(--gold)!important;}
@@ -8017,7 +8017,7 @@ body.mp-active #mp-game-panel{
   .editor-toolbar{width:94vw!important;gap:6px!important;padding:8px!important;align-items:stretch!important;}
   .editor-toolbar label{width:100%!important;justify-content:space-between!important;font-size:10px!important;}
   .editor-toolbar select{max-width:58vw!important;padding:6px!important;}
-  #clear-active-slot,#save-active-slot{width:100%!important;}
+  #clear-active-slot{width:100%!important;}
   #deck-editor .editor-container{width:94vw!important;height:auto!important;min-height:0!important;flex-direction:column!important;gap:8px!important;}
   #deck-editor .editor-column{min-height:220px!important;max-height:34dvh!important;padding:9px!important;}
   #deck-editor .scroll-grid{grid-template-columns:repeat(auto-fill,minmax(72px,1fr))!important;gap:6px!important;}
@@ -8221,12 +8221,11 @@ body.mp-active #mp-game-panel{
       const tb = document.createElement('div');
       tb.id = 'editor-toolbar';
       tb.className = 'editor-toolbar';
-      tb.innerHTML = '<label>Ordenar <select id="editor-sort"><option value="rarity">Raridade</option><option value="alpha">Ordem alfabética</option><option value="obtained">Data de obtenção</option><option value="type">Tipo de energia</option></select></label><label>Mostrar <select id="editor-filter"><option value="all">Tudo</option><option value="ex">EX</option><option value="normal">Normais</option><option value="support">Itens/Suporte</option></select></label><button class="btn btn-gold" id="save-active-slot">Salvar slot ativo</button><button class="btn btn-sec" id="clear-active-slot">Limpar slot</button>';
+      tb.innerHTML = '<label>Ordenar <select id="editor-sort"><option value="rarity">Raridade</option><option value="alpha">Ordem alfabética</option><option value="obtained">Data de obtenção</option><option value="type">Tipo de energia</option></select></label><label>Mostrar <select id="editor-filter"><option value="all">Tudo</option><option value="ex">EX</option><option value="normal">Normais</option><option value="support">Itens/Suporte</option></select></label><button class="btn btn-sec" id="clear-active-slot">Limpar slot</button>';
       const cont = screen.querySelector('.editor-container');
       if(cont) cont.insertAdjacentElement('beforebegin', tb);
       $('editor-sort').onchange = function(){ user.editorSort = this.value; renderEditor(); };
       $('editor-filter').onchange = function(){ user.editorFilter = this.value; renderEditor(); };
-      const saveBtn = $('save-active-slot'); if(saveBtn) saveBtn.onclick = function(){ safeClick(); syncSlotFromUser(); try{ autoSave(); }catch(e){} alert('Deck salvo no Slot ' + (user.activeDeckSlot + 1) + '.'); renderEditor(); };
       $('clear-active-slot').onclick = function(){ safeClick(); if(confirm('Limpar o deck deste slot?')){ user.deck = []; syncSlotFromUser(); try{ autoSave(); }catch(e){} renderEditor(); } };
     }
   }
@@ -8469,5 +8468,1140 @@ body.mp-active #mp-game-panel{
 })();
 
 </script>
+
+<style id="utcg-v9-final-fixes-css">
+/* ===================== UTCG V9: correções finais menu/deck/loja/layout ===================== */
+#main-menu .menu-buttons{
+  width:min(320px,86vw)!important;
+  gap:9px!important;
+}
+#main-menu .menu-buttons .btn{
+  min-height:46px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex-direction:column!important;
+}
+#ultra-modes-explainer{display:none!important;}
+
+/* Batalha: cartas menores e linhas sem sobreposição no PC */
+@media screen and (min-width:851px){
+  #game-ui{
+    grid-template-columns:260px minmax(0,1fr)!important;
+    grid-template-rows:minmax(0,1fr) 132px!important;
+  }
+  #game-ui .sidebar{padding:9px!important;gap:7px!important;min-width:0!important;}
+  #game-ui .arena{padding:8px 10px!important;gap:4px!important;overflow:hidden!important;}
+  #game-ui .zone-row{
+    width:100%!important;
+    min-height:92px!important;
+    max-height:124px!important;
+    gap:8px!important;
+    flex-wrap:nowrap!important;
+    justify-content:center!important;
+    align-items:center!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:2px 12px!important;
+    scroll-padding:12px!important;
+  }
+  #game-ui #e-bench,#game-ui #p-bench{min-height:78px!important;max-height:92px!important;}
+  #game-ui #e-active,#game-ui #p-active{min-height:104px!important;max-height:126px!important;overflow:visible!important;}
+  #game-ui .card{
+    width:68px!important;
+    height:96px!important;
+    flex:0 0 68px!important;
+    border-radius:8px!important;
+    margin:0!important;
+  }
+  #game-ui .card.active{
+    width:98px!important;
+    height:138px!important;
+    flex:0 0 98px!important;
+  }
+  #game-ui footer#p-hand{
+    grid-column:2!important;
+    grid-row:2!important;
+    min-height:132px!important;
+    max-height:132px!important;
+    height:132px!important;
+    padding:8px 12px!important;
+    gap:7px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+  }
+  #game-ui footer#p-hand .card{
+    width:70px!important;
+    height:99px!important;
+    flex:0 0 70px!important;
+  }
+  #game-ui .card-content{padding:3px!important;}
+  #game-ui .card-content b,.ultra-card-title,.ultra-ex-name{font-size:8px!important;line-height:1.08!important;}
+  #game-ui .card.active .card-content b,#game-ui .card.active .ultra-card-title,#game-ui .card.active .ultra-ex-name{font-size:9px!important;}
+  #game-ui .btn-skill{font-size:7px!important;padding:1px 2px!important;line-height:1.05!important;margin-top:1px!important;}
+  #game-ui .hp-tag{font-size:8px!important;padding:1px 3px!important;}
+  #game-ui .energy-tag{width:16px!important;height:16px!important;font-size:8px!important;}
+}
+
+/* Batalha: vertical no celular, tudo dentro da tela */
+@media screen and (max-width:850px){
+  body{overflow:hidden!important;}
+  #main-menu{padding:14px 10px!important;justify-content:center!important;}
+  #main-menu .game-title{font-size:32px!important;line-height:1!important;margin-bottom:4px!important;}
+  #main-menu .game-subtitle{font-size:9px!important;letter-spacing:3px!important;margin-bottom:14px!important;}
+  #main-menu .coins-badge{font-size:13px!important;margin-bottom:12px!important;padding:6px 14px!important;}
+  #main-menu .menu-buttons{width:86vw!important;max-width:330px!important;gap:7px!important;margin:0!important;}
+  #main-menu .menu-buttons .btn{padding:10px 12px!important;min-height:42px!important;font-size:12px!important;}
+  #update-notes{display:none!important;}
+
+  #game-ui{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    grid-template-rows:38px minmax(0,1fr) 78px!important;
+    height:100dvh!important;
+    width:100vw!important;
+    overflow:hidden!important;
+  }
+  #game-ui .sidebar{
+    grid-column:1!important;
+    grid-row:1!important;
+    height:38px!important;
+    min-height:38px!important;
+    padding:3px 5px!important;
+    display:flex!important;
+    flex-direction:row!important;
+    gap:4px!important;
+    align-items:center!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    border-right:0!important;
+    border-bottom:1px solid rgba(56,189,248,.25)!important;
+  }
+  #game-ui .sidebar .terminal,#game-ui .sidebar .inspect,#game-ui .sidebar .energy-panel,#game-ui .sidebar #ultra-mode-badge,#game-ui .sidebar #forfeit-battle-btn{display:none!important;}
+  #game-ui .timer-box{font-size:16px!important;padding:4px 7px!important;min-width:58px!important;height:30px!important;}
+  #game-ui #round-counter{height:30px!important;padding:2px 6px!important;min-width:48px!important;}
+  #game-ui #round-counter .round-label{font-size:6px!important;letter-spacing:1px!important;}
+  #game-ui #round-counter .round-num{font-size:15px!important;}
+  #game-ui #end-turn-btn{height:30px!important;padding:4px 8px!important;font-size:9px!important;min-width:108px!important;}
+  #mobile-energy-bar{
+    display:flex!important;
+    position:absolute!important;
+    top:38px!important;
+    left:0!important;
+    right:0!important;
+    height:26px!important;
+    padding:4px 5px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    flex-wrap:nowrap!important;
+    z-index:8!important;
+  }
+  .mob-en-chip{font-size:8px!important;padding:2px 5px!important;white-space:nowrap!important;}
+  #game-ui .arena{
+    grid-column:1!important;
+    grid-row:2!important;
+    height:100%!important;
+    min-height:0!important;
+    padding:30px 4px 3px!important;
+    gap:2px!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:space-between!important;
+  }
+  #game-ui .arena-label{font-size:7px!important;left:5px!important;z-index:2!important;opacity:.65!important;}
+  #game-ui .arena-label.enemy{top:30px!important;}
+  #game-ui .arena-label.player{bottom:3px!important;}
+  #game-ui .divider{height:1px!important;margin:1px 0!important;flex:0 0 1px!important;}
+  #game-ui .zone-row{
+    width:100%!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:100%!important;
+    gap:4px!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:0 8px!important;
+  }
+  #game-ui #e-bench,#game-ui #p-bench{flex:0 0 44px!important;min-height:44px!important;max-height:46px!important;}
+  #game-ui #e-active,#game-ui #p-active{flex:1 1 82px!important;min-height:72px!important;max-height:88px!important;justify-content:center!important;overflow:visible!important;}
+  #game-ui .card{
+    width:39px!important;
+    height:55px!important;
+    flex:0 0 39px!important;
+    border-radius:5px!important;
+    border-width:1px!important;
+    margin:0!important;
+  }
+  #game-ui .card.active{
+    width:57px!important;
+    height:80px!important;
+    flex:0 0 57px!important;
+  }
+  #game-ui .card:not(.ex) img,#game-ui .card.support img{height:44%!important;}
+  #game-ui .card-content{padding:1px!important;}
+  #game-ui .card-content b,#game-ui .ultra-card-title,#game-ui .ultra-ex-name{font-size:5.7px!important;line-height:1.02!important;}
+  #game-ui .card.active .card-content b,#game-ui .card.active .ultra-card-title,#game-ui .card.active .ultra-ex-name{font-size:6.5px!important;}
+  #game-ui .btn-skill{font-size:4.7px!important;line-height:1!important;padding:0 1px!important;margin-top:1px!important;border-radius:2px!important;}
+  #game-ui .hp-tag{font-size:5.8px!important;padding:0 2px!important;top:1px!important;right:1px!important;}
+  #game-ui .energy-tag{width:11px!important;height:11px!important;font-size:5.5px!important;top:1px!important;left:1px!important;}
+  #game-ui footer#p-hand{
+    grid-column:1!important;
+    grid-row:3!important;
+    height:78px!important;
+    min-height:78px!important;
+    max-height:78px!important;
+    width:100%!important;
+    padding:4px 5px!important;
+    gap:4px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+  }
+  #game-ui footer#p-hand .hand-label{font-size:7px!important;flex:0 0 auto!important;writing-mode:vertical-rl!important;}
+  #game-ui footer#p-hand .card{width:47px!important;height:66px!important;flex:0 0 47px!important;}
+  #game-ui footer#p-hand .card-content b{font-size:5.9px!important;}
+}
+
+/* Editor de Deck: layout funcional */
+#deck-editor{justify-content:flex-start!important;padding:16px 10px!important;overflow:auto!important;background:radial-gradient(circle at top,#0f172a,#020617 72%)!important;}
+#deck-editor .screen-header{margin:0 0 10px!important;}
+.deck-slot-bar-final{width:min(1120px,96vw)!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:8px!important;margin:0 auto 10px!important;}
+.deck-slot-final{background:rgba(15,23,42,.92)!important;border:1px solid rgba(56,189,248,.25)!important;color:#fff!important;border-radius:12px!important;padding:9px!important;cursor:pointer!important;font-family:Rajdhani,sans-serif!important;transition:.18s!important;text-align:left!important;}
+.deck-slot-final.active{border-color:var(--gold)!important;box-shadow:0 0 18px rgba(251,191,36,.2)!important;background:rgba(251,191,36,.08)!important;}
+.deck-slot-final b{display:block!important;color:var(--gold)!important;font-family:Orbitron,monospace!important;font-size:11px!important;}
+.deck-slot-final span{display:block!important;font-size:12px!important;color:#e2e8f0!important;margin-top:2px!important;}
+.deck-slot-final small{color:#94a3b8!important;font-size:10px!important;}
+.editor-toolbar-final{width:min(1120px,96vw)!important;display:flex!important;gap:8px!important;align-items:center!important;justify-content:space-between!important;margin:0 auto 10px!important;padding:10px!important;background:rgba(2,6,23,.78)!important;border:1px solid rgba(51,65,85,.65)!important;border-radius:14px!important;flex-wrap:wrap!important;}
+.editor-toolbar-final label{font-size:10px!important;letter-spacing:1px!important;text-transform:uppercase!important;color:#94a3b8!important;display:flex!important;align-items:center!important;gap:6px!important;}
+.editor-toolbar-final select{background:#020617!important;color:#fff!important;border:1px solid #334155!important;border-radius:8px!important;padding:8px!important;font-family:Rajdhani,sans-serif!important;font-weight:700!important;}
+.editor-toolbar-final .toolbar-actions{display:flex!important;gap:8px!important;flex-wrap:wrap!important;}
+.editor-dirty{color:#fbbf24!important;font-size:12px!important;font-weight:800!important;}
+#deck-editor .editor-container{width:min(1120px,96vw)!important;height:calc(100dvh - 248px)!important;min-height:420px!important;gap:12px!important;margin:0 auto!important;}
+#deck-editor .editor-column{min-width:0!important;background:linear-gradient(180deg,rgba(15,23,42,.94),rgba(2,6,23,.98))!important;border:1px solid rgba(56,189,248,.22)!important;border-radius:16px!important;box-shadow:0 16px 38px rgba(0,0,0,.28)!important;}
+#deck-editor .editor-column h3{font-family:Orbitron,monospace!important;font-size:13px!important;color:var(--gold)!important;letter-spacing:1px!important;}
+#deck-editor .scroll-grid{grid-template-columns:repeat(auto-fill,minmax(98px,1fr))!important;gap:9px!important;padding:10px!important;align-content:start!important;}
+.deck-mini-card{position:relative!important;min-height:122px!important;border-radius:10px!important;background:linear-gradient(180deg,#0f172a,#020617)!important;border:1px solid #334155!important;overflow:hidden!important;cursor:pointer!important;}
+.deck-mini-card:hover{transform:translateY(-2px)!important;border-color:var(--gold)!important;}
+.deck-mini-card img{height:68px!important;width:100%!important;object-fit:cover!important;display:block!important;}
+.deck-mini-card .mini-rarity{position:absolute!important;top:4px!important;left:4px!important;background:rgba(0,0,0,.72)!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:999px!important;padding:1px 5px!important;font-size:8px!important;color:#fbbf24!important;font-weight:900!important;}
+.deck-mini-card .name{padding:5px 5px 1px!important;font-size:10px!important;font-weight:900!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.deck-mini-card .mini-meta{padding:0 5px 5px!important;font-size:8px!important;color:#94a3b8!important;}
+.deck-mini-card.in-deck{border-color:rgba(251,191,36,.6)!important;}
+.deck-mini-card.in-deck::after{content:'CLIQUE PARA REMOVER';position:absolute;inset:auto 0 0 0;background:rgba(127,29,29,.86);font-size:7px;font-weight:900;color:#fff;padding:2px;text-align:center;}
+.deck-mini-card:not(.in-deck)::after{content:'CLIQUE PARA ADD';position:absolute;inset:auto 0 0 0;background:rgba(6,78,59,.86);font-size:7px;font-weight:900;color:#fff;padding:2px;text-align:center;}
+
+/* Loja sem achatamento */
+#store-screen{justify-content:flex-start!important;padding:18px 10px!important;overflow:auto!important;background:radial-gradient(circle at top,#111827,#020617 72%)!important;}
+#store-screen .screen-header{margin:0 0 8px!important;}
+#store-screen > div[style*="store-coins"],#store-coins{font-size:18px!important;}
+#store-grid.grid-view,#store-grid{display:flex!important;flex-direction:column!important;width:min(1120px,96vw)!important;max-height:none!important;height:auto!important;overflow:visible!important;background:transparent!important;padding:0!important;gap:14px!important;}
+.store-toolbar-final{width:min(1120px,96vw)!important;margin:0 auto 14px!important;padding:12px 14px!important;border:1px solid rgba(251,191,36,.25)!important;border-radius:16px!important;background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(15,23,42,.9))!important;display:flex!important;justify-content:space-between!important;gap:10px!important;align-items:center!important;flex-wrap:wrap!important;}
+.store-clock-final{font-family:Orbitron,monospace!important;color:var(--gold)!important;font-size:12px!important;letter-spacing:1px!important;}
+.store-note-final{color:#94a3b8!important;font-size:12px!important;}
+.shop-section-final{width:100%!important;background:rgba(2,6,23,.74)!important;border:1px solid rgba(51,65,85,.72)!important;border-radius:18px!important;padding:14px!important;}
+.shop-section-final h3{font-family:Orbitron,monospace!important;font-size:14px!important;color:#fff!important;margin:0 0 12px!important;letter-spacing:1px!important;}
+.shop-row-final{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(155px,1fr))!important;gap:12px!important;align-items:stretch!important;}
+.shop-offer-card-final{position:relative!important;min-height:236px!important;background:linear-gradient(180deg,#0f172a,#020617)!important;border:1px solid rgba(56,189,248,.2)!important;border-radius:14px!important;overflow:hidden!important;padding-bottom:10px!important;box-shadow:0 12px 28px rgba(0,0,0,.32)!important;}
+.shop-offer-card-final.ex{border-color:rgba(251,191,36,.65)!important;box-shadow:0 0 24px rgba(251,191,36,.14)!important;}
+.shop-offer-card-final.support{border-color:rgba(74,222,128,.45)!important;}
+.shop-offer-card-final img{width:100%!important;height:126px!important;object-fit:cover!important;display:block!important;}
+.shop-offer-card-final .shop-tag{position:absolute!important;top:8px!important;left:8px!important;background:rgba(0,0,0,.72)!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:999px!important;color:#fbbf24!important;padding:3px 8px!important;font-size:9px!important;font-weight:900!important;}
+.shop-offer-card-final .shop-name{font-weight:900!important;font-size:13px!important;line-height:1.15!important;padding:9px 10px 2px!important;}
+.shop-offer-card-final .shop-meta{font-size:10px!important;color:#94a3b8!important;padding:0 10px!important;}
+.shop-offer-card-final .shop-desc{font-size:10px!important;color:#cbd5e1!important;line-height:1.25!important;min-height:28px!important;padding:6px 10px 2px!important;}
+.shop-offer-card-final .shop-buy{width:calc(100% - 20px)!important;margin:8px 10px 0!important;font-size:11px!important;padding:7px!important;}
+@media screen and (max-width:850px){
+  .deck-slot-bar-final{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;}
+  .editor-toolbar-final{padding:8px!important;gap:6px!important;}
+  .editor-toolbar-final label{width:calc(50% - 4px)!important;flex-direction:column!important;align-items:flex-start!important;}
+  .editor-toolbar-final select{width:100%!important;padding:7px!important;}
+  .editor-toolbar-final .toolbar-actions{width:100%!important;display:grid!important;grid-template-columns:1fr 1fr!important;}
+  #deck-editor .editor-container{height:auto!important;min-height:0!important;flex-direction:column!important;gap:8px!important;}
+  #deck-editor .editor-column{max-height:34dvh!important;min-height:210px!important;padding:8px!important;}
+  #deck-editor .scroll-grid{grid-template-columns:repeat(auto-fill,minmax(72px,1fr))!important;gap:6px!important;padding:6px!important;}
+  .deck-mini-card{min-height:100px!important;}
+  .deck-mini-card img{height:54px!important;}
+  .deck-mini-card .name{font-size:8px!important;}
+  .deck-mini-card .mini-meta{font-size:7px!important;}
+  .shop-row-final{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;}
+  .shop-section-final{padding:10px!important;}
+  .shop-offer-card-final{min-height:205px!important;}
+  .shop-offer-card-final img{height:98px!important;}
+  .shop-offer-card-final .shop-name{font-size:11px!important;padding:7px 8px 2px!important;}
+  .shop-offer-card-final .shop-meta,.shop-offer-card-final .shop-desc{font-size:9px!important;padding-left:8px!important;padding-right:8px!important;}
+}
+</style>
+
+<script id="utcg-v9-final-fixes-js">
+(function(){
+  'use strict';
+  const SLOT_COUNT = 5;
+  const SHOP_WINDOW_MS = 12 * 60 * 60 * 1000;
+  const $ = (id)=>document.getElementById(id);
+  let editorSlot = 0;
+  let editorDraft = [];
+  let editorDirty = false;
+
+  function safeClick(){ try{ if(typeof playClick === 'function') playClick(); }catch(e){} }
+  function DB(){ try{ return CARDS_DB || {}; }catch(e){ return {}; } }
+  function getCard(id){ return DB()[id] || null; }
+  function allCards(){ return Object.values(DB()).filter(Boolean); }
+  function colorOf(type){ try{ return typeof getTypeColor === 'function' ? getTypeColor(type) : '#38bdf8'; }catch(e){ return '#38bdf8'; } }
+  function saveAuto(){ try{ if(typeof autoSave === 'function') autoSave(); }catch(e){} }
+  function refreshCoinsFinal(){ try{ if($('menu-coins')) $('menu-coins').textContent = user.coins || 0; if($('store-coins')) $('store-coins').textContent = user.coins || 0; }catch(e){} }
+
+  function ensureUser(){
+    if(typeof user === 'undefined' || !user) return false;
+    if(!Array.isArray(user.inventory)) user.inventory = [];
+    if(!Array.isArray(user.deck)) user.deck = [];
+    if(!Array.isArray(user.deckSlots)){
+      user.deckSlots = [];
+      for(let i=0;i<SLOT_COUNT;i++) user.deckSlots.push({name:'Slot '+(i+1), deck:i===0 ? user.deck.slice(0,20) : [], updatedAt:i===0 ? Date.now() : 0});
+      user.activeDeckSlot = 0;
+    }
+    while(user.deckSlots.length < SLOT_COUNT) user.deckSlots.push({name:'Slot '+(user.deckSlots.length+1), deck:[], updatedAt:0});
+    user.deckSlots = user.deckSlots.slice(0,SLOT_COUNT).map(function(s,i){
+      if(Array.isArray(s)) return {name:'Slot '+(i+1), deck:s.slice(0,20), updatedAt:0};
+      s = s || {};
+      return {name:String(s.name || ('Slot '+(i+1))), deck:Array.isArray(s.deck) ? s.deck.slice(0,20) : [], updatedAt:Number(s.updatedAt || 0)};
+    });
+    user.activeDeckSlot = Math.max(0, Math.min(SLOT_COUNT-1, Number.isFinite(Number(user.activeDeckSlot)) ? Number(user.activeDeckSlot) : 0));
+    return true;
+  }
+  function activeSlot(){ ensureUser(); return user.deckSlots[user.activeDeckSlot]; }
+  function applyActiveSlot(){ if(!ensureUser()) return []; user.deck = activeSlot().deck.slice(0,20); return user.deck; }
+  window.getActiveDeckIds = function(){ return applyActiveSlot().slice(0,20); };
+
+  function rarityRank(c){
+    if(!c) return 99;
+    if(c.isEx) return 0;
+    if(c.evolvesFrom || (c.price||0) >= 500 || (c.hp||0) >= 150) return 1;
+    if(c.isSupport) return 3;
+    return 2;
+  }
+  function rarityLabel(c){ const r=rarityRank(c); return r===0?'EX':r===1?'Rara':r===2?'Comum':r===3?'Item':'Especial'; }
+  function sortEntries(entries, mode){
+    entries.sort(function(a,b){
+      const ca=getCard(a.id), cb=getCard(b.id);
+      if(mode === 'alpha') return String(ca && ca.name || a.id).localeCompare(String(cb && cb.name || b.id));
+      if(mode === 'obtained') return (b.pos || 0) - (a.pos || 0);
+      if(mode === 'type') return String(ca && ca.type || '').localeCompare(String(cb && cb.type || '')) || String(ca && ca.name || '').localeCompare(String(cb && cb.name || ''));
+      return rarityRank(ca) - rarityRank(cb) || String(ca && ca.name || '').localeCompare(String(cb && cb.name || ''));
+    });
+    return entries;
+  }
+
+  function ensureOfflineScreen(){
+    if($('offline-modes-screen')) return;
+    const div = document.createElement('div');
+    div.id = 'offline-modes-screen';
+    div.className = 'screen';
+    div.innerHTML = '<div class="screen-header">⚔️ Jogar</div><div class="offline-hint" id="offline-active-deck-label"></div><div class="offline-mode-grid" id="offline-mode-grid"></div><button class="btn btn-sec offline-back">← VOLTAR</button>';
+    document.body.appendChild(div);
+    div.querySelector('.offline-back').onclick = function(){ safeClick(); if(typeof showScreen === 'function') showScreen('main-menu'); };
+  }
+  function modeButton(icon,title,desc,fn,cls){
+    const b=document.createElement('button');
+    b.className='btn offline-mode-card '+(cls||'btn-sec');
+    b.innerHTML='<span class="offline-mode-ico">'+icon+'</span><span><b>'+title+'</b><small>'+desc+'</small></span>';
+    b.onclick=function(){ safeClick(); applyActiveSlot(); fn(); };
+    return b;
+  }
+  window.openOfflineModes = function(){
+    ensureUser(); ensureOfflineScreen(); applyActiveSlot();
+    const label=$('offline-active-deck-label');
+    if(label){ const s=activeSlot(); label.innerHTML='Deck ativo: <b>Slot '+(user.activeDeckSlot+1)+'</b> • '+s.deck.length+'/20 cartas'; }
+    const grid=$('offline-mode-grid');
+    if(grid){
+      grid.innerHTML='';
+      grid.appendChild(modeButton('⚔️','Batalha Normal','duelo clássico offline', function(){ if(typeof showScreen === 'function') showScreen('deck-select','normal'); }, 'btn-play'));
+      grid.appendChild(modeButton('☠️','Raid Boss','chefes com HP alto', function(){ if(typeof showScreen === 'function') showScreen('deck-select','boss'); }, 'btn-sec'));
+      grid.appendChild(modeButton('🎲','Draft Rápido','escolha cartas temporárias', function(){ if(window.UTCGX && UTCGX.openDraft) UTCGX.openDraft(); }, 'btn-gold'));
+      grid.appendChild(modeButton('🔥','Sobrevivência','sequência de inimigos fortes', function(){ if(window.UTCGX && UTCGX.startSurvival) UTCGX.startSurvival(); }, 'btn-sec'));
+      grid.appendChild(modeButton('🎯','Desafio Diário','modificadores especiais', function(){ if(window.UTCGX && UTCGX.openDaily) UTCGX.openDaily(); }, 'btn-sec'));
+      grid.appendChild(modeButton('🧪','Laboratório','treino de combos', function(){ if(window.UTCGX && UTCGX.startTraining) UTCGX.startTraining(); }, 'btn-sec'));
+      grid.appendChild(modeButton('📖','Modo História','campanha e capítulos', function(){ if(typeof showScreen === 'function') showScreen('story-modal'); }, 'btn-sec'));
+    }
+    if(typeof showScreen === 'function') showScreen('offline-modes-screen');
+  };
+
+  function normalizeMainMenuFinal(){
+    const menu=document.querySelector('#main-menu .menu-buttons'); if(!menu) return;
+    const signature='v9-final-menu';
+    if(menu.getAttribute('data-menu-signature') !== signature){
+      menu.innerHTML='';
+      const mk=function(label,cls,fn){ const b=document.createElement('button'); b.className='btn '+cls; b.innerHTML=label; b.onclick=function(){ safeClick(); fn(); }; menu.appendChild(b); return b; };
+      mk('⚔️ Jogar','btn-play', function(){ window.openOfflineModes(); });
+      mk('🌐 Multiplayer Online','btn-sec', function(){ applyActiveSlot(); if(typeof mpOpenMultiplayer === 'function') mpOpenMultiplayer(); });
+      mk('🃏 Editor de Deck','btn-sec', function(){ if(typeof openEditor === 'function') openEditor(); else openEditorFinal(); });
+      mk('🏪 Loja','btn-sec', function(){ if(typeof openStore === 'function') openStore(); else openStoreFinal(); });
+      mk('💾 Salvar Dados','btn-sec', function(){ if(typeof saveGame === 'function') saveGame(); });
+      mk('📂 Carregar Dados','btn-sec', function(){ let input=$('load-input'); if(input) input.click(); });
+      let input=$('load-input');
+      if(!input){ input=document.createElement('input'); input.type='file'; input.id='load-input'; input.style.display='none'; menu.appendChild(input); }
+      input.onchange=function(){ if(typeof loadGame === 'function') loadGame(this); };
+      menu.setAttribute('data-menu-signature', signature);
+    }
+    document.querySelectorAll('#main-menu [data-ultra-mode],#main-menu [data-offline-mode],#ultra-modes-explainer').forEach(function(el){ el.remove(); });
+  }
+
+  function beginEditSlot(slotIndex){
+    ensureUser();
+    editorSlot = Math.max(0, Math.min(SLOT_COUNT-1, Number(slotIndex)));
+    user.activeDeckSlot = editorSlot;
+    editorDraft = user.deckSlots[editorSlot].deck.slice(0,20);
+    user.deck = editorDraft.slice(0,20);
+    editorDirty = false;
+  }
+  function ensureEditorShellFinal(){
+    const screen=$('deck-editor'); if(!screen) return;
+    const oldBar=$('deck-slot-bar'); if(oldBar) oldBar.remove();
+    const oldTb=$('editor-toolbar'); if(oldTb) oldTb.remove();
+    if(!$('deck-slot-bar-final')){
+      const bar=document.createElement('div'); bar.id='deck-slot-bar-final'; bar.className='deck-slot-bar-final';
+      const header=screen.querySelector('.screen-header'); if(header) header.insertAdjacentElement('afterend', bar);
+    }
+    if(!$('editor-toolbar-final')){
+      const tb=document.createElement('div'); tb.id='editor-toolbar-final'; tb.className='editor-toolbar-final';
+      tb.innerHTML='<label>Ordenar <select id="editor-sort-final"><option value="rarity">Raridade</option><option value="alpha">Ordem alfabética</option><option value="obtained">Data de obtenção</option><option value="type">Tipo de energia</option></select></label><label>Mostrar <select id="editor-filter-final"><option value="all">Tudo</option><option value="ex">EX</option><option value="normal">Normais</option><option value="support">Itens/Suporte</option></select></label><span class="editor-dirty" id="editor-dirty-final"></span><div class="toolbar-actions"><button class="btn btn-gold" id="save-slot-final">Salvar slot</button><button class="btn btn-sec" id="use-slot-final">Usar este slot</button><button class="btn btn-sec" id="clear-slot-final">Limpar</button><button class="btn btn-sec" id="discard-slot-final">Descartar</button></div>';
+      const cont=screen.querySelector('.editor-container'); if(cont) cont.insertAdjacentElement('beforebegin', tb);
+      $('editor-sort-final').onchange=function(){ user.editorSort=this.value; renderEditorFinal(false); };
+      $('editor-filter-final').onchange=function(){ user.editorFilter=this.value; renderEditorFinal(false); };
+      $('save-slot-final').onclick=function(){ safeClick(); saveEditorSlotFinal(true); };
+      $('use-slot-final').onclick=function(){ safeClick(); saveEditorSlotFinal(true); user.activeDeckSlot=editorSlot; applyActiveSlot(); saveAuto(); renderEditorFinal(false); alert('Slot '+(editorSlot+1)+' definido como deck ativo.'); };
+      $('clear-slot-final').onclick=function(){ safeClick(); if(confirm('Limpar o deck em edição?')){ editorDraft=[]; editorDirty=true; renderEditorFinal(false); } };
+      $('discard-slot-final').onclick=function(){ safeClick(); beginEditSlot(editorSlot); renderEditorFinal(false); };
+    }
+    const back=screen.querySelector('button.btn-play[onclick*="main-menu"]');
+    if(back){ back.textContent='✔ SALVAR SLOT E VOLTAR'; back.onclick=function(){ safeClick(); saveEditorSlotFinal(false); if(typeof showScreen==='function') showScreen('main-menu'); }; }
+  }
+  function saveEditorSlotFinal(showMsg){
+    ensureUser();
+    user.deckSlots[editorSlot].deck = editorDraft.slice(0,20);
+    user.deckSlots[editorSlot].updatedAt = Date.now();
+    user.activeDeckSlot = editorSlot;
+    user.deck = editorDraft.slice(0,20);
+    editorDirty = false;
+    saveAuto();
+    renderEditorFinal(false);
+    if(showMsg) alert('Deck salvo no Slot '+(editorSlot+1)+'.');
+  }
+  function renderSlotBarFinal(){
+    const bar=$('deck-slot-bar-final'); if(!bar) return;
+    bar.innerHTML=''; ensureUser();
+    user.deckSlots.forEach(function(slot,i){
+      const b=document.createElement('button');
+      b.className='deck-slot-final'+(i===editorSlot?' active':'');
+      b.innerHTML='<b>Slot '+(i+1)+'</b><span>'+slot.deck.length+'/20 cartas</span><small>'+(i===user.activeDeckSlot?'ativo':'clique para editar')+'</small>';
+      b.onclick=function(){
+        safeClick();
+        if(editorDirty && !confirm('Você tem alterações não salvas. Descartar e trocar de slot?')) return;
+        beginEditSlot(i); renderEditorFinal(false);
+      };
+      bar.appendChild(b);
+    });
+  }
+  function counts(arr){ const m={}; (arr||[]).forEach(id=>{ m[id]=(m[id]||0)+1; }); return m; }
+  function availableBankEntries(){
+    const used=counts(editorDraft);
+    const entries=[];
+    (user.inventory||[]).forEach(function(id,pos){
+      if(!getCard(id)) return;
+      if(used[id] && used[id] > 0){ used[id]--; return; }
+      entries.push({id:id,pos:pos});
+    });
+    return entries;
+  }
+  function makeMini(entry,inDeck,index){
+    const c=getCard(entry.id); if(!c) return null;
+    const d=document.createElement('div');
+    d.className='mini-card deck-mini-card '+(inDeck?'in-deck ':'')+(c.isEx?'ex ':'')+(c.isSupport?'support ':'');
+    d.title=inDeck?'Clique para remover':'Clique para adicionar';
+    d.onclick=function(){
+      safeClick();
+      if(inDeck){ editorDraft.splice(index,1); editorDirty=true; renderEditorFinal(false); return; }
+      if(editorDraft.length >= 20) return alert('Máximo de 20 cartas neste slot.');
+      editorDraft.push(entry.id); editorDirty=true; renderEditorFinal(false);
+    };
+    const tc=colorOf(c.type);
+    d.innerHTML='<img src="'+(c.img||'https://i.imgur.com/HWERuem.png')+'"><div class="mini-rarity">'+rarityLabel(c)+'</div><div class="name" style="color:'+tc+'">'+String(c.name||entry.id)+'</div><div class="mini-meta">'+String(c.type||'Item')+(c.hp?' • '+c.hp+' HP':'')+'</div>';
+    return d;
+  }
+  function renderEditorFinal(resetDraft){
+    if(!ensureUser()) return;
+    if(resetDraft || !Array.isArray(editorDraft)) beginEditSlot(user.activeDeckSlot || 0);
+    ensureEditorShellFinal();
+    const sort=$('editor-sort-final'); if(sort) sort.value=user.editorSort||'rarity';
+    const filter=$('editor-filter-final'); if(filter) filter.value=user.editorFilter||'all';
+    renderSlotBarFinal();
+    const bank=$('editor-bank'), deck=$('editor-deck-list'); if(!bank || !deck) return;
+    bank.innerHTML=''; deck.innerHTML='';
+    let entries=availableBankEntries();
+    const f=user.editorFilter||'all';
+    if(f!=='all') entries=entries.filter(function(e){ const c=getCard(e.id); if(f==='ex') return !!c.isEx; if(f==='support') return !!c.isSupport; return !c.isEx && !c.isSupport; });
+    sortEntries(entries,user.editorSort||'rarity').forEach(function(e){ const m=makeMini(e,false,0); if(m) bank.appendChild(m); });
+    editorDraft.forEach(function(id,i){ const m=makeMini({id:id,pos:i},true,i); if(m) deck.appendChild(m); });
+    const h=document.querySelector('#deck-editor .editor-column:nth-child(2) h3'); if(h) h.innerHTML='Deck do Slot '+(editorSlot+1)+' (<span id="deck-size">'+editorDraft.length+'</span>/20)';
+    const ds=$('deck-size'); if(ds) ds.textContent=editorDraft.length;
+    const dirty=$('editor-dirty-final'); if(dirty) dirty.textContent = editorDirty ? 'Alterações não salvas' : 'Salvo';
+  }
+  function openEditorFinal(){
+    ensureUser(); beginEditSlot(user.activeDeckSlot || 0);
+    if(typeof showScreen === 'function') showScreen('deck-editor');
+    setTimeout(function(){ renderEditorFinal(false); },0);
+  }
+
+  function seededRandom(seed){ let x=Math.sin(seed)*10000; return function(){ x=Math.sin(x)*10000; return x-Math.floor(x); }; }
+  function storeWindow(){ return Math.floor(Date.now()/SHOP_WINDOW_MS); }
+  function pick(pool,n,rand,used){
+    const arr=pool.slice().filter(c=>c && c.id && !used.has(c.id)); const out=[];
+    while(arr.length && out.length<n){ const i=Math.floor(rand()*arr.length); const c=arr.splice(i,1)[0]; used.add(c.id); out.push(c.id); }
+    return out;
+  }
+  function ensureStoreOffersFinal(){
+    ensureUser(); const w=storeWindow();
+    if(user.storeWindow===w && user.storeOffers && Array.isArray(user.storeOffers.ex) && Array.isArray(user.storeOffers.normal) && Array.isArray(user.storeOffers.items)) return;
+    const pool=allCards().filter(c=>Number(c.price||0)>0 && !c.storyOnly);
+    const ex=pool.filter(c=>c.isEx && !c.isSupport);
+    const normal=pool.filter(c=>!c.isEx && !c.isSupport);
+    const items=pool.filter(c=>c.isSupport || c.effect);
+    const rand=seededRandom(w+2026); const used=new Set();
+    user.storeWindow=w;
+    user.storeOffers={ex:pick(ex.length?ex:pool,1,rand,used), normal:pick(normal.length?normal:pool,3,rand,used), items:pick(items.length?items:pool,2,rand,used)};
+    saveAuto();
+  }
+  function clockText(){ const left=Math.max(0,(storeWindow()+1)*SHOP_WINDOW_MS-Date.now()); const h=Math.floor(left/3600000); const m=Math.floor((left%3600000)/60000); return h+'h '+String(m).padStart(2,'0')+'min'; }
+  function ensureStoreShellFinal(){
+    const s=$('store-screen'); if(!s) return;
+    const old=$('store-toolbar'); if(old) old.remove();
+    if(!$('store-toolbar-final')){
+      const tb=document.createElement('div'); tb.id='store-toolbar-final'; tb.className='store-toolbar-final';
+      tb.innerHTML='<div class="store-clock-final">⏳ Atualiza em <b id="store-refresh-clock-final">--</b></div><div class="store-note-final">Rotação: 1 ETH/EX, 3 cartas normais e 2 itens aleatórios.</div>';
+      const grid=$('store-grid'); if(grid) grid.insertAdjacentElement('beforebegin', tb);
+    }
+  }
+  function offerHTML(id,label){
+    const c=getCard(id); if(!c) return '';
+    const have=(user.inventory||[]).filter(x=>x===id).length;
+    const tc=colorOf(c.type);
+    const kind=c.isEx?'⭐ EX':(c.isSupport?'🧩 Item':rarityLabel(c));
+    return '<div class="shop-offer-card-final '+(c.isEx?'ex ':'')+(c.isSupport?'support':'')+'"><div class="shop-tag">'+label+'</div><img src="'+(c.img||'https://i.imgur.com/HWERuem.png')+'"><div class="shop-name" style="color:'+tc+'">'+String(c.name||id)+'</div><div class="shop-meta">'+kind+' • '+String(c.type||'Suporte')+' • você tem '+have+'</div>'+(c.desc?'<div class="shop-desc">'+String(c.desc).slice(0,90)+'</div>':'<div class="shop-desc"></div>')+'<button class="btn-skill shop-buy" onclick="buyCard(\''+id+'\')">💰 '+Number(c.price||0)+' moedas</button></div>';
+  }
+  function renderStoreFinal(){
+    ensureUser(); ensureStoreOffersFinal(); ensureStoreShellFinal(); refreshCoinsFinal();
+    const clock=$('store-refresh-clock-final'); if(clock) clock.textContent=clockText();
+    const grid=$('store-grid'); if(!grid) return;
+    const o=user.storeOffers || {ex:[],normal:[],items:[]};
+    grid.innerHTML='<section class="shop-section-final"><h3>⚡ ETH/EX em destaque</h3><div class="shop-row-final">'+(o.ex||[]).map(id=>offerHTML(id,'ETH/EX')).join('')+'</div></section><section class="shop-section-final"><h3>🃏 Cartas normais</h3><div class="shop-row-final">'+(o.normal||[]).map(id=>offerHTML(id,'Normal')).join('')+'</div></section><section class="shop-section-final"><h3>🧩 Itens aleatórios</h3><div class="shop-row-final">'+(o.items||[]).map(id=>offerHTML(id,'Item')).join('')+'</div></section>';
+  }
+  function openStoreFinal(){ if(typeof showScreen==='function') showScreen('store-screen'); setTimeout(renderStoreFinal,0); }
+  function buyCardFinal(id){
+    ensureUser(); ensureStoreOffersFinal(); const c=getCard(id); if(!c) return alert('Carta não encontrada.');
+    const allowed=[].concat(user.storeOffers.ex||[], user.storeOffers.normal||[], user.storeOffers.items||[]);
+    if(!allowed.includes(id)) return alert('Essa carta não está na rotação atual da loja.');
+    const price=Number(c.price||0); if((user.coins||0)<price) return alert('Moedas insuficientes.');
+    user.coins-=price; user.inventory.push(id); user.obtainedAt=user.obtainedAt||{}; user.obtainedAt[id]=Date.now();
+    try{ if(typeof playSFX==='function') playSFX('sfxBuy'); }catch(e){}
+    saveAuto(); renderStoreFinal(); refreshCoinsFinal();
+  }
+
+  function patchBattleDeckUse(){
+    try{
+      if(typeof initCoinFlip === 'function' && !initCoinFlip._v9slot){
+        const old=initCoinFlip;
+        const wrapped=function(){ applyActiveSlot(); return old.apply(this, arguments); };
+        wrapped._v9slot=true; window.initCoinFlip=wrapped; try{ initCoinFlip=wrapped; }catch(e){}
+      }
+      if(typeof getDeckPayload === 'function' && !getDeckPayload._v9slot){
+        const oldDeck=getDeckPayload;
+        const wrappedDeck=function(){ applyActiveSlot(); return oldDeck.apply(this, arguments); };
+        wrappedDeck._v9slot=true; window.getDeckPayload=wrappedDeck; try{ getDeckPayload=wrappedDeck; }catch(e){}
+      }
+    }catch(e){ console.warn('[V9 deck patch]', e); }
+  }
+
+  function installFinalOverrides(){
+    ensureUser();
+    try{ openEditor=window.openEditor=openEditorFinal; renderEditor=window.renderEditor=function(){ renderEditorFinal(false); }; }catch(e){ window.openEditor=openEditorFinal; window.renderEditor=function(){ renderEditorFinal(false); }; }
+    try{ openStore=window.openStore=openStoreFinal; buyCard=window.buyCard=buyCardFinal; }catch(e){ window.openStore=openStoreFinal; window.buyCard=buyCardFinal; }
+    if(window.UTCGX){
+      UTCGX.installModes=function(){ ensureOfflineScreen(); };
+      UTCGX.installModeDescriptions=function(){ normalizeMainMenuFinal(); };
+    }
+    patchBattleDeckUse();
+    normalizeMainMenuFinal();
+    refreshCoinsFinal();
+  }
+
+  const previousShowScreen=window.showScreen;
+  if(typeof previousShowScreen === 'function' && !previousShowScreen._v9final){
+    const wrapped=function(id){
+      const r=previousShowScreen.apply(this, arguments);
+      setTimeout(function(){
+        installFinalOverrides();
+        if(id==='main-menu') normalizeMainMenuFinal();
+        if(id==='deck-editor') renderEditorFinal(!editorDraft.length && !editorDirty);
+        if(id==='store-screen') renderStoreFinal();
+        if(id==='game-ui'){ const gu=$('game-ui'); if(gu) gu.style.display='grid'; }
+      },0);
+      return r;
+    };
+    wrapped._v9final=true;
+    window.showScreen=wrapped; try{ showScreen=wrapped; }catch(e){}
+  }
+
+  window.UTCGV9 = { normalizeMainMenuFinal, openEditorFinal, renderEditorFinal, openStoreFinal, renderStoreFinal, applyActiveSlot };
+  window.addEventListener('load', function(){ installFinalOverrides(); setTimeout(installFinalOverrides,250); setTimeout(installFinalOverrides,900); setTimeout(installFinalOverrides,1600); setInterval(function(){ if($('store-screen') && $('store-screen').style.display !== 'none') renderStoreFinal(); }, 60000); });
+  setTimeout(installFinalOverrides,0);
+  setTimeout(installFinalOverrides,600);
+  setTimeout(installFinalOverrides,1500);
+})();
+</script>
+
+
+
+<!-- =========================================================
+     UTCG V10 — CORREÇÃO DE LAYOUT DE BATALHA CELULAR/PC + MENU JOGAR
+     Mantém o código anterior e só sobrescreve o necessário.
+========================================================= -->
+<style id="utcg-v10-battle-mobile-menu-css">
+/* ---------- MENU PRINCIPAL: só atalhos principais ---------- */
+#main-menu .menu-buttons{
+  width:min(340px,90vw)!important;
+  gap:9px!important;
+}
+#main-menu .menu-buttons > .btn{
+  min-height:46px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+}
+#offline-modes-screen .offline-mode-grid{
+  width:min(960px,94vw)!important;
+}
+
+/* ---------- BATALHA PC: sem cartas se atropelando ---------- */
+@media screen and (min-width:851px){
+  #game-ui{
+    grid-template-columns:250px minmax(0,1fr)!important;
+    grid-template-rows:minmax(0,1fr) 148px!important;
+    height:100vh!important;
+    overflow:hidden!important;
+  }
+  #game-ui .arena{
+    height:100%!important;
+    min-height:0!important;
+    padding:10px 12px!important;
+    gap:5px!important;
+    overflow:hidden!important;
+    justify-content:center!important;
+  }
+  #game-ui .zone-row{
+    width:100%!important;
+    min-height:0!important;
+    flex-wrap:nowrap!important;
+    justify-content:center!important;
+    align-items:center!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    gap:10px!important;
+    padding:2px 14px!important;
+    scroll-padding:14px!important;
+  }
+  #game-ui #e-bench,
+  #game-ui #p-bench{
+    flex:0 0 96px!important;
+    height:96px!important;
+    max-height:96px!important;
+  }
+  #game-ui #e-active,
+  #game-ui #p-active{
+    flex:0 0 150px!important;
+    height:150px!important;
+    max-height:150px!important;
+    overflow:visible!important;
+    justify-content:center!important;
+  }
+  #game-ui .arena > div:not(.zone-row):not(.arena-label):not(.divider){
+    flex:0 0 54px!important;
+    height:54px!important;
+    max-height:54px!important;
+    padding:0!important;
+  }
+  #game-ui .divider{
+    flex:0 0 1px!important;
+    height:1px!important;
+    margin:1px 0!important;
+  }
+  #game-ui .card{
+    width:78px!important;
+    height:110px!important;
+    flex:0 0 78px!important;
+    margin:0!important;
+    border-radius:9px!important;
+  }
+  #game-ui .card.active{
+    width:110px!important;
+    height:154px!important;
+    flex:0 0 110px!important;
+  }
+  #game-ui footer#p-hand{
+    grid-column:2!important;
+    grid-row:2!important;
+    height:148px!important;
+    min-height:148px!important;
+    max-height:148px!important;
+    padding:9px 12px!important;
+    gap:9px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+  }
+  #game-ui footer#p-hand .card{
+    width:82px!important;
+    height:116px!important;
+    flex:0 0 82px!important;
+  }
+  #game-ui .card-content{padding:3px!important;}
+  #game-ui .card-content b,
+  #game-ui .ultra-card-title,
+  #game-ui .ultra-ex-name{font-size:8.5px!important;line-height:1.08!important;}
+  #game-ui .card.active .card-content b,
+  #game-ui .card.active .ultra-card-title,
+  #game-ui .card.active .ultra-ex-name{font-size:9.5px!important;}
+  #game-ui .btn-skill{font-size:7.4px!important;line-height:1.08!important;padding:1px 2px!important;margin-top:1px!important;}
+  #game-ui .hp-tag{font-size:8.5px!important;padding:1px 4px!important;}
+  #game-ui .energy-tag{width:17px!important;height:17px!important;font-size:8px!important;}
+  #game-ui .discard-pile{width:38px!important;height:54px!important;}
+  #game-ui .discard-logo{width:22px!important;height:22px!important;}
+}
+
+/* ---------- BATALHA CELULAR EM PÉ ---------- */
+@media screen and (max-width:850px), screen and (pointer:coarse) and (max-width:980px){
+  html,body{
+    width:100vw!important;
+    height:100dvh!important;
+    min-height:100dvh!important;
+    overflow:hidden!important;
+    overscroll-behavior:none!important;
+  }
+  #game-ui{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    grid-template-rows:44px 26px minmax(0,1fr) 116px!important;
+    width:100vw!important;
+    height:100dvh!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  #arena-particles-canvas{
+    position:absolute!important;
+    inset:0!important;
+    z-index:0!important;
+    pointer-events:none!important;
+  }
+  #game-ui .sidebar{
+    grid-column:1!important;
+    grid-row:1!important;
+    width:100%!important;
+    height:44px!important;
+    min-height:44px!important;
+    max-height:44px!important;
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:5px!important;
+    padding:4px 6px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    border-right:0!important;
+    border-bottom:1px solid rgba(56,189,248,.24)!important;
+    z-index:6!important;
+  }
+  #game-ui .sidebar .terminal,
+  #game-ui .sidebar .inspect,
+  #game-ui .sidebar .energy-panel,
+  #game-ui .sidebar #ultra-mode-badge,
+  #game-ui .sidebar #forfeit-battle-btn{
+    display:none!important;
+  }
+  #game-ui .timer-box{
+    flex:0 0 auto!important;
+    min-width:60px!important;
+    height:34px!important;
+    font-size:16px!important;
+    padding:4px 8px!important;
+    border-radius:8px!important;
+  }
+  #game-ui #round-counter{
+    flex:0 0 auto!important;
+    min-width:54px!important;
+    height:34px!important;
+    padding:3px 7px!important;
+    border-radius:8px!important;
+  }
+  #game-ui #round-counter .round-label{font-size:6px!important;letter-spacing:1px!important;}
+  #game-ui #round-counter .round-num{font-size:16px!important;}
+  #game-ui #end-turn-btn{
+    flex:0 0 auto!important;
+    min-width:118px!important;
+    height:34px!important;
+    padding:5px 8px!important;
+    font-size:9px!important;
+    border-radius:8px!important;
+    white-space:nowrap!important;
+  }
+  #mobile-energy-bar{
+    display:flex!important;
+    grid-column:1!important;
+    grid-row:2!important;
+    position:relative!important;
+    top:auto!important;
+    left:auto!important;
+    right:auto!important;
+    height:26px!important;
+    min-height:26px!important;
+    padding:3px 6px!important;
+    gap:5px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    z-index:5!important;
+    background:rgba(2,6,23,.96)!important;
+    border-bottom:1px solid rgba(251,191,36,.25)!important;
+  }
+  #mobile-energy-bar .mob-en-chip{
+    flex:0 0 auto!important;
+    font-size:8px!important;
+    padding:2px 6px!important;
+    white-space:nowrap!important;
+    border-radius:999px!important;
+  }
+  #mobile-energy-bar .mob-en-dot{width:7px!important;height:7px!important;}
+
+  #game-ui .arena{
+    grid-column:1!important;
+    grid-row:3!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    align-items:stretch!important;
+    gap:3px!important;
+    overflow:hidden!important;
+    padding:4px 4px 3px!important;
+    z-index:2!important;
+  }
+  #game-ui .arena-label{
+    position:absolute!important;
+    left:7px!important;
+    font-size:7px!important;
+    letter-spacing:2px!important;
+    opacity:.72!important;
+    z-index:4!important;
+    pointer-events:none!important;
+  }
+  #game-ui .arena-label.enemy{top:4px!important;}
+  #game-ui .arena-label.player{bottom:4px!important;}
+  #game-ui .zone-row{
+    width:100%!important;
+    min-height:0!important;
+    flex-wrap:nowrap!important;
+    justify-content:center!important;
+    align-items:center!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    gap:7px!important;
+    padding:1px 8px!important;
+    scroll-padding:8px!important;
+  }
+  #game-ui #e-bench,
+  #game-ui #p-bench{
+    flex:0 0 92px!important;
+    height:92px!important;
+    max-height:92px!important;
+    justify-content:flex-start!important;
+    padding-left:20px!important;
+    padding-right:20px!important;
+  }
+  #game-ui #e-active,
+  #game-ui #p-active{
+    flex:0 0 138px!important;
+    height:138px!important;
+    max-height:138px!important;
+    justify-content:center!important;
+    overflow:visible!important;
+  }
+  #game-ui .arena > div:not(.zone-row):not(.arena-label):not(.divider){
+    flex:0 0 44px!important;
+    height:44px!important;
+    max-height:44px!important;
+    padding:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+  }
+  #game-ui .divider{
+    flex:0 0 1px!important;
+    height:1px!important;
+    min-height:1px!important;
+    margin:0!important;
+    opacity:.55!important;
+  }
+  #game-ui .discard-pile{
+    width:32px!important;
+    height:45px!important;
+  }
+  #game-ui .discard-logo{width:18px!important;height:18px!important;}
+  #game-ui .discard-count{font-size:6px!important;}
+  #game-ui .discard-label{display:none!important;}
+  #game-ui .arena > div:not(.zone-row):not(.arena-label):not(.divider) > div > div:first-child{
+    font-size:6px!important;
+    margin-bottom:1px!important;
+  }
+
+  #game-ui .card{
+    width:64px!important;
+    height:90px!important;
+    flex:0 0 64px!important;
+    border-radius:7px!important;
+    border-width:1px!important;
+    margin:0!important;
+  }
+  #game-ui .card.active{
+    width:96px!important;
+    height:136px!important;
+    flex:0 0 96px!important;
+    border-radius:9px!important;
+  }
+  #game-ui .card:not(.ex) img,
+  #game-ui .card.support img{height:47%!important;}
+  #game-ui .card-content{padding:2px!important;}
+  #game-ui .card-content b,
+  #game-ui .ultra-card-title,
+  #game-ui .ultra-ex-name{
+    font-size:7.2px!important;
+    line-height:1.06!important;
+  }
+  #game-ui .card.active .card-content b,
+  #game-ui .card.active .ultra-card-title,
+  #game-ui .card.active .ultra-ex-name{
+    font-size:8.4px!important;
+  }
+  #game-ui .btn-skill{
+    font-size:6px!important;
+    line-height:1.04!important;
+    padding:1px 2px!important;
+    margin-top:1px!important;
+    border-radius:3px!important;
+  }
+  #game-ui .btn-skill small{font-size:5.4px!important;line-height:1!important;}
+  #game-ui .hp-tag{font-size:7.4px!important;padding:1px 3px!important;top:2px!important;right:2px!important;}
+  #game-ui .energy-tag{width:15px!important;height:15px!important;font-size:7px!important;top:2px!important;left:2px!important;}
+  #game-ui .status-badge{font-size:5.6px!important;padding:1px 2px!important;}
+
+  #game-ui footer#p-hand{
+    grid-column:1!important;
+    grid-row:4!important;
+    width:100%!important;
+    height:116px!important;
+    min-height:116px!important;
+    max-height:116px!important;
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    gap:7px!important;
+    padding:6px 8px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    z-index:7!important;
+    border-top:1px solid rgba(56,189,248,.35)!important;
+  }
+  #game-ui footer#p-hand .hand-label{
+    flex:0 0 auto!important;
+    writing-mode:vertical-rl!important;
+    font-size:8px!important;
+    letter-spacing:2px!important;
+  }
+  #game-ui footer#p-hand .card{
+    width:76px!important;
+    height:106px!important;
+    flex:0 0 76px!important;
+  }
+  #game-ui footer#p-hand .card-content b{font-size:7.5px!important;}
+}
+
+/* Celulares com pouca altura: reduz só o necessário, mantendo clicável. */
+@media screen and (max-width:850px) and (max-height:680px), screen and (pointer:coarse) and (max-width:980px) and (max-height:680px){
+  #game-ui{grid-template-rows:40px 24px minmax(0,1fr) 102px!important;}
+  #game-ui .sidebar{height:40px!important;min-height:40px!important;max-height:40px!important;}
+  #game-ui .timer-box{height:31px!important;min-width:56px!important;font-size:15px!important;}
+  #game-ui #round-counter{height:31px!important;min-width:50px!important;}
+  #game-ui #end-turn-btn{height:31px!important;min-width:105px!important;font-size:8.5px!important;}
+  #mobile-energy-bar{height:24px!important;min-height:24px!important;}
+  #game-ui #e-bench,#game-ui #p-bench{flex-basis:76px!important;height:76px!important;max-height:76px!important;}
+  #game-ui #e-active,#game-ui #p-active{flex-basis:118px!important;height:118px!important;max-height:118px!important;}
+  #game-ui .arena > div:not(.zone-row):not(.arena-label):not(.divider){flex-basis:34px!important;height:34px!important;max-height:34px!important;}
+  #game-ui .card{width:54px!important;height:76px!important;flex-basis:54px!important;}
+  #game-ui .card.active{width:84px!important;height:118px!important;flex-basis:84px!important;}
+  #game-ui footer#p-hand{height:102px!important;min-height:102px!important;max-height:102px!important;}
+  #game-ui footer#p-hand .card{width:68px!important;height:95px!important;flex-basis:68px!important;}
+}
+</style>
+
+<script id="utcg-v10-menu-battle-fix-js">
+(function(){
+  'use strict';
+  function $(id){ return document.getElementById(id); }
+  function safeClick(){ try{ if(typeof playClick === 'function') playClick(); }catch(e){} }
+  function call(fn){ try{ if(typeof fn === 'function') fn(); }catch(e){ console.warn('[UTCG V10]', e); } }
+
+  function makeMainButton(menu, label, cls, fn){
+    const b=document.createElement('button');
+    b.className='btn '+cls;
+    b.innerHTML=label;
+    b.onclick=function(){ safeClick(); fn(); };
+    menu.appendChild(b);
+    return b;
+  }
+
+  function cleanMainMenuV10(){
+    const menu=document.querySelector('#main-menu .menu-buttons');
+    if(!menu) return;
+    const sig='v10-main-menu-only-core';
+    if(menu.getAttribute('data-menu-signature')===sig && menu.children.length>=6) return;
+    menu.innerHTML='';
+    makeMainButton(menu,'⚔️ Jogar','btn-play',function(){
+      if(typeof window.openOfflineModes === 'function') window.openOfflineModes();
+      else if(typeof showScreen === 'function') showScreen('deck-select','normal');
+    });
+    makeMainButton(menu,'🌐 Multiplayer Online','btn-sec',function(){
+      try{ if(typeof applyActiveSlot === 'function') applyActiveSlot(); }catch(e){}
+      if(typeof mpOpenMultiplayer === 'function') mpOpenMultiplayer();
+      else if(typeof showScreen === 'function') showScreen('multiplayer-screen');
+    });
+    makeMainButton(menu,'🃏 Editor de Deck','btn-sec',function(){
+      if(typeof openEditor === 'function') openEditor();
+      else if(typeof showScreen === 'function') showScreen('deck-editor');
+    });
+    makeMainButton(menu,'🏪 Loja','btn-sec',function(){
+      if(typeof openStore === 'function') openStore();
+      else if(typeof showScreen === 'function') showScreen('store-screen');
+    });
+    makeMainButton(menu,'💾 Salvar Dados','btn-sec',function(){ if(typeof saveGame === 'function') saveGame(); });
+    makeMainButton(menu,'📂 Carregar Dados','btn-sec',function(){
+      let input=$('load-input-v10') || $('load-input');
+      if(!input){ input=document.createElement('input'); input.type='file'; input.id='load-input-v10'; input.style.display='none'; document.body.appendChild(input); }
+      input.onchange=function(){ if(typeof loadGame === 'function') loadGame(this); };
+      input.click();
+    });
+    menu.setAttribute('data-menu-signature',sig);
+    Array.from(menu.querySelectorAll('[data-ultra-mode],[data-offline-mode]')).forEach(function(el){el.remove();});
+  }
+
+  function ensureOfflineModesV10(){
+    let screen=$('offline-modes-screen');
+    if(!screen){
+      screen=document.createElement('div');
+      screen.id='offline-modes-screen';
+      screen.className='screen';
+      screen.innerHTML='<div class="screen-header">⚔️ Jogar</div><div class="offline-hint" id="offline-active-deck-label"></div><div class="offline-mode-grid" id="offline-mode-grid"></div><button class="btn btn-sec offline-back">← VOLTAR</button>';
+      document.body.appendChild(screen);
+    }
+    const back=screen.querySelector('.offline-back');
+    if(back) back.onclick=function(){ safeClick(); if(typeof showScreen==='function') showScreen('main-menu'); };
+    return screen;
+  }
+  function modeButton(icon,title,desc,fn,cls){
+    const b=document.createElement('button');
+    b.className='btn offline-mode-card '+(cls||'btn-sec');
+    b.innerHTML='<span class="offline-mode-ico">'+icon+'</span><span><b>'+title+'</b><small>'+desc+'</small></span>';
+    b.onclick=function(){ safeClick(); try{ if(typeof applyActiveSlot==='function') applyActiveSlot(); }catch(e){} fn(); };
+    return b;
+  }
+  window.openOfflineModes=function(){
+    const screen=ensureOfflineModesV10();
+    try{ if(typeof ensureUser==='function') ensureUser(); if(typeof applyActiveSlot==='function') applyActiveSlot(); }catch(e){}
+    const label=$('offline-active-deck-label');
+    if(label){
+      let slotTxt='Deck ativo selecionado';
+      try{
+        if(window.user && Array.isArray(user.deckSlots)){
+          const n=(Number(user.activeDeckSlot)||0)+1;
+          const count=((user.deckSlots[n-1]&&user.deckSlots[n-1].deck)||[]).length;
+          slotTxt='Deck ativo: <b>Slot '+n+'</b> • '+count+'/20 cartas';
+        }
+      }catch(e){}
+      label.innerHTML=slotTxt;
+    }
+    const grid=$('offline-mode-grid');
+    if(grid){
+      grid.innerHTML='';
+      grid.appendChild(modeButton('⚔️','Batalha Normal','duelo clássico contra adversários offline',function(){ if(typeof showScreen==='function') showScreen('deck-select','normal'); },'btn-play'));
+      grid.appendChild(modeButton('☠️','Raid Boss','chefes com HP alto e recompensa maior',function(){ if(typeof showScreen==='function') showScreen('deck-select','boss'); },'btn-sec'));
+      grid.appendChild(modeButton('🎲','Draft Rápido','monte um deck temporário por escolhas',function(){ if(window.UTCGX && UTCGX.openDraft) UTCGX.openDraft(); },'btn-gold'));
+      grid.appendChild(modeButton('🔥','Sobrevivência','vença uma sequência de inimigos',function(){ if(window.UTCGX && UTCGX.startSurvival) UTCGX.startSurvival(); },'btn-sec'));
+      grid.appendChild(modeButton('🎯','Desafio Diário','modificadores especiais e recompensa diária',function(){ if(window.UTCGX && UTCGX.openDaily) UTCGX.openDaily(); },'btn-sec'));
+      grid.appendChild(modeButton('🧪','Laboratório','teste cartas, energia e combos',function(){ if(window.UTCGX && UTCGX.startTraining) UTCGX.startTraining(); },'btn-sec'));
+      grid.appendChild(modeButton('📖','Modo História','capítulos e batalhas da campanha',function(){ if(typeof showScreen==='function') showScreen('story-modal'); },'btn-sec'));
+    }
+    if(typeof showScreen==='function') showScreen('offline-modes-screen');
+  };
+
+  function fixBattleDisplayV10(){
+    const gu=$('game-ui');
+    if(!gu || gu.style.display==='none') return;
+    gu.style.display='grid';
+    const oldInline=document.querySelector('.ultra-discard-holder');
+    if(oldInline && window.innerWidth<=850){
+      oldInline.style.right='auto';
+      oldInline.style.top='auto';
+      oldInline.style.transform='none';
+    }
+  }
+
+  const prevShowScreen=window.showScreen;
+  if(typeof prevShowScreen==='function' && !prevShowScreen._v10wrapped){
+    const wrapped=function(id){
+      const r=prevShowScreen.apply(this,arguments);
+      setTimeout(function(){
+        if(id==='main-menu') cleanMainMenuV10();
+        if(id==='game-ui') fixBattleDisplayV10();
+        if(id==='offline-modes-screen') ensureOfflineModesV10();
+      },0);
+      return r;
+    };
+    wrapped._v10wrapped=true;
+    window.showScreen=wrapped;
+    try{ showScreen=wrapped; }catch(e){}
+  }
+
+  function boot(){
+    cleanMainMenuV10();
+    ensureOfflineModesV10();
+    fixBattleDisplayV10();
+  }
+  window.addEventListener('load',function(){ boot(); setTimeout(boot,250); setTimeout(boot,900); setTimeout(boot,1800); });
+  window.addEventListener('resize',function(){ setTimeout(fixBattleDisplayV10,50); });
+  window.addEventListener('orientationchange',function(){ setTimeout(fixBattleDisplayV10,220); });
+  setTimeout(boot,0); setTimeout(boot,700); setTimeout(boot,1600);
+})();
+</script>
+
 </body>
 </html>
