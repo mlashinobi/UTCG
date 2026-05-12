@@ -300,8 +300,16 @@ function gameFor(room, side){
 function emitRoom(room){
   io.to(room.code).emit("room:update", publicRoom(room));
   if(room.game){
-    for(const p of room.players) io.to(p.id).emit("game:state", gameFor(room, p.side));
-    for(const sid of room.spectators) io.to(sid).emit("game:state", gameFor(room, "spectator"));
+    for(const p of room.players){
+      const state = gameFor(room, p.side);
+      io.to(p.id).emit("game:state", state);
+      if(room.game.winner) io.to(p.id).emit("game:ended", state);
+    }
+    for(const sid of room.spectators){
+      const state = gameFor(room, "spectator");
+      io.to(sid).emit("game:state", state);
+      if(room.game.winner) io.to(sid).emit("game:ended", state);
+    }
   }
 }
 
@@ -517,11 +525,21 @@ function handleAction(room, player, action){
   const side = g[sideName];
   const enemy = g[enemyName];
 
+  if(!action || !action.type) return { ok:false, error:"Ação inválida." };
+  const type = String(action.type);
+
+  if(type === "concede" || type === "surrender"){
+    if(g.winner) return { ok:true, alreadyEnded:true };
+    g.winner = enemyName;
+    room.status = "ended";
+    addLog(g, `${player.name} desistiu da partida.`, "#ef4444");
+    addLog(g, `${enemy.name} venceu por desistência.`, "#fbbf24");
+    addPublicEvent(g, "concede", sideName, { winner:enemyName });
+    return { ok:true, winner:enemyName };
+  }
+
   if(g.winner) return { ok:false, error:"A partida já terminou." };
   if(g.turn !== sideName) return { ok:false, error:"Não é seu turno." };
-  if(!action || !action.type) return { ok:false, error:"Ação inválida." };
-
-  const type = String(action.type);
 
   if(["playCard","play-card","play_card"].includes(type)){
     const r = playCard(side, action.handIndex);
@@ -564,8 +582,8 @@ function handleAction(room, player, action){
       removeStatus(side.active, "freeze");
       side.hasAttacked = true;
       addLog(g, `${side.active.name} estava impedido e perdeu a ação.`, "#94a3b8");
-      addPublicEvent(g, "skip", sideName, { reason:"status" });
       startTurn(room, enemyName);
+      addPublicEvent(g, "skip", sideName, { reason:"status", nextTurn:enemyName });
       return { ok:true };
     }
 
@@ -578,16 +596,16 @@ function handleAction(room, player, action){
     if(hasStatus(enemy.active, "shield")){
       removeStatus(enemy.active, "shield");
       addLog(g, `${enemy.active.name} bloqueou o ataque com Escudo.`, "#38bdf8");
-      addPublicEvent(g, "attack", sideName, { skill, damage:0, target:enemyName, blocked:true });
       startTurn(room, enemyName);
+      addPublicEvent(g, "attack", sideName, { skill, damage:0, target:enemyName, blocked:true, nextTurn:enemyName });
       return { ok:true };
     }
 
     if(hasStatus(enemy.active, "dodge")){
       removeStatus(enemy.active, "dodge");
       addLog(g, `${enemy.active.name} esquivou do ataque.`, "#4ade80");
-      addPublicEvent(g, "attack", sideName, { skill, damage:0, target:enemyName, dodged:true });
       startTurn(room, enemyName);
+      addPublicEvent(g, "attack", sideName, { skill, damage:0, target:enemyName, dodged:true, nextTurn:enemyName });
       return { ok:true };
     }
 
@@ -605,26 +623,19 @@ function handleAction(room, player, action){
     }
 
     const ko = checkKO(room, enemyName, sideName);
-    addPublicEvent(g, "attack", sideName, { skill, damage, target:enemyName, ko });
-
+    const eventPayload = { skill, damage, target:enemyName, ko, winner:g.winner || null, nextTurn:g.winner ? null : enemyName };
     if(!g.winner) startTurn(room, enemyName);
+    addPublicEvent(g, "attack", sideName, eventPayload);
     return { ok:true };
   }
 
   if(type === "pass"){
     addLog(g, `${player.name} passou o turno.`, "#94a3b8");
-    addPublicEvent(g, "pass", sideName, {});
     startTurn(room, enemyName);
+    addPublicEvent(g, "pass", sideName, { nextTurn:enemyName });
     return { ok:true };
   }
 
-  if(type === "concede" || type === "surrender"){
-    g.winner = enemyName;
-    room.status = "ended";
-    addLog(g, `${player.name} desistiu da partida.`, "#ef4444");
-    addPublicEvent(g, "concede", sideName, { winner:enemyName });
-    return { ok:true };
-  }
 
   return { ok:false, error:"Tipo de ação não reconhecido." };
 }
@@ -674,6 +685,20 @@ io.on("connection", socket => {
   socket.on("room:leave", (payload={}, callback) => {
     const room = roomBySocket(socket.id);
     if(!room) return cb(callback, { ok:true });
+    const leaving = playerBySocket(room, socket.id);
+
+    if(room.status === "playing" && room.game && leaving && !room.game.winner){
+      const remaining = room.players.find(p => p.id !== socket.id);
+      if(remaining){
+        room.status = "ended";
+        room.game.winner = remaining.side;
+        addLog(room.game, `${leaving.name} saiu da sala e perdeu por desistência.`, "#ef4444");
+        addLog(room.game, `${remaining.name} venceu a partida.`, "#fbbf24");
+        addPublicEvent(room.game, "concede", leaving.side, { winner:remaining.side });
+        emitRoom(room);
+      }
+    }
+
     room.players = room.players.filter(p => p.id !== socket.id);
     room.spectators = room.spectators.filter(id => id !== socket.id);
     socket.leave(room.code);
