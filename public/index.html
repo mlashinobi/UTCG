@@ -9603,5 +9603,253 @@ body.mp-active #mp-game-panel{
 })();
 </script>
 
+<style id="utcg-v11-online-events-css">
+#multiplayer-screen.v11-online{background:radial-gradient(ellipse at top,#111827 0%,#020617 48%,#000 100%)!important;padding:24px!important;overflow:auto!important;align-items:center!important;justify-content:center!important;}
+.v11-online-shell{width:min(1120px,96vw);background:linear-gradient(180deg,rgba(15,23,42,.94),rgba(2,6,23,.98));border:1px solid rgba(56,189,248,.26);border-radius:24px;padding:22px;box-shadow:0 0 65px rgba(0,0,0,.7),inset 0 0 35px rgba(56,189,248,.04)}
+.v11-online-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:14px;margin-bottom:16px}.v11-online-kicker{font-family:Orbitron,monospace;font-size:10px;letter-spacing:3px;color:#38bdf8;text-transform:uppercase}.v11-online-head h2{font-family:Orbitron,monospace;color:#fff;font-size:30px;margin:4px 0;text-shadow:0 0 22px rgba(56,189,248,.35)}.v11-online-head p{font-size:13px;color:#94a3b8;line-height:1.55;max-width:700px}.v11-mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.v11-mode-card{min-height:190px;text-align:left;border-radius:18px;border:1px solid rgba(51,65,85,.75);background:linear-gradient(180deg,rgba(15,23,42,.88),rgba(0,0,0,.36));padding:18px;cursor:pointer;color:#fff;font-family:Rajdhani,sans-serif;transition:.2s}.v11-mode-card:hover{transform:translateY(-3px);border-color:#38bdf8;box-shadow:0 12px 36px rgba(0,0,0,.35)}.v11-mode-card .ico{font-size:34px;display:block;margin-bottom:10px}.v11-mode-card b{display:block;font-family:Orbitron,monospace;font-size:20px;margin-bottom:7px}.v11-mode-card small{display:block;font-size:12px;line-height:1.45;color:#94a3b8}.v11-mode-card.gold{border-color:rgba(251,191,36,.5);box-shadow:inset 0 0 25px rgba(251,191,36,.04)}.v11-mode-card.green{border-color:rgba(16,185,129,.5)}.v11-online-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.v11-back{margin-top:16px}.v11-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.v11-panel{background:rgba(0,0,0,.32);border:1px solid rgba(51,65,85,.75);border-radius:16px;padding:16px}.v11-panel h3{font-size:18px;color:#e2e8f0;margin-bottom:10px}.v11-panel label{display:block;font-size:10px;letter-spacing:2px;color:#64748b;text-transform:uppercase;margin-bottom:6px}.v11-input,.v11-select{width:100%;padding:12px;border-radius:9px;border:1px solid #334155;background:#020617;color:#fff;font-family:Rajdhani,sans-serif;font-weight:700;outline:none}.v11-input:focus,.v11-select:focus{border-color:#38bdf8;box-shadow:0 0 0 2px rgba(56,189,248,.12)}.v11-row{display:flex;gap:8px}.v11-event-banner{display:grid;grid-template-columns:1.1fr 1.2fr;gap:16px}.v11-event-card{border:1px solid rgba(251,191,36,.42);border-radius:20px;background:radial-gradient(ellipse at top,rgba(251,191,36,.13),rgba(15,23,42,.92) 52%,rgba(0,0,0,.45));padding:18px}.v11-event-card h3{font-family:Orbitron,monospace;color:#fbbf24;font-size:24px;margin-bottom:8px}.v11-event-card p{color:#cbd5e1;font-size:13px;line-height:1.55}.v11-reward-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.v11-reward-mini{border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden;background:#020617;min-height:118px;text-align:center}.v11-reward-mini img{width:100%;height:74px;object-fit:cover;display:block;filter:saturate(.9)}.v11-reward-mini b{display:block;font-size:10px;line-height:1.1;padding:5px;color:#e2e8f0}.v11-reward-mini.mega{border-color:#fbbf24;box-shadow:0 0 18px rgba(251,191,36,.16)}.v11-room-box{margin-top:14px;background:rgba(0,0,0,.32);border:1px solid rgba(16,185,129,.35);border-radius:16px;padding:16px}.v11-room-code{font-family:Orbitron,monospace;font-size:28px;color:#fbbf24;letter-spacing:4px}.v11-player-list{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.v11-player-chip{border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px;background:rgba(15,23,42,.75);font-size:12px;color:#cbd5e1}.v11-player-chip b{color:#fff;font-size:14px}.v11-soon{text-align:center;padding:60px 20px;border:1px solid rgba(255,255,255,.08);border-radius:20px;background:rgba(0,0,0,.25)}.v11-soon h3{font-family:Orbitron,monospace;font-size:34px;color:#fbbf24;margin-bottom:8px}
+#event-raid-screen{display:none;position:fixed;inset:0;z-index:2100;background:radial-gradient(ellipse at center,#06111f 0%,#020617 45%,#000 100%);color:#fff;overflow:hidden;font-family:Rajdhani,sans-serif}.raid-shell{height:100dvh;display:grid;grid-template-rows:58px minmax(0,1fr) 138px;gap:0}.raid-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:rgba(2,6,23,.95);border-bottom:1px solid rgba(56,189,248,.25);overflow-x:auto}.raid-pill{border:1px solid rgba(56,189,248,.35);background:rgba(56,189,248,.07);border-radius:999px;padding:7px 10px;font-family:Orbitron,monospace;font-size:10px;letter-spacing:1px;white-space:nowrap;color:#dbeafe}.raid-pill.gold{border-color:rgba(251,191,36,.5);color:#fbbf24;background:rgba(251,191,36,.08)}.raid-main{display:grid;grid-template-columns:260px minmax(260px,1fr) 260px;gap:10px;min-height:0;padding:10px}.raid-panel{min-height:0;border:1px solid rgba(51,65,85,.72);border-radius:16px;background:rgba(2,6,23,.64);padding:10px;overflow:auto}.raid-panel-title{font-family:Orbitron,monospace;font-size:11px;letter-spacing:2px;color:#94a3b8;margin-bottom:8px;text-transform:uppercase}.raid-players{display:flex;flex-direction:column;gap:10px}.raid-player{border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(15,23,42,.82);padding:8px}.raid-player.you{border-color:#38bdf8;box-shadow:0 0 20px rgba(56,189,248,.12)}.raid-player.eliminated{opacity:.48;filter:saturate(.4)}.raid-player-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;color:#cbd5e1}.raid-player-head b{font-size:14px;color:#fff}.raid-field-row{display:flex;gap:7px;align-items:flex-start;overflow-x:auto;padding-bottom:4px}.raid-boss-area{display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.raid-boss-stack{text-align:center;width:min(360px,95%)}.raid-boss-title{font-family:Orbitron,monospace;color:#fbbf24;font-size:20px;text-shadow:0 0 22px rgba(251,191,36,.45);margin-bottom:10px}.raid-card{position:relative;flex:0 0 auto;width:86px;height:120px;background:#0f172a;border:2px solid #334155;border-radius:11px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35)}.raid-card.active{width:112px;height:156px}.raid-card.boss{width:210px;height:292px;border-color:#fbbf24;box-shadow:0 0 38px rgba(251,191,36,.22),0 18px 50px rgba(0,0,0,.6)}.raid-card.hidden{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#111827,#020617);border-color:#475569}.raid-card img{width:100%;height:53%;object-fit:cover;display:block}.raid-card.boss img{height:64%}.raid-card-body{padding:5px;background:#0f172a;height:47%;font-size:9px;line-height:1.1;overflow:hidden}.raid-card.boss .raid-card-body{height:36%;font-size:12px}.raid-name{font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}.raid-card.boss .raid-name{font-family:Orbitron,monospace;color:#fbbf24;font-size:15px}.raid-hp{font-family:Orbitron,monospace;font-size:10px;color:#fecaca;background:#991b1b;border-radius:4px;padding:2px 4px;display:inline-block;margin-bottom:3px}.raid-card.boss .raid-hp{font-size:14px}.raid-hpbar{position:absolute;left:0;right:0;bottom:0;height:5px;background:rgba(0,0,0,.6)}.raid-hpbar span{display:block;height:100%;background:#4ade80}.raid-card-actions{position:absolute;left:4px;right:4px;bottom:7px;display:flex;flex-direction:column;gap:3px;z-index:4}.raid-card-actions button,.raid-mini-btn{border:1px solid rgba(255,255,255,.18);background:rgba(2,6,23,.86);color:#fff;border-radius:5px;font-size:8px;font-family:Rajdhani,sans-serif;font-weight:900;padding:2px 3px;cursor:pointer}.raid-card-actions button:disabled,.raid-mini-btn:disabled{opacity:.4;cursor:not-allowed}.raid-log{font-size:11px;line-height:1.35;color:#cbd5e1}.raid-log div{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)}.raid-hand{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(2,6,23,.95);border-top:1px solid rgba(56,189,248,.25);overflow-x:auto}.raid-hand-label{font-size:10px;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;writing-mode:vertical-rl}.raid-hand .raid-card{cursor:pointer;width:82px;height:115px}.raid-hand .raid-card:hover{border-color:#fbbf24;transform:translateY(-3px)}.raid-empty{font-size:12px;color:#64748b;padding:10px}.raid-reward-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:18px}.raid-reward-box{width:min(720px,96vw);border-radius:24px;border:1px solid rgba(251,191,36,.45);background:radial-gradient(ellipse at top,rgba(251,191,36,.16),rgba(15,23,42,.98) 48%,#020617 100%);padding:22px;text-align:center;box-shadow:0 0 80px rgba(0,0,0,.8)}.booster-pack{width:150px;height:210px;margin:8px auto 18px;border-radius:18px;border:2px solid #fbbf24;background:linear-gradient(135deg,#111827,#0f172a 42%,#b45309 100%);display:flex;align-items:center;justify-content:center;font-family:Orbitron,monospace;font-weight:900;color:#fbbf24;letter-spacing:2px;box-shadow:0 0 35px rgba(251,191,36,.3);animation:boosterPulse 1.1s ease-in-out infinite}@keyframes boosterPulse{50%{transform:scale(1.04);box-shadow:0 0 55px rgba(251,191,36,.55)}}.raid-reward-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:14px 0}.raid-reward-result{border:1px solid rgba(255,255,255,.12);border-radius:14px;overflow:hidden;background:#020617;min-height:150px}.raid-reward-result img{width:100%;height:100px;object-fit:cover;display:block}.raid-reward-result b{display:block;font-size:12px;line-height:1.15;padding:7px}.raid-reward-result.mega{border-color:#fbbf24;box-shadow:0 0 22px rgba(251,191,36,.25)}
+@media screen and (max-width:850px), screen and (pointer:coarse) and (max-width:980px){#multiplayer-screen.v11-online{padding:10px!important;align-items:flex-start!important}.v11-online-shell{width:100%;padding:14px;border-radius:16px}.v11-online-head{flex-direction:column}.v11-online-head h2{font-size:22px}.v11-mode-grid,.v11-panel-grid,.v11-event-banner{grid-template-columns:1fr}.v11-mode-card{min-height:112px;padding:14px}.v11-mode-card .ico{font-size:26px;margin-bottom:5px}.v11-mode-card b{font-size:17px}.v11-reward-row{grid-template-columns:repeat(2,1fr)}.v11-player-list{grid-template-columns:1fr 1fr}.raid-shell{grid-template-rows:50px minmax(0,1fr) 124px}.raid-top{height:50px;padding:6px;justify-content:flex-start}.raid-main{grid-template-columns:1fr;grid-template-rows:116px minmax(220px,1fr) 96px;gap:6px;padding:6px}.raid-panel{padding:7px;border-radius:12px}.raid-players{flex-direction:row;overflow-x:auto}.raid-player{min-width:190px;padding:6px}.raid-field-row{gap:5px}.raid-card{width:68px;height:95px}.raid-card.active{width:82px;height:114px}.raid-card.boss{width:142px;height:198px}.raid-boss-title{font-size:15px;margin-bottom:4px}.raid-card-body{font-size:7.5px;padding:4px}.raid-card.boss .raid-card-body{font-size:9px}.raid-card.boss .raid-name{font-size:12px}.raid-card.boss .raid-hp{font-size:11px}.raid-card-actions button,.raid-mini-btn{font-size:7px;padding:2px}.raid-log{font-size:9px}.raid-hand{height:124px;padding:6px;gap:6px}.raid-hand .raid-card{width:74px;height:104px}.raid-hand-label{font-size:8px}.raid-reward-box{padding:16px}.booster-pack{width:112px;height:158px}.raid-reward-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<script id="utcg-v11-online-events-js">
+(function(){
+  'use strict';
+  function $(id){ return document.getElementById(id); }
+  function html(s){ return String(s == null ? '' : s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function safeClick(){ try{ if(typeof playClick === 'function') playClick(); }catch(e){} }
+  function show(id){ if(typeof showScreen === 'function') showScreen(id); else { document.querySelectorAll('.screen').forEach(function(s){s.style.display='none'}); if($(id)) $(id).style.display='flex'; } }
+  function getName(){ const el=$('event-name') || $('mp-name'); const v=(el&&el.value?el.value.trim():'Jogador'); return (v||'Jogador').slice(0,18); }
+  function typeColor(t){ const m={Chakra:'#3b82f6',Ki:'#f59e0b','Amaldiçoada':'#a855f7',Stand:'#10b981',Haki:'#dc2626',Reiatsu:'#06b6d4',Nen:'#84cc16'}; return m[t] || '#94a3b8'; }
+
+  const EVENT_CARDS = {
+    event_item_rika_pendant:{ id:'event_item_rika_pendant', name:'Pingente da Rika', type:'Amaldiçoada', hp:0, img:'https://i.imgur.com/HWERuem.png', isSupport:true, rarity:'Evento', price:0, effect:{type:'energyBoost', value:2}, desc:'Item exclusivo do Evento Yuta. Gera +2 energia.' },
+    event_yuta_student:{ id:'event_yuta_student', name:'Yuta — Estudante Especial', type:'Amaldiçoada', hp:120, img:'https://i.imgur.com/HWERuem.png', isEx:true, rarity:'Evento', price:0, skills:[{n:'Katana Reversa',d:55,c:2,desc:'Golpe de energia amaldiçoada.'},{n:'Vínculo Parcial',d:75,c:3,desc:'Ataque com Rika parcial.'}] },
+    event_rika_fragment:{ id:'event_rika_fragment', name:'Rika Fragmentada', type:'Amaldiçoada', hp:110, img:'https://i.imgur.com/HWERuem.png', isEx:true, rarity:'Evento', price:0, skills:[{n:'Garra Protetora',d:45,c:2,desc:'Ataque de suporte.'},{n:'Maldição Presente',d:70,c:3,desc:'Pode aplicar medo.'}] },
+    event_yuta_mega_x:{ id:'event_yuta_mega_x', name:'Yuta Mega X', type:'Amaldiçoada', hp:180, img:'https://i.imgur.com/HWERuem.png', isEx:true, isMegaEvent:true, rarity:'Mega Evento', price:0, skills:[{n:'Cópia Absoluta',d:90,c:3,desc:'Ataque premium do evento.'},{n:'Rika Total',d:140,c:5,desc:'Ultimate raríssima do Evento Yuta.'}] }
+  };
+
+  function registerEventCards(){
+    try{
+      if(typeof CARDS_DB !== 'undefined') Object.keys(EVENT_CARDS).forEach(function(id){ if(!CARDS_DB[id]) CARDS_DB[id]=EVENT_CARDS[id]; });
+      if(window.CARDS_DB) Object.keys(EVENT_CARDS).forEach(function(id){ if(!window.CARDS_DB[id]) window.CARDS_DB[id]=EVENT_CARDS[id]; });
+    }catch(e){}
+  }
+  registerEventCards();
+
+  let eventSocket=null, eventRoom=null, eventSide=null, eventState=null, eventRewardShown=null, eventLastEventId=null;
+
+  function connectEvent(){
+    if(eventSocket && eventSocket.connected) return eventSocket;
+    if(typeof io !== 'function'){ alert('Socket.IO não carregou. Confira se o server.js está rodando.'); return null; }
+    if(!eventSocket){
+      eventSocket = io({ transports:['websocket','polling'] });
+      eventSocket.on('connect', function(){ const st=$('mp-conn-status')||$('event-conn-status'); if(st) st.textContent='ONLINE'; });
+      eventSocket.on('disconnect', function(){ const st=$('mp-conn-status')||$('event-conn-status'); if(st) st.textContent='OFFLINE'; });
+      eventSocket.on('event:room:update', function(room){ if(!eventRoom || room.code===eventRoom.code){ eventRoom=room; renderEventRoom(room); } });
+      eventSocket.on('event:state', function(state){ eventState=state; renderRaid(state); });
+      eventSocket.on('event:ended', function(state){ eventState=state; renderRaid(state); if(state && state.reward) showRaidReward(state.reward); });
+      eventSocket.on('event:reward', function(reward){ showRaidReward(reward); });
+    }
+    return eventSocket;
+  }
+
+  function getDeckPayloadV11(){
+    registerEventCards();
+    let ids=[]; let db={};
+    try{ if(typeof CARDS_DB !== 'undefined') db=CARDS_DB; }catch(e){}
+    try{ if(window.CARDS_DB) db=window.CARDS_DB; }catch(e){}
+    try{ if(typeof applyActiveSlot === 'function') applyActiveSlot(); }catch(e){}
+    try{ if(typeof user !== 'undefined' && user && Array.isArray(user.deck)) ids=user.deck.slice(0,20); }catch(e){}
+    if(!ids.length){ try{ if(window.user && Array.isArray(window.user.deck)) ids=window.user.deck.slice(0,20); }catch(e){} }
+    if(!ids.length) ids=['n1','g1','j1','bl1','op1'];
+    const cards=[];
+    ids.forEach(function(id){
+      const c=db[id] || EVENT_CARDS[id]; if(!c) return;
+      cards.push({ id:c.id||id, name:c.name||'Carta', type:c.type||'Neutro', hp:Number(c.hp||100), img:c.img||'', isEx:!!c.isEx, isSupport:!!c.isSupport, evolvesFrom:c.evolvesFrom||null, desc:c.desc||'', effect:c.effect||null, skills:(c.skills||[]).slice(0,3).map(function(s){ return {n:s.n||s.name||'Ataque', d:Number(s.d||s.dmg||0), c:Number(s.c||s.cost||0), desc:s.desc||'', status:s.status||null, special:s.special||null, vid:s.vid||''}; }) });
+    });
+    while(cards.length<5) cards.push({id:'fallback_'+cards.length,name:'Lutador Online',type:'Neutro',hp:100,img:'',skills:[{n:'Ataque Básico',d:30,c:1,desc:'Ataque padrão.'}]});
+    return cards;
+  }
+
+  function setMultiplayerHTML(inner){
+    const screen=$('multiplayer-screen'); if(!screen) return;
+    screen.classList.add('v11-online');
+    screen.innerHTML=inner;
+    show('multiplayer-screen');
+    connectEvent();
+  }
+
+  function head(title, desc){
+    return '<div class="v11-online-head"><div><div class="v11-online-kicker">ONLINE</div><h2>'+title+'</h2><p>'+desc+'</p></div><div class="mp-status-pill" id="event-conn-status">'+(eventSocket&&eventSocket.connected?'ONLINE':'OFFLINE')+'</div></div>';
+  }
+
+  function renderOnlineHub(){
+    eventRoom=null; eventState=null; eventSide=null;
+    setMultiplayerHTML('<div class="v11-online-shell">'+head('🌐 Multiplayer Online','Escolha o tipo de modo online. X1 mantém o multiplayer de sala normal; Eventos abre raids cooperativas contra boss.')+
+      '<div class="v11-mode-grid">'+
+      '<button class="v11-mode-card" onclick="v11OnlineRanked()"><span class="ico">🏆</span><b>Ranqueada</b><small>Fila competitiva com ranking. Esse modo já fica separado para ativação futura.</small></button>'+
+      '<button class="v11-mode-card green" onclick="v11OnlineX1()"><span class="ico">⚔️</span><b>X1</b><small>Criar sala, enviar código, outro jogador entra e começa o duelo normal.</small></button>'+
+      '<button class="v11-mode-card gold" onclick="v11OnlineEvents()"><span class="ico">☠️</span><b>Eventos</b><small>Raid cooperativa de 1 a 4 jogadores contra o boss do evento atual.</small></button>'+
+      '</div><button class="btn btn-sec v11-back" onclick="showScreen(\'main-menu\')">← Voltar ao menu</button></div>');
+  }
+
+  function renderRanked(){
+    setMultiplayerHTML('<div class="v11-online-shell">'+head('🏆 Ranqueada','Modo competitivo separado para temporadas e ranking.')+'<div class="v11-soon"><h3>EM BREVE</h3><p>Ranqueada ainda não está ativa nesta versão.</p><button class="btn btn-gold" onclick="v11RenderOnlineHub()">← Voltar para Online</button></div></div>');
+  }
+
+  function renderX1(){
+    setMultiplayerHTML('<div class="mp-shell" style="width:min(1120px,96vw)">'+
+      '<div class="mp-header"><div><div class="mp-kicker">X1 ONLINE REAL-TIME</div><h2>⚔️ Modo X1</h2><p>Crie uma sala, chame outro jogador pelo código e batalhe em tempo real pelo navegador.</p></div><div class="mp-status-pill" id="mp-conn-status">ONLINE</div></div>'+
+      '<div class="mp-grid"><section class="mp-panel"><h3>Identidade</h3><label>Seu nome</label><input id="mp-name" class="mp-input" maxlength="18" placeholder="Ex: Daniel"><div class="mp-note">O deck ativo do editor será enviado quando você clicar em “Pronto”.</div></section>'+
+      '<section class="mp-panel"><h3>Criar sala</h3><button class="btn btn-play mp-wide" onclick="mpCreateRoom()">Criar Sala X1</button><div class="mp-note">Você será o Jogador 1. O código aparece no painel da sala.</div></section>'+
+      '<section class="mp-panel"><h3>Entrar em sala</h3><label>Código</label><div class="mp-row"><input id="mp-code" class="mp-input" maxlength="8" placeholder="ABC123" style="text-transform:uppercase"><button class="btn btn-sec" onclick="mpJoinRoom()">Entrar</button></div><div class="mp-note">Se a sala já tiver 2 jogadores, você entra como espectador.</div></section></div>'+
+      '<div id="mp-room-panel" class="mp-room-panel hidden"><div class="mp-room-top"><div><div class="mp-kicker">SALA X1</div><div class="mp-room-code" id="mp-room-code">------</div></div><div class="mp-status-pill" id="mp-room-status">AGUARDANDO</div></div><div id="mp-room-players" class="mp-players"></div><div class="mp-actions"><button class="btn btn-gold" onclick="mpReady()">Estou pronto</button><button class="btn btn-sec" onclick="mpLeaveRoom()">Sair da sala</button></div></div>'+
+      '<div class="mp-quick-panel"><h3>Respostas rápidas</h3><div class="mp-quick-grid"><button onclick="mpQuick(\'Boa luta!\')">Boa luta!</button><button onclick="mpQuick(\'Agora ficou sério.\')">Agora ficou sério.</button><button onclick="mpQuick(\'Você caiu na armadilha.\')">Armadilha</button><button onclick="mpQuick(\'GG!\')">GG!</button></div></div>'+
+      '<button class="btn btn-sec mp-back" onclick="mpLeaveRoom();v11RenderOnlineHub()">← Voltar para Online</button></div>');
+    try{ if(typeof connect === 'function') connect(); }catch(e){}
+  }
+
+  function renderEvents(){
+    registerEventCards();
+    setMultiplayerHTML('<div class="v11-online-shell">'+head('☠️ Eventos Online','Evento do momento: boss raid cooperativa de 1 a 4 jogadores. O host escolhe a dificuldade, cria a sala e todos entram com o deck ativo.')+
+      '<div class="v11-event-banner"><div class="v11-event-card"><div class="v11-online-kicker">EVENTO DO MOMENTO</div><h3>Raid: Yuta Mega X</h3><p>Derrote o boss com até 4 jogadores. A carta do boss aparece no centro da arena e sempre fica virada para quem está jogando naquele aparelho.</p><p><b>Recompensa:</b> vitória libera booster do evento com 500 moedas garantidas. Derrota rende 100 moedas.</p><div class="v11-reward-row">'+rewardMini(EVENT_CARDS.event_item_rika_pendant,'Item')+rewardMini(EVENT_CARDS.event_yuta_student,'Extra')+rewardMini(EVENT_CARDS.event_rika_fragment,'Extra')+rewardMini(EVENT_CARDS.event_yuta_mega_x,'Mega',true)+'</div></div>'+
+      '<div class="v11-panel"><h3>Criar ou entrar na Raid</h3><label>Seu nome</label><input id="event-name" class="v11-input" maxlength="18" placeholder="Ex: Daniel"><label style="margin-top:10px">Dificuldade</label><select id="event-difficulty" class="v11-select"><option value="facil">Fácil — 0,25% Mega</option><option value="medio">Médio — 0,50% Mega</option><option value="normal" selected>Normal — 0,75% Mega</option><option value="dificil">Difícil — 1,25% Mega</option></select><div class="v11-online-actions"><button class="btn btn-gold" onclick="eventCreateRoom()">Criar sala do evento</button></div><label style="margin-top:14px">Entrar por código</label><div class="v11-row"><input id="event-code" class="v11-input" maxlength="8" placeholder="ABCDE" style="text-transform:uppercase"><button class="btn btn-sec" onclick="eventJoinRoom()">Entrar</button></div><p style="font-size:11px;color:#94a3b8;line-height:1.5;margin-top:10px">O evento usa o deck ativo do editor, igual ao X1.</p></div></div><div id="event-room-panel"></div><button class="btn btn-sec v11-back" onclick="v11RenderOnlineHub()">← Voltar para Online</button></div>');
+    renderEventRoom(eventRoom);
+  }
+
+  function rewardMini(c, tag, mega){ return '<div class="v11-reward-mini '+(mega?'mega':'')+'"><img src="'+html(c.img)+'"><b>'+html(tag)+'<br>'+html(c.name)+'</b></div>'; }
+
+  function renderEventRoom(room){
+    const box=$('event-room-panel'); if(!box || !room) return;
+    box.innerHTML='<div class="v11-room-box"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><div class="v11-online-kicker">SALA DO EVENTO</div><div class="v11-room-code">'+html(room.code)+'</div><div style="font-size:12px;color:#94a3b8">'+html(room.eventTitle||'Raid')+' • '+html(room.difficultyLabel||room.difficulty)+' • '+html(room.status||'waiting').toUpperCase()+'</div></div><div class="mp-status-pill">'+(room.players||[]).length+'/4 jogadores</div></div><div class="v11-player-list">'+(room.players||[]).map(function(p){ return '<div class="v11-player-chip"><b>'+(p.ready?'✅ ':'⏳ ')+html(p.name||'Jogador')+'</b><br><small>'+html(String(p.side||'').toUpperCase())+'</small></div>'; }).join('')+'</div><div class="v11-online-actions"><button class="btn btn-gold" onclick="eventReady()">Estou pronto</button><button class="btn btn-sec" onclick="eventLeaveRoom();v11OnlineEvents()">Sair da sala</button></div></div>';
+  }
+
+  function eventCreateRoom(){ const s=connectEvent(); if(!s) return; const difficulty=(($('event-difficulty')&&$('event-difficulty').value)||'normal'); s.emit('event:create',{name:getName(),difficulty:difficulty},function(res){ if(!res||!res.ok) return alert((res&&res.error)||'Erro ao criar evento.'); eventRoom=res.room; eventSide=res.side; renderEventRoom(eventRoom); }); }
+  function eventJoinRoom(){ const s=connectEvent(); if(!s) return; const code=(($('event-code')&&$('event-code').value)||'').trim().toUpperCase(); if(!code) return alert('Digite o código da sala.'); s.emit('event:join',{code:code,name:getName()},function(res){ if(!res||!res.ok) return alert((res&&res.error)||'Erro ao entrar no evento.'); eventRoom=res.room; eventSide=res.side; renderEventRoom(eventRoom); if(res.state) renderRaid(res.state); }); }
+  function eventReady(){ const s=connectEvent(); if(!s||!eventRoom) return alert('Crie ou entre em uma sala de evento primeiro.'); const deck=getDeckPayloadV11(); s.emit('event:ready',{deck:deck},function(res){ if(!res||!res.ok) return alert((res&&res.error)||'Erro ao ficar pronto.'); if(res.room){ eventRoom=res.room; renderEventRoom(eventRoom); } if(res.state) renderRaid(res.state); }); }
+  function eventLeaveRoom(){ if(eventSocket&&eventRoom) eventSocket.emit('event:leave',{},function(){}); eventRoom=null; eventSide=null; eventState=null; }
+  function eventAction(a){ if(!eventSocket||!eventState) return alert('Raid não conectada.'); eventSocket.emit('event:action',{action:a},function(res){ if(!res||!res.ok) alert((res&&res.error)||'Ação recusada.'); }); }
+
+  function ensureRaidScreen(){
+    let screen=$('event-raid-screen');
+    if(!screen){
+      screen=document.createElement('div'); screen.id='event-raid-screen'; screen.className='screen';
+      screen.innerHTML='<div class="raid-shell"><div class="raid-top" id="raid-top"></div><div class="raid-main"><section class="raid-panel"><div class="raid-panel-title">Jogadores</div><div class="raid-players" id="raid-players"></div></section><section class="raid-boss-area"><div class="raid-boss-stack"><div class="raid-boss-title" id="raid-boss-title">BOSS</div><div id="raid-boss-card"></div></div></section><section class="raid-panel"><div class="raid-panel-title">Log</div><div class="raid-log" id="raid-log"></div></section></div><footer class="raid-hand" id="raid-hand"></footer></div>';
+      document.body.appendChild(screen);
+    }
+    return screen;
+  }
+
+  function renderRaid(state){
+    if(!state || state.mode!=='eventRaid') return;
+    ensureRaidScreen(); show('event-raid-screen');
+    const top=$('raid-top'); if(top) top.innerHTML='<span class="raid-pill gold">'+html(state.eventTitle||'Evento')+'</span><span class="raid-pill">Sala '+html(state.roomCode||'—')+'</span><span class="raid-pill">'+html(state.difficultyLabel||state.difficulty||'Normal')+'</span><span class="raid-pill">Rodada '+html(state.round||1)+'</span><span class="raid-pill '+(state.isYourTurn?'gold':'')+'">'+(state.winner ? (state.winner==='players'?'Vitória':'Derrota') : (state.isYourTurn?'Seu turno':'Turno: '+html(state.turn||'—')))+'</span><button class="btn btn-sec" style="height:36px;padding:6px 10px" onclick="eventPass()">Passar</button><button class="btn btn-sec" style="height:36px;padding:6px 10px" onclick="eventConcede()">Sair</button>';
+    const bossTitle=$('raid-boss-title'); if(bossTitle) bossTitle.textContent=(state.boss&&state.boss.name?state.boss.name:'Boss')+' • Energia '+(state.bossEnergy||0);
+    const bossBox=$('raid-boss-card'); if(bossBox) bossBox.innerHTML=raidCard(state.boss,{boss:true});
+    const players=$('raid-players'); if(players) players.innerHTML=(state.players||[]).map(function(p){ return raidPlayer(p,state); }).join('') || '<div class="raid-empty">Aguardando jogadores...</div>';
+    const hand=$('raid-hand'); if(hand){ const you=(state.players||[]).find(function(p){return p.side===state.youSide;}); hand.innerHTML='<div class="raid-hand-label">MÃO</div>'+((you&&you.hand&&you.hand.length)?you.hand.map(function(c,i){ return raidCard(c,{hand:true,onclick:'eventPlayCard('+i+')'}); }).join(''):'<div class="raid-empty">Sem cartas na mão.</div>'); }
+    const log=$('raid-log'); if(log) log.innerHTML=(state.log||[]).slice(-24).reverse().map(function(l){ return '<div style="color:'+(l.color||'#cbd5e1')+'">&gt; '+html(l.text||'')+'</div>'; }).join('');
+    animateRaidState(state);
+    if(state.winner && state.reward) showRaidReward(state.reward);
+  }
+
+  function raidPlayer(p,state){
+    const cls='raid-player '+(p.isYou?'you ':'')+(p.eliminated?'eliminated':'');
+    const can=p.isYou && state.isYourTurn && !state.winner && !p.eliminated;
+    let h='<div class="'+cls+'"><div class="raid-player-head"><b>'+html(p.name||'Jogador')+'</b><span>'+(p.actedThisRound?'AGIU':'')+'</span></div><div class="raid-field-row">';
+    h+=raidCard(p.active,{active:true,you:p.isYou,can:can,attach:"eventAttach('active',0)",attack:true});
+    (p.bench||[]).forEach(function(c,i){ h+=raidCard(c,{you:p.isYou,can:can,attach:"eventAttach('bench',"+i+")",promote:'eventPromote('+i+')'}); });
+    h+='</div><div style="font-size:10px;color:#94a3b8;margin-top:4px">Energia: '+(p.energyPool||0)+' • Deck: '+(p.deckCount||0)+' • Descarte: '+(p.discardCount||0)+'</div></div>';
+    return h;
+  }
+
+  function raidCard(c,opt){
+    opt=opt||{}; if(!c) return '<div class="raid-empty">Vazio</div>';
+    if(c.hidden) return '<div class="raid-card hidden"><b>UTCG</b></div>';
+    const hp=Number(c.curHP||0), max=Number(c.maxHp||c.hp||1); const pct=Math.max(0,Math.min(100,Math.round((hp/max)*100)));
+    let cls='raid-card '+(opt.active?'active ':'')+(opt.boss?'boss ':'');
+    let click=opt.onclick?' onclick="'+opt.onclick+'"':'';
+    let actions='';
+    if(opt.can && opt.attach) actions+='<button onclick="event.stopPropagation();'+opt.attach+'">+EN</button>';
+    if(opt.can && opt.promote) actions+='<button onclick="event.stopPropagation();'+opt.promote+'">TROCAR</button>';
+    if(opt.can && opt.attack && c.skills){ actions += c.skills.map(function(s,i){ const disabled=Number(c.attached||0)<Number(s.c||0)?'disabled':''; return '<button '+disabled+' onclick="event.stopPropagation();eventAttack('+i+')">'+html(s.n||'Ataque')+' ('+Number(s.d||0)+'/'+Number(s.c||0)+')</button>'; }).join(''); }
+    if(actions) actions='<div class="raid-card-actions">'+actions+'</div>';
+    return '<div class="'+cls+'"'+click+'><img src="'+html(c.img||'https://i.imgur.com/HWERuem.png')+'"><div class="raid-card-body"><div class="raid-name" style="color:'+typeColor(c.type)+'">'+html(c.name||'Carta')+'</div>'+(max>1?'<span class="raid-hp">'+hp+'/'+max+'</span>':'')+'<div style="font-size:8px;color:#94a3b8">EN '+Number(c.attached||0)+' • '+html(c.type||'Neutro')+'</div></div>'+actions+'<div class="raid-hpbar"><span style="width:'+pct+'%"></span></div></div>';
+  }
+
+  function animateRaidState(state){
+    const ev=state.lastEvent; if(!ev || ev.id===eventLastEventId) return; eventLastEventId=ev.id;
+    if(ev.type==='raidAttack'){
+      const boss=document.querySelector('.raid-card.boss'); if(boss){ boss.classList.add('hit-flash'); setTimeout(function(){boss.classList.remove('hit-flash');},450); }
+      raidFloat('-'+(ev.damage||0), window.innerWidth/2, window.innerHeight/2, 'dmg');
+    }
+    if(ev.type==='bossAttack') raidFloat('BOSS -'+(ev.damage||0), window.innerWidth/2, Math.max(120,window.innerHeight*.32), 'critical');
+  }
+  function raidFloat(text,x,y,type){ try{ if(typeof spawnFloat==='function') return spawnFloat(x,y,text,type||'dmg',type==='critical'); }catch(e){} const el=document.createElement('div'); el.className='dmg-float '+(type||'dmg'); el.textContent=text; el.style.left=x+'px'; el.style.top=y+'px'; document.body.appendChild(el); setTimeout(function(){el.remove();},1300); }
+
+  function applyReward(reward){
+    if(!reward) return false;
+    const key='utcg_event_reward_claimed_'+(reward.claimId||'noid');
+    try{ if(localStorage.getItem(key)) return false; }catch(e){}
+    try{
+      if(typeof user !== 'undefined'){
+        if(!Number.isFinite(Number(user.coins))) user.coins=0;
+        user.coins += Number(reward.coins||0);
+        user.inventory = Array.isArray(user.inventory) ? user.inventory : [];
+        user.obtainedAt = user.obtainedAt || {};
+        registerEventCards();
+        (reward.items||[]).concat(reward.cards||[]).forEach(function(c){
+          if(c && c.id){
+            try{ if(typeof CARDS_DB !== 'undefined' && !CARDS_DB[c.id]) CARDS_DB[c.id]=c; }catch(e){}
+            if(window.CARDS_DB && !window.CARDS_DB[c.id]) window.CARDS_DB[c.id]=c;
+            user.inventory.push(c.id); user.obtainedAt[c.id]=Date.now();
+          }
+        });
+        try{ if(typeof autoSave==='function') autoSave(); else if(typeof saveAuto==='function') saveAuto(); }catch(e){}
+        try{ if($('menu-coins')) $('menu-coins').textContent=user.coins; if($('store-coins')) $('store-coins').textContent=user.coins; }catch(e){}
+      }
+      try{ localStorage.setItem(key,'1'); }catch(e){}
+      return true;
+    }catch(e){ console.warn('[event reward]',e); return false; }
+  }
+
+  function showRaidReward(reward){
+    if(!reward || eventRewardShown===reward.claimId) return;
+    eventRewardShown=reward.claimId || String(Date.now());
+    applyReward(reward);
+    let overlay=$('raid-reward-overlay');
+    if(!overlay){ overlay=document.createElement('div'); overlay.id='raid-reward-overlay'; overlay.className='raid-reward-overlay'; document.body.appendChild(overlay); }
+    const drops=(reward.items||[]).concat(reward.cards||[]);
+    overlay.innerHTML='<div class="raid-reward-box"><div class="v11-online-kicker">'+html(reward.boosterName||'Booster do Evento')+'</div><h2 style="font-family:Orbitron,monospace;color:#fbbf24;margin:6px 0">'+(reward.won?'BOOSTER ABERTO':'RECOMPENSA DE PARTICIPAÇÃO')+'</h2><div class="booster-pack">UTCG<br>EVENT</div><div style="font-size:20px;color:#4ade80;font-weight:900">+'+Number(reward.coins||0)+' moedas</div><div class="raid-reward-grid">'+(drops.length?drops.map(function(c){ return '<div class="raid-reward-result '+(c.isMegaEvent?'mega':'')+'"><img src="'+html(c.img||'https://i.imgur.com/HWERuem.png')+'"><b>'+html(c.name||'Item')+'</b></div>'; }).join(''):'<div class="raid-reward-result"><b>Nenhuma carta extra desta vez.</b></div>')+'</div><button class="btn btn-gold" onclick="document.getElementById(\'raid-reward-overlay\').style.display=\'none\'">COLETAR</button><button class="btn btn-sec" style="margin-left:8px" onclick="document.getElementById(\'raid-reward-overlay\').style.display=\'none\';eventLeaveRoom();v11RenderOnlineHub()">Voltar para Online</button></div>';
+    overlay.style.display='flex';
+  }
+
+  function eventPass(){ if(eventState&&eventState.isYourTurn) eventAction({type:'pass'}); }
+  function eventConcede(){ if(confirm('Sair da raid conta como desistência para você. Continuar?')) eventAction({type:'concede'}); }
+  function eventPlayCard(i){ if(eventState&&eventState.isYourTurn) eventAction({type:'playCard',handIndex:i}); }
+  function eventAttach(zone,index){ if(eventState&&eventState.isYourTurn) eventAction({type:'attachEnergy',target:{zone:zone,index:index}}); }
+  function eventPromote(i){ if(eventState&&eventState.isYourTurn) eventAction({type:'promote',benchIndex:i}); }
+  function eventAttack(i){ if(eventState&&eventState.isYourTurn) eventAction({type:'attack',skillIndex:i}); }
+
+  window.v11RenderOnlineHub=renderOnlineHub;
+  window.v11OnlineRanked=function(){ safeClick(); renderRanked(); };
+  window.v11OnlineX1=function(){ safeClick(); renderX1(); };
+  window.v11OnlineEvents=function(){ safeClick(); renderEvents(); };
+  window.eventCreateRoom=eventCreateRoom;
+  window.eventJoinRoom=eventJoinRoom;
+  window.eventReady=eventReady;
+  window.eventLeaveRoom=eventLeaveRoom;
+  window.eventPass=eventPass;
+  window.eventConcede=eventConcede;
+  window.eventPlayCard=eventPlayCard;
+  window.eventAttach=eventAttach;
+  window.eventPromote=eventPromote;
+  window.eventAttack=eventAttack;
+  window.mpOpenMultiplayer=function(){ safeClick(); renderOnlineHub(); };
+
+  window.addEventListener('load', function(){ registerEventCards(); });
+})();
+</script>
+
 </body>
 </html>
