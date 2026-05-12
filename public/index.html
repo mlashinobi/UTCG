@@ -7900,5 +7900,574 @@ body.mp-active #mp-game-panel{
 })();
 </script>
 
+
+<style id="utcg-v8-layout-shop-deck-css">
+/* ========================= UTCG V8: MENU, DECK, STORE, BATTLE RESPONSIVO ========================= */
+#main-menu .menu-buttons{width:min(360px,92vw)!important;gap:10px!important;}
+#main-menu .menu-buttons .btn{min-height:44px!important;}
+#offline-modes-screen{padding:22px 10px!important;justify-content:flex-start!important;overflow-y:auto!important;background:radial-gradient(circle at top,#0f172a,#020617 72%)!important;}
+.offline-hint{margin:0 0 14px;color:#94a3b8;font-size:13px;letter-spacing:.6px;}
+.offline-hint b{color:var(--gold);font-family:'Orbitron',monospace;}
+.offline-mode-grid{width:min(920px,94vw);display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:8px auto 18px;}
+.offline-mode-card{height:auto!important;min-height:86px!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:13px!important;text-align:left!important;padding:14px 16px!important;border:1px solid rgba(56,189,248,.28)!important;background:linear-gradient(135deg,rgba(15,23,42,.96),rgba(2,6,23,.98))!important;}
+.offline-mode-card.btn-play{border-color:rgba(239,68,68,.55)!important;background:linear-gradient(135deg,rgba(127,29,29,.92),rgba(30,41,59,.96))!important;}
+.offline-mode-card.btn-gold{border-color:rgba(251,191,36,.58)!important;background:linear-gradient(135deg,rgba(180,83,9,.85),rgba(15,23,42,.96))!important;color:#fff!important;}
+.offline-mode-card:hover{transform:translateY(-2px)!important;box-shadow:0 10px 28px rgba(0,0,0,.35),0 0 22px rgba(56,189,248,.12)!important;}
+.offline-mode-ico{font-size:28px;line-height:1;filter:drop-shadow(0 0 10px rgba(255,255,255,.12));}
+.offline-mode-card b{display:block;font-family:'Orbitron',monospace;font-size:14px;letter-spacing:1px;margin-bottom:4px;color:#fff;}
+.offline-mode-card small{display:block;font-size:11px;color:#94a3b8;text-transform:none;letter-spacing:.3px;line-height:1.25;}
+.offline-back{width:min(260px,92vw)!important;}
+
+#deck-editor,#store-screen{justify-content:flex-start!important;padding:18px 10px!important;overflow-y:auto!important;background:radial-gradient(circle at top,#0f172a,#020617 70%)!important;}
+#deck-editor .screen-header,#store-screen .screen-header{margin-top:4px!important;margin-bottom:10px!important;}
+.deck-slot-bar{width:min(1120px,96vw);display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:4px auto 10px;}
+.deck-slot{background:rgba(15,23,42,.95);border:1px solid rgba(56,189,248,.25);border-radius:12px;padding:9px 8px;color:#fff;cursor:pointer;font-family:'Rajdhani',sans-serif;transition:.2s;text-align:left;}
+.deck-slot:hover{border-color:var(--accent);transform:translateY(-1px);}
+.deck-slot.active{border-color:var(--gold);box-shadow:0 0 20px rgba(251,191,36,.16),inset 0 0 18px rgba(251,191,36,.06);}
+.deck-slot b{display:block;font-family:'Orbitron',monospace;font-size:12px;color:var(--gold);}
+.deck-slot span{display:block;font-size:13px;margin-top:3px;color:#e2e8f0;}
+.deck-slot small{display:block;font-size:10px;margin-top:2px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;}
+.editor-toolbar,.store-toolbar{width:min(1120px,96vw);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:rgba(2,6,23,.82);border:1px solid rgba(148,163,184,.16);border-radius:14px;padding:10px 12px;margin:0 auto 10px;}
+.editor-toolbar label{display:flex;align-items:center;gap:7px;color:#94a3b8;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px;}
+.editor-toolbar select{background:#020617;color:#fff;border:1px solid #334155;border-radius:8px;padding:7px 9px;font-family:'Rajdhani',sans-serif;font-weight:700;}
+#clear-active-slot,#save-active-slot{padding:8px 12px!important;font-size:11px!important;}
+#deck-editor .editor-container{width:min(1120px,96vw)!important;height:min(64vh,620px)!important;gap:12px!important;}
+#deck-editor .editor-column{background:linear-gradient(180deg,rgba(15,23,42,.94),rgba(2,6,23,.98))!important;border-color:rgba(56,189,248,.22)!important;box-shadow:0 12px 34px rgba(0,0,0,.28)!important;}
+#deck-editor .editor-column h3{font-family:'Orbitron',monospace!important;font-size:13px!important;letter-spacing:1px!important;color:var(--gold)!important;}
+#deck-editor .scroll-grid{grid-template-columns:repeat(auto-fill,minmax(92px,1fr))!important;gap:9px!important;padding:8px!important;}
+.deck-mini-card{position:relative!important;min-height:122px!important;background:linear-gradient(180deg,#0f172a,#020617)!important;border:1px solid rgba(148,163,184,.18)!important;border-radius:10px!important;overflow:hidden!important;}
+.deck-mini-card.ex{border-color:rgba(251,191,36,.62)!important;box-shadow:0 0 18px rgba(251,191,36,.10)!important;}
+.deck-mini-card.support{border-color:rgba(74,222,128,.45)!important;}
+.deck-mini-card img{height:68px!important;object-fit:cover!important;}
+.deck-mini-card .name{font-size:10px!important;padding:5px 4px 1px!important;font-weight:900!important;}
+.mini-rarity{position:absolute;top:5px;left:5px;background:rgba(2,6,23,.86);border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:2px 5px;font-size:8px;color:var(--gold);font-weight:900;letter-spacing:.5px;}
+.mini-meta{font-size:8px;color:#94a3b8;padding:0 4px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.store-toolbar{justify-content:center;text-align:center;gap:14px;margin-bottom:12px;}
+.store-clock{color:#e2e8f0;font-size:13px;font-weight:700;}
+.store-clock b{color:var(--gold);font-family:'Orbitron',monospace;}
+.store-note{color:#94a3b8;font-size:11px;letter-spacing:.4px;}
+#store-screen .grid-view{display:block!important;width:min(1120px,96vw)!important;max-height:none!important;height:auto!important;background:transparent!important;padding:0!important;overflow:visible!important;}
+.shop-section{margin-bottom:16px;background:rgba(2,6,23,.62);border:1px solid rgba(148,163,184,.13);border-radius:16px;padding:13px;}
+.shop-section h3{font-family:'Orbitron',monospace;color:#fff;font-size:14px;letter-spacing:1px;margin:0 0 10px;text-align:left;}
+.shop-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(164px,1fr));gap:12px;}
+.shop-offer-card{position:relative;background:linear-gradient(180deg,#0f172a,#020617);border:1px solid rgba(56,189,248,.24);border-radius:14px;padding:10px;text-align:center;min-height:254px;box-shadow:0 10px 24px rgba(0,0,0,.24);overflow:hidden;}
+.shop-offer-card.ex{border-color:rgba(251,191,36,.62);box-shadow:0 0 26px rgba(251,191,36,.10),0 10px 24px rgba(0,0,0,.24);}
+.shop-offer-card.support{border-color:rgba(74,222,128,.44);}
+.shop-tag{position:absolute;top:8px;left:8px;background:rgba(2,6,23,.88);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:3px 8px;font-size:9px;color:var(--gold);font-weight:900;letter-spacing:.8px;z-index:2;}
+.shop-offer-card img{width:100%;height:110px;object-fit:cover;border-radius:10px;margin-bottom:8px;filter:saturate(1.08);}
+.shop-name{font-weight:900;font-size:13px;line-height:1.1;margin-bottom:4px;}
+.shop-meta{font-size:10px;color:#94a3b8;margin-bottom:6px;}
+.shop-desc{font-size:9px;color:#4ade80;line-height:1.25;min-height:24px;margin-bottom:6px;}
+.shop-buy{border-color:var(--gold)!important;color:var(--gold)!important;font-size:10px!important;padding:6px!important;margin-top:4px!important;}
+
+@media screen and (min-width:851px){
+  #game-ui{grid-template-columns:220px minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) 122px!important;overflow:hidden!important;}
+  #game-ui .sidebar{padding:8px!important;gap:6px!important;min-width:0!important;}
+  .timer-box{font-size:22px!important;padding:6px!important;}
+  #round-counter{padding:5px 8px!important;}
+  #round-counter .round-num{font-size:18px!important;}
+  .terminal{font-size:9px!important;}
+  .inspect{height:96px!important;font-size:10px!important;}
+  .energy-panel{padding:5px!important;gap:3px!important;}
+  .energy-item{font-size:9px!important;padding:2px 4px!important;}
+  #end-turn-btn{padding:8px!important;font-size:12px!important;}
+  .arena{padding:5px 8px!important;gap:3px!important;justify-content:space-between!important;overflow:hidden!important;min-height:0!important;}
+  .zone-row{width:100%!important;min-height:64px!important;max-height:96px!important;gap:7px!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;align-items:center!important;justify-content:center!important;padding:1px 8px!important;}
+  #e-bench,#p-bench{min-height:68px!important;max-height:76px!important;}
+  #e-active,#p-active{min-height:118px!important;max-height:128px!important;overflow:visible!important;}
+  .divider{margin:1px 0!important;}
+  .discard-pile{width:38px!important;height:54px!important;}
+  .discard-logo{width:22px!important;height:22px!important;}
+  .discard-count{font-size:8px!important;}
+  .discard-label{font-size:6px!important;}
+  .card{width:58px!important;height:82px!important;flex:0 0 58px!important;border-radius:7px!important;}
+  .card.active{width:86px!important;height:120px!important;flex:0 0 86px!important;}
+  .card:not(.ex) img,.card.support img{height:43%!important;}
+  .card-content{padding:2px 3px!important;}
+  .ultra-card-title,.ultra-ex-name,.card-content b{font-size:7.8px!important;line-height:1.05!important;}
+  .card.active .ultra-card-title,.card.active .ultra-ex-name,.card.active .card-content b{font-size:8.7px!important;}
+  .hp-tag{font-size:8px!important;padding:1px 3px!important;top:2px!important;right:2px!important;}
+  .energy-tag{width:16px!important;height:16px!important;font-size:8px!important;top:2px!important;left:2px!important;}
+  .status-badge{font-size:5.8px!important;padding:1px 2px!important;margin:0!important;}
+  .btn-skill{font-size:6.5px!important;line-height:1.05!important;padding:1px 2px!important;margin-top:1px!important;border-radius:3px!important;}
+  .btn-skill small{font-size:5.7px!important;line-height:1!important;}
+  footer#p-hand{height:122px!important;min-height:122px!important;max-height:122px!important;padding:7px 10px!important;gap:6px!important;overflow-x:auto!important;overflow-y:hidden!important;align-items:center!important;}
+  footer#p-hand .card{width:60px!important;height:86px!important;flex:0 0 60px!important;}
+  footer#p-hand .card-content b{font-size:7.7px!important;}
+}
+
+@media screen and (max-width:850px){
+  body{height:100dvh!important;overflow:hidden!important;}
+  #main-menu{justify-content:flex-start!important;padding:16px 8px 10px!important;overflow-y:auto!important;}
+  .game-title{font-size:36px!important;margin-top:6px!important;}
+  .game-subtitle{font-size:10px!important;margin-bottom:12px!important;letter-spacing:4px!important;}
+  .coins-badge{font-size:13px!important;margin-bottom:12px!important;padding:6px 14px!important;}
+  #main-menu .menu-buttons{width:94vw!important;gap:7px!important;}
+  #main-menu .menu-buttons .btn{padding:10px 12px!important;font-size:12px!important;min-height:38px!important;}
+  #update-notes{display:none!important;}
+  #offline-modes-screen .screen-header{font-size:20px!important;margin-top:4px!important;}
+  .offline-mode-grid{grid-template-columns:1fr!important;width:94vw!important;gap:8px!important;}
+  .offline-mode-card{min-height:66px!important;padding:10px 12px!important;}
+  .offline-mode-ico{font-size:22px!important;}
+  .offline-mode-card b{font-size:12px!important;}
+  .offline-mode-card small{font-size:10px!important;}
+  .deck-slot-bar{grid-template-columns:repeat(2,1fr)!important;gap:6px!important;width:94vw!important;}
+  .deck-slot{padding:7px!important;border-radius:10px!important;}
+  .deck-slot b{font-size:10px!important;}.deck-slot span{font-size:11px!important;}.deck-slot small{font-size:8px!important;}
+  .editor-toolbar{width:94vw!important;gap:6px!important;padding:8px!important;align-items:stretch!important;}
+  .editor-toolbar label{width:100%!important;justify-content:space-between!important;font-size:10px!important;}
+  .editor-toolbar select{max-width:58vw!important;padding:6px!important;}
+  #clear-active-slot,#save-active-slot{width:100%!important;}
+  #deck-editor .editor-container{width:94vw!important;height:auto!important;min-height:0!important;flex-direction:column!important;gap:8px!important;}
+  #deck-editor .editor-column{min-height:220px!important;max-height:34dvh!important;padding:9px!important;}
+  #deck-editor .scroll-grid{grid-template-columns:repeat(auto-fill,minmax(72px,1fr))!important;gap:6px!important;}
+  .deck-mini-card{min-height:104px!important;}.deck-mini-card img{height:54px!important;}.deck-mini-card .name{font-size:8.5px!important;}.mini-meta{font-size:7px!important;}
+  #store-screen{padding:14px 8px!important;}
+  .store-toolbar{width:94vw!important;padding:8px!important;}
+  #store-screen .grid-view{width:94vw!important;}
+  .shop-section{padding:10px!important;margin-bottom:10px!important;}
+  .shop-row{grid-template-columns:1fr 1fr!important;gap:8px!important;}
+  .shop-offer-card{min-height:214px!important;padding:8px!important;}
+  .shop-offer-card img{height:82px!important;}
+  .shop-name{font-size:10.5px!important;}.shop-meta{font-size:8.5px!important;}.shop-desc{font-size:8px!important;}
+
+  #game-ui{display:grid!important;grid-template-columns:1fr!important;grid-template-rows:46px minmax(0,1fr) 98px!important;width:100vw!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;background-position:center!important;}
+  #game-ui .sidebar{grid-column:1!important;grid-row:1!important;width:100%!important;height:46px!important;min-height:46px!important;max-height:46px!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:4px!important;padding:3px 5px!important;overflow-x:auto!important;overflow-y:hidden!important;border-right:0!important;border-bottom:1px solid rgba(56,189,248,.26)!important;}
+  #game-ui .sidebar #ultra-mode-badge,#game-ui .sidebar .inspect,#game-ui .sidebar .energy-panel{display:none!important;}
+  #game-ui .sidebar .terminal{flex:1 0 118px!important;height:38px!important;max-height:38px!important;min-width:118px!important;font-size:7px!important;padding:3px!important;}
+  #game-ui .sidebar .timer-box{flex:0 0 48px!important;min-width:48px!important;height:36px!important;font-size:13px!important;padding:4px!important;}
+  #round-counter{height:36px!important;padding:3px 5px!important;}
+  #round-counter .round-label{font-size:6.5px!important;letter-spacing:1px!important;}
+  #round-counter .round-num{font-size:14px!important;}
+  #game-ui .sidebar .btn{flex:0 0 auto!important;height:36px!important;padding:5px 7px!important;font-size:8.5px!important;white-space:nowrap!important;}
+  #mobile-energy-bar{display:flex!important;position:absolute!important;top:46px!important;left:0!important;right:0!important;height:23px!important;z-index:8!important;overflow-x:auto!important;flex-wrap:nowrap!important;padding:3px 5px!important;}
+  .mob-en-chip{font-size:8px!important;padding:1px 5px!important;}
+  .arena{grid-column:1!important;grid-row:2!important;width:100%!important;height:100%!important;min-height:0!important;overflow:hidden!important;padding:25px 2px 2px!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;gap:1px!important;}
+  .arena-label{font-size:7px!important;left:5px!important;opacity:.8!important;z-index:3!important;}
+  .arena-label.enemy{top:25px!important;}.arena-label.player{bottom:3px!important;}
+  .zone-row{width:100%!important;min-height:0!important;gap:3px!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;align-items:center!important;justify-content:center!important;padding:0 3px!important;}
+  #e-bench,#p-bench{height:46px!important;min-height:46px!important;max-height:48px!important;justify-content:flex-start!important;padding-left:20px!important;padding-right:20px!important;}
+  #e-active,#p-active{height:90px!important;min-height:90px!important;max-height:94px!important;overflow:visible!important;}
+  .divider{flex:0 0 1px!important;margin:0!important;}
+  .arena > div[style*="Descarte"]{padding:0!important;}
+  .discard-pile{width:28px!important;height:40px!important;}.discard-logo{width:16px!important;height:16px!important;}.discard-count{font-size:6px!important;}.discard-label{font-size:5px!important;}
+  .card{width:38px!important;height:54px!important;flex:0 0 38px!important;border-radius:5px!important;border-width:1px!important;}
+  .card.active{width:64px!important;height:90px!important;flex:0 0 64px!important;border-width:1.5px!important;}
+  .card:not(.ex) img,.card.support img{height:39%!important;}
+  .card-content{padding:1px 2px!important;}
+  .ultra-card-title,.ultra-ex-name,.card-content b{font-size:5.8px!important;line-height:1!important;}
+  .card.active .ultra-card-title,.card.active .ultra-ex-name,.card.active .card-content b{font-size:6.7px!important;}
+  .hp-tag{font-size:6px!important;padding:0 2px!important;top:1px!important;right:1px!important;border-radius:3px!important;}
+  .energy-tag{width:12px!important;height:12px!important;font-size:6px!important;top:1px!important;left:1px!important;border-width:1px!important;}
+  .hp-bar-wrap{height:2px!important;}
+  .status-badge{font-size:4.5px!important;padding:0 1px!important;margin:0!important;}
+  .btn-skill{font-size:4.8px!important;line-height:1!important;padding:0 1px!important;margin-top:1px!important;border-radius:2px!important;border-width:1px!important;}
+  .btn-skill small{font-size:4.2px!important;line-height:1!important;}
+  footer#p-hand{grid-column:1!important;grid-row:3!important;width:100%!important;height:98px!important;min-height:98px!important;max-height:98px!important;padding:4px 5px!important;gap:4px!important;overflow-x:auto!important;overflow-y:hidden!important;align-items:center!important;flex-wrap:nowrap!important;}
+  footer#p-hand .hand-label{font-size:7px!important;flex:0 0 auto!important;writing-mode:vertical-rl!important;}
+  footer#p-hand .card{width:48px!important;height:68px!important;flex:0 0 48px!important;}
+  footer#p-hand .card-content b{font-size:6.2px!important;}
+  footer#p-hand .card .card-content div{font-size:5.2px!important;}
+  #turn-indicator{font-size:15px!important;padding:8px 14px!important;max-width:92vw!important;}
+}
+
+</style>
+<script id="utcg-v8-layout-shop-deck-js">
+(function(){
+  'use strict';
+  const SHOP_WINDOW_MS = 12 * 60 * 60 * 1000;
+  const SLOT_COUNT = 5;
+
+  function $(id){ return document.getElementById(id); }
+  function safeClick(){ try{ if(typeof playClick === 'function') playClick(); }catch(e){} }
+  function db(){ try{ return CARDS_DB || {}; }catch(e){ return {}; } }
+  function cards(){ return Object.values(db()).filter(Boolean); }
+  function card(id){ return db()[id] || null; }
+  function colorOf(type){ try{ return typeof getTypeColor === 'function' ? getTypeColor(type) : (typeof typeColor === 'function' ? typeColor(type) : '#38bdf8'); }catch(e){ return '#38bdf8'; } }
+  function refreshCoins(){ const a=$('menu-coins'); if(a && typeof user !== 'undefined') a.textContent = user.coins || 0; const b=$('store-coins'); if(b && typeof user !== 'undefined') b.textContent = user.coins || 0; }
+
+  function ensureUserShape(){
+    try{
+      if(typeof user === 'undefined' || !user) return;
+      if(!Array.isArray(user.inventory)) user.inventory = [];
+      if(!Array.isArray(user.deck)) user.deck = [];
+      if(!Array.isArray(user.completedChapters)) user.completedChapters = [];
+      if(!Number.isFinite(Number(user.coins))) user.coins = 0;
+      if(!Array.isArray(user.deckSlots)){
+        user.deckSlots = [];
+        for(let i=0;i<SLOT_COUNT;i++) user.deckSlots.push({ name:'Slot ' + (i+1), deck:i===0 ? user.deck.slice(0,20) : [], updatedAt:i===0 ? Date.now() : 0 });
+        user.activeDeckSlot = 0;
+      }
+      while(user.deckSlots.length < SLOT_COUNT) user.deckSlots.push({ name:'Slot ' + (user.deckSlots.length+1), deck:[], updatedAt:0 });
+      user.deckSlots = user.deckSlots.slice(0,SLOT_COUNT).map(function(s,i){
+        if(Array.isArray(s)) return { name:'Slot ' + (i+1), deck:s.slice(0,20), updatedAt:0 };
+        s = s || {};
+        return { name:String(s.name || ('Slot ' + (i+1))), deck:Array.isArray(s.deck) ? s.deck.slice(0,20) : [], updatedAt:Number(s.updatedAt || 0) };
+      });
+      user.activeDeckSlot = Number.isInteger(Number(user.activeDeckSlot)) ? Math.max(0, Math.min(SLOT_COUNT-1, Number(user.activeDeckSlot))) : 0;
+      if(user.deckSlots[user.activeDeckSlot].deck.length) user.deck = user.deckSlots[user.activeDeckSlot].deck.slice(0,20);
+      else if(user.deck.length){ user.deckSlots[user.activeDeckSlot].deck = user.deck.slice(0,20); user.deckSlots[user.activeDeckSlot].updatedAt = Date.now(); }
+    }catch(e){ console.warn('ensureUserShape falhou', e); }
+  }
+
+  function activeSlot(){ ensureUserShape(); return user.deckSlots[user.activeDeckSlot]; }
+  function syncUserDeckFromSlot(){ ensureUserShape(); user.deck = activeSlot().deck.slice(0,20); }
+  function syncSlotFromUser(){ ensureUserShape(); const s=activeSlot(); s.deck = (user.deck || []).slice(0,20); s.updatedAt = Date.now(); }
+  function getActiveDeckIds(){ syncUserDeckFromSlot(); return (user.deck || []).slice(0,20); }
+  window.getActiveDeckIds = getActiveDeckIds;
+
+  function rarityRank(c){
+    if(!c) return 99;
+    if(c.isEx) return 0;
+    if(c.isSupport) return 3;
+    if((c.price || 0) >= 500 || (c.hp || 0) >= 150 || c.evolvesFrom) return 1;
+    return 2;
+  }
+  function rarityLabel(c){
+    const r = rarityRank(c);
+    if(r === 0) return 'EX';
+    if(r === 1) return 'Rara';
+    if(r === 2) return 'Comum';
+    if(r === 3) return 'Item';
+    return 'Especial';
+  }
+  function sortEntries(entries, mode){
+    return entries.sort(function(a,b){
+      const ca=card(a.id), cb=card(b.id);
+      if(mode === 'alpha') return String(ca && ca.name || a.id).localeCompare(String(cb && cb.name || b.id));
+      if(mode === 'obtained') return (b.pos || 0) - (a.pos || 0);
+      if(mode === 'type') return String(ca && ca.type || '').localeCompare(String(cb && cb.type || '')) || String(ca && ca.name || '').localeCompare(String(cb && cb.name || ''));
+      return rarityRank(ca) - rarityRank(cb) || String(ca && ca.name || '').localeCompare(String(cb && cb.name || ''));
+    });
+  }
+
+  function createOfflineScreen(){
+    if($('offline-modes-screen')) return;
+    const div = document.createElement('div');
+    div.id = 'offline-modes-screen';
+    div.className = 'screen';
+    div.innerHTML = '<div class="screen-header">⚔️ Jogar</div><div class="offline-hint" id="offline-active-deck-label"></div><div class="offline-mode-grid" id="offline-mode-grid"></div><button class="btn btn-sec offline-back">← VOLTAR</button>';
+    document.body.appendChild(div);
+    div.querySelector('.offline-back').onclick = function(){ safeClick(); if(typeof showScreen === 'function') showScreen('main-menu'); };
+  }
+
+  function modeButton(icon, title, desc, fn, cls){
+    const b = document.createElement('button');
+    b.className = 'btn offline-mode-card ' + (cls || 'btn-sec');
+    b.innerHTML = '<span class="offline-mode-ico">'+icon+'</span><span><b>'+title+'</b><small>'+desc+'</small></span>';
+    b.onclick = function(){ safeClick(); syncUserDeckFromSlot(); fn(); };
+    return b;
+  }
+
+  window.openOfflineModes = function(){
+    createOfflineScreen();
+    syncUserDeckFromSlot();
+    const label = $('offline-active-deck-label');
+    if(label){
+      const s = activeSlot();
+      label.innerHTML = 'Deck ativo: <b>' + (user.activeDeckSlot + 1) + '</b> • ' + (s.deck.length || 0) + '/20 cartas';
+    }
+    const grid = $('offline-mode-grid');
+    if(grid){
+      grid.innerHTML = '';
+      grid.appendChild(modeButton('⚔️','Batalha Normal','duelo clássico contra adversários offline', function(){ if(typeof showScreen === 'function') showScreen('deck-select','normal'); }, 'btn-play'));
+      grid.appendChild(modeButton('☠️','Raid Boss','batalhas contra chefes com HP alto', function(){ if(typeof showScreen === 'function') showScreen('deck-select','boss'); }, 'btn-sec'));
+      grid.appendChild(modeButton('🎲','Draft Rápido','monte um deck temporário por escolhas', function(){ if(window.UTCGX && UTCGX.openDraft) UTCGX.openDraft(); }, 'btn-gold'));
+      grid.appendChild(modeButton('🔥','Sobrevivência','sequência de inimigos sem descanso', function(){ if(window.UTCGX && UTCGX.startSurvival) UTCGX.startSurvival(); }, 'btn-sec'));
+      grid.appendChild(modeButton('🎯','Desafio Diário','regras especiais e recompensa maior', function(){ if(window.UTCGX && UTCGX.openDaily) UTCGX.openDaily(); }, 'btn-sec'));
+      grid.appendChild(modeButton('🧪','Laboratório','treino para testar cartas e combos', function(){ if(window.UTCGX && UTCGX.startTraining) UTCGX.startTraining(); }, 'btn-sec'));
+      grid.appendChild(modeButton('📖','Modo História','capítulos da campanha e cenas', function(){ if(typeof showScreen === 'function') showScreen('story-modal'); }, 'btn-sec'));
+    }
+    if(typeof showScreen === 'function') showScreen('offline-modes-screen');
+  };
+
+  function normalizeMainMenuV8(){
+    const menu = document.querySelector('#main-menu .menu-buttons');
+    if(!menu) return;
+    if(menu.getAttribute('data-v8-menu') === 'done') return;
+    menu.setAttribute('data-v8-menu','done');
+    menu.innerHTML = '';
+    const mk = function(label, cls, fn, extra){
+      const b = document.createElement('button');
+      b.className = 'btn ' + cls;
+      if(extra) Object.keys(extra).forEach(function(k){ b.setAttribute(k, extra[k]); });
+      b.innerHTML = label;
+      b.onclick = function(){ safeClick(); fn(); };
+      menu.appendChild(b);
+      return b;
+    };
+    mk('⚔️ Jogar','btn-play', function(){ window.openOfflineModes(); });
+    mk('🌐 Multiplayer Online','btn-sec', function(){ syncUserDeckFromSlot(); if(typeof mpOpenMultiplayer === 'function') mpOpenMultiplayer(); }, {'data-mp-menu':'true'});
+    mk('🃏 Editor de Deck','btn-sec', function(){ if(typeof openEditor === 'function') openEditor(); });
+    mk('🏪 Loja','btn-sec', function(){ if(typeof openStore === 'function') openStore(); });
+    mk('💾 Salvar Dados','btn-sec', function(){ if(typeof saveGame === 'function') saveGame(); });
+    mk('📂 Carregar Dados','btn-sec', function(){ const input=$('load-input'); if(input) input.click(); });
+    let input = $('load-input');
+    if(!input){ input = document.createElement('input'); input.type='file'; input.id='load-input'; input.style.display='none'; document.querySelector('#main-menu .menu-buttons').appendChild(input); }
+    input.onchange = function(){ if(typeof loadGame === 'function') loadGame(this); };
+  }
+
+  function ensureEditorShell(){
+    const screen = $('deck-editor');
+    if(!screen) return;
+    if(!$('deck-slot-bar')){
+      const bar = document.createElement('div');
+      bar.id = 'deck-slot-bar';
+      bar.className = 'deck-slot-bar';
+      const header = screen.querySelector('.screen-header');
+      if(header) header.insertAdjacentElement('afterend', bar);
+    }
+    if(!$('editor-toolbar')){
+      const tb = document.createElement('div');
+      tb.id = 'editor-toolbar';
+      tb.className = 'editor-toolbar';
+      tb.innerHTML = '<label>Ordenar <select id="editor-sort"><option value="rarity">Raridade</option><option value="alpha">Ordem alfabética</option><option value="obtained">Data de obtenção</option><option value="type">Tipo de energia</option></select></label><label>Mostrar <select id="editor-filter"><option value="all">Tudo</option><option value="ex">EX</option><option value="normal">Normais</option><option value="support">Itens/Suporte</option></select></label><button class="btn btn-gold" id="save-active-slot">Salvar slot ativo</button><button class="btn btn-sec" id="clear-active-slot">Limpar slot</button>';
+      const cont = screen.querySelector('.editor-container');
+      if(cont) cont.insertAdjacentElement('beforebegin', tb);
+      $('editor-sort').onchange = function(){ user.editorSort = this.value; renderEditor(); };
+      $('editor-filter').onchange = function(){ user.editorFilter = this.value; renderEditor(); };
+      const saveBtn = $('save-active-slot'); if(saveBtn) saveBtn.onclick = function(){ safeClick(); syncSlotFromUser(); try{ autoSave(); }catch(e){} alert('Deck salvo no Slot ' + (user.activeDeckSlot + 1) + '.'); renderEditor(); };
+      $('clear-active-slot').onclick = function(){ safeClick(); if(confirm('Limpar o deck deste slot?')){ user.deck = []; syncSlotFromUser(); try{ autoSave(); }catch(e){} renderEditor(); } };
+    }
+  }
+
+  function renderSlots(){
+    const bar = $('deck-slot-bar'); if(!bar) return;
+    ensureUserShape();
+    bar.innerHTML = '';
+    user.deckSlots.forEach(function(slot, i){
+      const b = document.createElement('button');
+      b.className = 'deck-slot' + (i === user.activeDeckSlot ? ' active' : '');
+      const ok = slot.deck.length >= 5 ? 'pronto' : 'incompleto';
+      b.innerHTML = '<b>Slot '+(i+1)+'</b><span>'+slot.deck.length+'/20 cartas</span><small>'+ok+'</small>';
+      b.onclick = function(){ safeClick(); syncSlotFromUser(); user.activeDeckSlot = i; syncUserDeckFromSlot(); try{ autoSave(); }catch(e){} renderEditor(); };
+      bar.appendChild(b);
+    });
+  }
+
+  function makeMiniCard(entry, inDeck, deckIndex){
+    const c = card(entry.id); if(!c) return null;
+    const div = document.createElement('div');
+    div.className = 'mini-card deck-mini-card rarity-' + rarityLabel(c).toLowerCase() + (c.isSupport ? ' support' : '') + (c.isEx ? ' ex' : '');
+    div.title = inDeck ? 'Clique para remover do deck' : 'Clique para adicionar ao deck';
+    div.onclick = function(){
+      safeClick();
+      if(inDeck){ user.deck.splice(deckIndex,1); }
+      else{
+        if(user.deck.length >= 20) return alert('Máximo de 20 cartas neste slot.');
+        user.deck.push(entry.id);
+      }
+      syncSlotFromUser();
+      try{ autoSave(); }catch(e){}
+      renderEditor();
+    };
+    const tc = colorOf(c.type);
+    div.innerHTML = '<img src="'+(c.img || 'https://i.imgur.com/HWERuem.png')+'"><div class="mini-rarity">'+rarityLabel(c)+'</div><div class="name" style="color:'+tc+'">'+c.name+'</div><div class="mini-meta">'+(c.type || 'Item')+' • '+(c.hp ? c.hp+' HP' : 'suporte')+'</div>';
+    return div;
+  }
+
+  function renderEditorV8(){
+    ensureUserShape();
+    syncUserDeckFromSlot();
+    ensureEditorShell();
+    renderSlots();
+    const sortSel = $('editor-sort'); if(sortSel) sortSel.value = user.editorSort || 'rarity';
+    const filterSel = $('editor-filter'); if(filterSel) filterSel.value = user.editorFilter || 'all';
+    const bankEl = $('editor-bank'); const deckEl = $('editor-deck-list');
+    if(!bankEl || !deckEl) return;
+    bankEl.innerHTML = ''; deckEl.innerHTML = '';
+    const used = (user.deck || []).slice();
+    let entries = (user.inventory || []).map(function(id,pos){ return {id:id, pos:pos}; }).filter(function(e){ return !!card(e.id); });
+    used.forEach(function(id){ const ix = entries.findIndex(function(e){ return e.id === id; }); if(ix >= 0) entries.splice(ix,1); });
+    const filter = user.editorFilter || 'all';
+    if(filter !== 'all'){
+      entries = entries.filter(function(e){ const c=card(e.id); if(filter==='ex') return !!c.isEx; if(filter==='support') return !!c.isSupport; return !c.isEx && !c.isSupport; });
+    }
+    sortEntries(entries, user.editorSort || 'rarity').forEach(function(e){ const m=makeMiniCard(e,false); if(m) bankEl.appendChild(m); });
+    (user.deck || []).forEach(function(id,idx){ const m=makeMiniCard({id:id,pos:idx},true,idx); if(m){ m.style.borderColor='var(--gold)'; deckEl.appendChild(m); } });
+    const ds=$('deck-size'); if(ds) ds.textContent = (user.deck || []).length;
+    const title = document.querySelector('#deck-editor .editor-column:nth-child(2) h3');
+    if(title) title.innerHTML = 'Deck do Slot '+(user.activeDeckSlot+1)+' (<span id="deck-size">'+(user.deck || []).length+'</span>/20)';
+  }
+
+  function openEditorV8(){
+    ensureUserShape();
+    syncUserDeckFromSlot();
+    if(typeof showScreen === 'function') showScreen('deck-editor');
+    renderEditorV8();
+  }
+
+  function seededRandom(seed){
+    let x = Math.sin(seed) * 10000;
+    return function(){ x = Math.sin(x) * 10000; return x - Math.floor(x); };
+  }
+  function pickMany(pool, count, rand, used){
+    const arr = pool.slice().filter(function(c){ return c && c.id && !used.has(c.id); });
+    const out = [];
+    while(arr.length && out.length < count){
+      const i = Math.floor(rand() * arr.length);
+      const c = arr.splice(i,1)[0];
+      used.add(c.id); out.push(c.id);
+    }
+    return out;
+  }
+  function currentStoreWindow(){ return Math.floor(Date.now() / SHOP_WINDOW_MS); }
+  function ensureStoreOffers(){
+    ensureUserShape();
+    const w = currentStoreWindow();
+    if(user.storeWindow === w && user.storeOffers && Array.isArray(user.storeOffers.ex) && Array.isArray(user.storeOffers.normal) && Array.isArray(user.storeOffers.items)) return;
+    const pool = cards().filter(function(c){ return c.price > 0 && !c.storyOnly; });
+    const ex = pool.filter(function(c){ return c.isEx && !c.isSupport; });
+    const normal = pool.filter(function(c){ return !c.isEx && !c.isSupport; });
+    const items = pool.filter(function(c){ return c.isSupport || c.effect; });
+    const rand = seededRandom(w + 777);
+    const used = new Set();
+    user.storeWindow = w;
+    user.storeOffers = {
+      ex: pickMany(ex.length ? ex : pool, 1, rand, used),
+      normal: pickMany(normal.length ? normal : pool, 3, rand, used),
+      items: pickMany(items.length ? items : pool, 2, rand, used)
+    };
+    try{ autoSave(); }catch(e){}
+  }
+  function storeCountdownText(){
+    const next = (currentStoreWindow()+1) * SHOP_WINDOW_MS;
+    const left = Math.max(0, next - Date.now());
+    const h = Math.floor(left / 3600000);
+    const m = Math.floor((left % 3600000) / 60000);
+    return h + 'h ' + String(m).padStart(2,'0') + 'min';
+  }
+  function ensureStoreShell(){
+    const s = $('store-screen'); if(!s) return;
+    if(!$('store-toolbar')){
+      const tb = document.createElement('div');
+      tb.id = 'store-toolbar';
+      tb.className = 'store-toolbar';
+      tb.innerHTML = '<div class="store-clock">⏳ Próxima atualização: <b id="store-refresh-clock">--</b></div><div class="store-note">1 ETH/EX + 3 cartas normais + 2 itens aleatórios a cada 12 horas</div>';
+      const coins = s.querySelector('[style*="store-coins"], #store-coins');
+      const grid = $('store-grid');
+      if(grid) grid.insertAdjacentElement('beforebegin', tb);
+    }
+  }
+  function offerCard(id, groupLabel){
+    const c=card(id); if(!c) return '';
+    const tc=colorOf(c.type);
+    const have=(user.inventory || []).filter(function(x){ return x === id; }).length;
+    const tag = c.isEx ? '⭐ EX' : (c.isSupport ? '🧩 Item' : rarityLabel(c));
+    return '<div class="shop-offer-card '+(c.isEx?'ex':'')+' '+(c.isSupport?'support':'')+'"><div class="shop-tag">'+groupLabel+'</div><img src="'+(c.img || 'https://i.imgur.com/HWERuem.png')+'"><div class="shop-name" style="color:'+tc+'">'+c.name+'</div><div class="shop-meta">'+tag+' • '+(c.type || 'Suporte')+' • você tem '+have+'</div>'+(c.desc ? '<div class="shop-desc">'+String(c.desc).slice(0,76)+'</div>' : '')+'<button class="btn-skill shop-buy" onclick="buyCard(\''+id+'\')">💰 '+(c.price || 0)+' moedas</button></div>';
+  }
+  function renderStoreV8(){
+    ensureUserShape();
+    ensureStoreOffers();
+    ensureStoreShell();
+    refreshCoins();
+    const clock=$('store-refresh-clock'); if(clock) clock.textContent = storeCountdownText();
+    const grid=$('store-grid'); if(!grid) return;
+    const o=user.storeOffers || {ex:[],normal:[],items:[]};
+    grid.innerHTML = '<section class="shop-section"><h3>⚡ Destaque ETH/EX</h3><div class="shop-row">'+(o.ex || []).map(function(id){ return offerCard(id,'ETH/EX'); }).join('')+'</div></section><section class="shop-section"><h3>🃏 Cartas normais</h3><div class="shop-row">'+(o.normal || []).map(function(id){ return offerCard(id,'Normal'); }).join('')+'</div></section><section class="shop-section"><h3>🧩 Itens aleatórios</h3><div class="shop-row">'+(o.items || []).map(function(id){ return offerCard(id,'Item'); }).join('')+'</div></section>';
+  }
+  function openStoreV8(){ if(typeof showScreen === 'function') showScreen('store-screen'); renderStoreV8(); }
+  function buyCardV8(id){
+    ensureUserShape(); ensureStoreOffers();
+    const c=card(id); if(!c) return alert('Carta não encontrada.');
+    const allowed = [].concat(user.storeOffers.ex || [], user.storeOffers.normal || [], user.storeOffers.items || []);
+    if(!allowed.includes(id)) return alert('Essa carta não está na rotação atual da loja.');
+    const price = Number(c.price || 0);
+    if((user.coins || 0) < price) return alert('Moedas insuficientes.');
+    user.coins -= price;
+    user.inventory.push(id);
+    user.obtainedAt = user.obtainedAt || {};
+    user.obtainedAt[id] = Date.now();
+    try{ playSFX('sfxBuy'); }catch(e){}
+    try{ autoSave(); }catch(e){}
+    renderStoreV8();
+    refreshCoins();
+  }
+
+  function patchBattleStarters(){
+    ensureUserShape();
+    try{
+      if(typeof initCoinFlip === 'function' && !initCoinFlip._v8slot){
+        const old = initCoinFlip;
+        const wrapped = function(){ syncUserDeckFromSlot(); return old.apply(this, arguments); };
+        wrapped._v8slot = true;
+        initCoinFlip = window.initCoinFlip = wrapped;
+      }
+      if(typeof getDeckPayload === 'function' && !getDeckPayload._v8slot){
+        const oldDeck = getDeckPayload;
+        const wrappedDeck = function(){ syncUserDeckFromSlot(); return oldDeck.apply(this, arguments); };
+        wrappedDeck._v8slot = true;
+        getDeckPayload = window.getDeckPayload = wrappedDeck;
+      }
+    }catch(e){ console.warn('patchBattleStarters falhou', e); }
+  }
+
+  function patchSaveLoad(){
+    try{
+      saveGame = window.saveGame = function(){
+        ensureUserShape(); syncSlotFromUser();
+        const data = JSON.stringify(user, null, 2);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
+        a.download = 'utcg_save.json';
+        a.click();
+        alert('Jogo salvo.');
+      };
+      loadGame = window.loadGame = function(input){
+        const file = input && input.files ? input.files[0] : null;
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e){
+          try{
+            const parsed = JSON.parse(e.target.result);
+            user = parsed;
+            ensureUserShape(); syncUserDeckFromSlot();
+            try{ autoSave(); }catch(err){}
+            refreshCoins(); normalizeMainMenuV8();
+            alert('Dados carregados.');
+          }catch(err){ alert('Arquivo inválido.'); }
+        };
+        reader.readAsText(file);
+      };
+    }catch(e){ console.warn('patchSaveLoad falhou', e); }
+  }
+
+  function installOverrides(){
+    ensureUserShape();
+    try{ openEditor = window.openEditor = openEditorV8; renderEditor = window.renderEditor = renderEditorV8; }catch(e){}
+    try{ openStore = window.openStore = openStoreV8; buyCard = window.buyCard = buyCardV8; }catch(e){}
+    patchBattleStarters();
+    patchSaveLoad();
+    normalizeMainMenuV8();
+    refreshCoins();
+  }
+
+  const oldShowScreen = window.showScreen;
+  if(typeof oldShowScreen === 'function' && !oldShowScreen._v8final){
+    const wrapped = function(id){
+      const r = oldShowScreen.apply(this, arguments);
+      if(id === 'main-menu') setTimeout(normalizeMainMenuV8, 0);
+      if(id === 'deck-editor') setTimeout(renderEditorV8, 0);
+      if(id === 'store-screen') setTimeout(renderStoreV8, 0);
+      if(id === 'game-ui') setTimeout(function(){ const gu=$('game-ui'); if(gu) gu.style.display='grid'; }, 0);
+      return r;
+    };
+    wrapped._v8final = true;
+    window.showScreen = wrapped;
+    try{ showScreen = wrapped; }catch(e){}
+  }
+
+  window.addEventListener('load', function(){
+    installOverrides();
+    setTimeout(installOverrides, 300);
+    setTimeout(function(){ const m=document.querySelector('#main-menu .menu-buttons'); if(m) m.removeAttribute('data-v8-menu'); normalizeMainMenuV8(); }, 900);
+    setInterval(function(){ if($('store-screen') && $('store-screen').style.display !== 'none') renderStoreV8(); }, 60000);
+  });
+  setTimeout(installOverrides, 0);
+  setTimeout(installOverrides, 500);
+  setTimeout(function(){ const m=document.querySelector('#main-menu .menu-buttons'); if(m) m.removeAttribute('data-v8-menu'); normalizeMainMenuV8(); }, 1300);
+})();
+
+</script>
 </body>
 </html>
