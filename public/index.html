@@ -6954,14 +6954,8 @@ function openArena(){
   const oldBattle = q('mp-battle-screen');
   if(oldBattle) oldBattle.style.display = 'none';
 
-  const gameUi = q('game-ui');
-  const alreadyOpen = !!(gameUi && gameUi.style.display && gameUi.style.display !== 'none');
-  if(!alreadyOpen){
-    if(typeof showScreen === 'function') showScreen('game-ui');
-    else if(gameUi) gameUi.style.display = window.innerWidth <= 850 ? 'flex' : 'grid';
-  }else if(gameUi){
-    gameUi.style.display = window.innerWidth <= 850 ? 'flex' : 'grid';
-  }
+  if(typeof showScreen === 'function') showScreen('game-ui');
+  else if(q('game-ui')) q('game-ui').style.display = window.innerWidth <= 850 ? 'flex' : 'grid';
 
   const mf = q('musicaFundo');
   const mb = q('musicaBatalha');
