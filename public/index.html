@@ -6662,34 +6662,42 @@ body.ultra-desktop-ready #game-ui .divider{
 <script src="/socket.io/socket.io.js"></script>
 <script id="mp-online-client">
 (function(){
-'use strict';
-
 /*
-  UTCG MULTIPLAYER V5
-  Esta versão NÃO depende da arena offline.
-  Ela usa uma tela própria (#mp-battle-screen), otimizada para celular.
+  UTCG MULTIPLAYER V6
+  Usa a arena normal (#game-ui) e transforma as ações da arena em eventos Socket.IO.
+  A tela #mp-battle-screen antiga fica ignorada para o online não parecer outro jogo.
 */
 
-let mp5Socket = null;
-let mp5Room = null;
-let mp5Game = null;
-let mp5Side = null;
-let mp5LastEvent = null;
-let mp5ResultShown = false;
+let mpSocket = null;
+let mpRoom = null;
+let mpGame = null;
+let mpSide = null;
+let mpLastEvent = null;
+let mpResultShown = false;
+let mpRenderDelay = null;
+let mpTimer = null;
+let mpTimeLeft = 30;
+let mpLogHash = '';
+let mpLastTurnKey = '';
 
-const MP5_TYPES = {
-  Chakra:'#3b82f6',
-  Ki:'#f59e0b',
-  'Amaldiçoada':'#a855f7',
-  Stand:'#10b981',
-  Haki:'#dc2626',
-  Reiatsu:'#06b6d4',
-  Nen:'#84cc16',
-  Suporte:'#4ade80',
-  Neutro:'#94a3b8'
+const MP_TYPES = ['Chakra','Ki','Amaldiçoada','Stand','Haki','Reiatsu','Nen'];
+const MP_TYPE_COLORS = {
+  Chakra:'#3b82f6', Ki:'#f59e0b', Amaldiçoada:'#a855f7', Stand:'#10b981',
+  Haki:'#dc2626', Reiatsu:'#06b6d4', Nen:'#84cc16', Suporte:'#4ade80', Neutro:'#94a3b8'
+};
+
+const offline = {
+  endTurn: window.endTurn,
+  playCard: window.playCard,
+  triggerAttack: window.triggerAttack,
+  attachEnergyTyped: window.attachEnergyTyped,
+  attachEnergyToBench: window.attachEnergyToBench,
+  swapCard: window.swapCard,
+  showScreen: window.showScreen
 };
 
 function q(id){ return document.getElementById(id); }
+function onlineActive(){ return !!(window.UTCG_ONLINE_MODE && mpGame); }
 
 function escHTML(v){
   return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){
@@ -6697,16 +6705,9 @@ function escHTML(v){
   });
 }
 
-function cssEsc(v){
-  const raw = String(v == null ? '' : v);
-  if(window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(raw);
-  return raw.split('\\').join('\\\\').split("'").join("\\'").split('\r').join(' ').split('\n').join(' ');
-}
 function typeColor(t){
-  try{
-    if(typeof getTypeColor === 'function') return getTypeColor(t);
-  }catch(e){}
-  return MP5_TYPES[t] || MP5_TYPES.Neutro;
+  try{ if(typeof getTypeColor === 'function') return getTypeColor(t); }catch(e){}
+  return MP_TYPE_COLORS[t] || MP_TYPE_COLORS.Neutro;
 }
 
 function canonicalSide(side){
@@ -6722,30 +6723,6 @@ function isPlayingStatus(status){
   return ['playing','started','running','battle','in_game','ingame','match','active'].includes(s);
 }
 
-function ingestRoom(room){
-  if(!room) return;
-  mp5Room = room;
-  window.mpRoom = room;
-  renderRoom(room);
-  if(isPlayingStatus(room.status)){
-    localLog('⚔️ Partida iniciada. Abrindo tela online...', '#fbbf24');
-    openBattle();
-  }
-}
-
-function ingestGameState(state){
-  const normalized = normalizeState(state);
-  if(!normalized) return;
-  mp5Game = normalized;
-  mp5Side = canonicalSide(normalized.youSide || mp5Side) || mp5Side;
-  normalized.youSide = mp5Side || normalized.youSide;
-  window.mpGame = normalized;
-  window.mpMySide = mp5Side;
-  if(!normalized.winner) mp5ResultShown = false;
-  openBattle();
-  renderGame(normalized);
-}
-
 function setConn(text, ok){
   const el = q('mp-conn-status');
   if(!el) return;
@@ -6755,12 +6732,7 @@ function setConn(text, ok){
 }
 
 function localLog(text, color){
-  try{
-    if(typeof log === 'function'){
-      log(text, color || '#38bdf8');
-      return;
-    }
-  }catch(e){}
+  try{ if(typeof log === 'function') log(text, color || '#38bdf8'); }catch(e){}
 }
 
 function showOnly(id){
@@ -6776,81 +6748,108 @@ function showOnly(id){
 function openMultiplayer(){
   const s = connect();
   if(!s) return;
+  window.UTCG_ONLINE_MODE = false;
   document.body.classList.remove('mp-online-playing');
+  document.body.classList.remove('mp-active');
   showOnly('multiplayer-screen');
 }
 
-function openBattle(){
-  window.UTCG_ONLINE_MODE = true;
-  document.body.classList.add('mp-online-playing');
-  document.querySelectorAll('.screen').forEach(function(el){ el.style.display = 'none'; });
-  ['coin-screen','result-screen','game-ui'].forEach(function(x){
-    const el = q(x);
-    if(el) el.style.display = 'none';
-  });
-  const battle = q('mp-battle-screen');
-  if(battle) battle.style.display = 'flex';
-}
-
 function connect(){
-  if(mp5Socket){
-    try{ if(!mp5Socket.connected && typeof mp5Socket.connect === 'function') mp5Socket.connect(); }catch(e){}
-    return mp5Socket;
+  if(mpSocket){
+    try{ if(!mpSocket.connected && typeof mpSocket.connect === 'function') mpSocket.connect(); }catch(e){}
+    return mpSocket;
   }
 
   if(typeof io === 'undefined'){
-    alert('Socket.IO não carregou. Use o link do Render/Node, não o GitHub Pages.');
+    alert('Socket.IO não carregou. Abra pelo link do Render/Node, não pelo GitHub Pages.');
     setConn('SEM SOCKET', false);
     return null;
   }
 
-  mp5Socket = io();
-  window.mpSocket = mp5Socket;
-
+  mpSocket = io();
+  window.mpSocket = mpSocket;
   setConn('CONECTANDO', false);
 
-  mp5Socket.on('connect', function(){
+  mpSocket.on('connect', function(){
     setConn('ONLINE', true);
     localLog('🌐 Conectado ao servidor multiplayer.', '#38bdf8');
   });
 
-  mp5Socket.on('disconnect', function(){
+  mpSocket.on('disconnect', function(){
     setConn('DESCONECTADO', false);
     localLog('🔌 Servidor desconectado.', '#ef4444');
   });
 
-  mp5Socket.on('connect_error', function(err){
+  mpSocket.on('connect_error', function(err){
     setConn('ERRO', false);
     alert('Erro de conexão com o servidor: ' + (err && err.message ? err.message : 'desconhecido'));
   });
 
-  mp5Socket.on('room:update', ingestRoom);
-  mp5Socket.on('room:started', function(payload){
+  mpSocket.on('room:update', ingestRoom);
+  mpSocket.on('room:started', function(payload){
     if(payload && payload.room) ingestRoom(payload.room);
     if(payload && (payload.state || payload.game)) ingestGameState(payload.state || payload.game);
   });
 
   ['game:state','game:update','state:update','game:start','battle:start','match:start'].forEach(function(eventName){
-    mp5Socket.on(eventName, function(payload){
+    mpSocket.on(eventName, function(payload){
       if(payload && payload.room) ingestRoom(payload.room);
       ingestGameState(payload && (payload.state || payload.game || payload.match) ? (payload.state || payload.game || payload.match) : payload);
     });
   });
 
-  mp5Socket.on('chat:quick', function(payload){
+  mpSocket.on('chat:quick', function(payload){
     const msg = payload ? ((payload.name || 'Jogador') + ': ' + (payload.message || '')) : '';
-    addBattleLog('💬 ' + msg, '#38bdf8');
     localLog('💬 ' + msg, '#38bdf8');
+    appendOnlineLog('💬 ' + msg, '#38bdf8');
   });
 
-  return mp5Socket;
+  return mpSocket;
+}
+
+function ingestRoom(room){
+  if(!room) return;
+  mpRoom = room;
+  window.mpRoom = room;
+  renderRoom(room);
+  if(isPlayingStatus(room.status)){
+    localLog('⚔️ Partida iniciada. Abrindo arena normal...', '#fbbf24');
+  }
+}
+
+function ingestGameState(raw){
+  const state = normalizeState(raw);
+  if(!state || !state.you || !state.enemy) return;
+
+  const previousOpen = !!(mpGame && q('game-ui') && q('game-ui').style.display !== 'none');
+  const ev = state.lastEvent;
+  const freshEvent = !!(ev && ev.id && ev.id !== mpLastEvent);
+  const animateFirst = previousOpen && freshEvent && ev.type === 'attack';
+
+  mpGame = state;
+  mpSide = canonicalSide(state.youSide || mpSide) || mpSide;
+  state.youSide = mpSide || state.youSide;
+  window.mpGame = state;
+  window.mpMySide = mpSide;
+
+  if(!state.winner) mpResultShown = false;
+
+  if(animateFirst){
+    animateOnlineAttack(ev, state);
+    clearTimeout(mpRenderDelay);
+    mpRenderDelay = setTimeout(function(){ renderGame(state); }, ev.skill && ev.skill.vid ? 700 : 360);
+  }else{
+    renderGame(state);
+  }
+
+  if(freshEvent) mpLastEvent = ev.id;
 }
 
 function normalizeState(state){
   if(!state) return null;
 
   if(state.you && state.enemy){
-    const side = canonicalSide(state.youSide || state.side || state.playerSide || state.mySide || mp5Side || 'p1') || 'p1';
+    const side = canonicalSide(state.youSide || state.side || state.playerSide || state.mySide || mpSide || 'p1') || 'p1';
     const turn = canonicalSide(state.turn);
     const winner = state.winner ? canonicalSide(state.winner) : null;
     const copy = Object.assign({}, state);
@@ -6858,51 +6857,399 @@ function normalizeState(state){
     copy.turn = turn || state.turn;
     copy.winner = winner;
     copy.isYourTurn = !!state.isYourTurn || (turn === side && !winner);
-    copy.you = normalizeSide(state.you);
-    copy.enemy = normalizeSide(state.enemy);
+    copy.you = normalizeSide(state.you, 'player');
+    copy.enemy = normalizeSide(state.enemy, 'enemy');
+    copy.log = normalizeLog(state.log);
     return copy;
   }
 
-  // Compatibilidade com servidor antigo que manda p1/p2.
   if(state.p1 && state.p2){
-    const side = canonicalSide(mp5Side || state.youSide || state.side || state.playerSide || state.mySide || 'p1') || 'p1';
+    const side = canonicalSide(mpSide || state.youSide || state.side || state.playerSide || state.mySide || 'p1') || 'p1';
     const enemy = side === 'p2' ? 'p1' : 'p2';
     const turn = canonicalSide(state.turn);
     const winner = state.winner ? canonicalSide(state.winner) : null;
     return {
       mode:'online',
-      roomCode: state.roomCode || state.code || (mp5Room && mp5Room.code) || '',
+      roomCode: state.roomCode || state.code || (mpRoom && mpRoom.code) || '',
       youSide: side,
       turn: turn || state.turn,
       isYourTurn: turn === side && !winner,
       winner: winner,
       round: state.round || 1,
       lastEvent: state.lastEvent || null,
-      log: Array.isArray(state.log) ? state.log.map(function(l){
-        return typeof l === 'string' ? {text:l,color:'#4ade80'} : l;
-      }) : [],
-      you: normalizeSide(state[side]),
-      enemy: normalizeSide(state[enemy])
+      log: normalizeLog(state.log),
+      you: normalizeSide(state[side], 'player'),
+      enemy: normalizeSide(state[enemy], 'enemy')
     };
   }
 
   return state;
 }
 
-function normalizeSide(side){
+function normalizeLog(logs){
+  return Array.isArray(logs) ? logs.map(function(l){
+    return typeof l === 'string' ? {text:l,color:'#4ade80'} : {text:String((l && l.text) || ''), color:(l && l.color) || '#4ade80'};
+  }) : [];
+}
+
+function normalizeCard(card, owner){
+  if(!card) return null;
+  if(card.hidden) return { hidden:true, name:'Carta Oculta' };
+  const hp = Number(card.hp || card.maxHp || 100);
+  const cur = card.curHP == null ? hp : Number(card.curHP);
+  const c = Object.assign({}, card, {
+    hp: hp,
+    maxHp: Number(card.maxHp || hp),
+    curHP: Math.max(0, cur),
+    attached: Number(card.attached || 0),
+    statuses: Array.isArray(card.statuses) ? card.statuses : [],
+    skills: Array.isArray(card.skills) ? card.skills : [],
+    _ownerSide: owner,
+    _damageDealt: Number(card._damageDealt || 0)
+  });
+  return c;
+}
+
+function normalizeSide(side, owner){
   side = side || {};
   return {
     name: side.name || 'Jogador',
     energyPool: side.energyPool == null ? (side.energy || 0) : side.energyPool,
     energy: side.energyPool == null ? (side.energy || 0) : side.energyPool,
-    energies: side.energies || {},
-    active: side.active || null,
-    bench: side.bench || [],
-    hand: side.hand || [],
+    energies: Object.assign(emptyEnergies(), side.energies || {}),
+    deckTypes: Array.isArray(side.deckTypes) ? side.deckTypes : [],
+    active: normalizeCard(side.active, owner),
+    bench: (side.bench || []).map(function(c){ return normalizeCard(c, owner); }).filter(Boolean),
+    hand: (side.hand || []).map(function(c){ return normalizeCard(c, owner); }).filter(Boolean),
     deckCount: side.deckCount == null ? (side.deck ? side.deck.length : 0) : side.deckCount,
     discardCount: side.discardCount == null ? (side.discard ? side.discard.length : 0) : side.discardCount,
-    points: side.points || 0
+    discard: (side.discard || []).map(function(c){ return normalizeCard(c, owner); }).filter(Boolean),
+    points: side.points || 0,
+    energyUsed: !!side.energyUsed,
+    hasSwapped: !!side.hasSwapped,
+    hasAttacked: !!side.hasAttacked,
+    evolutionsThisTurn: Number(side.evolutionsThisTurn || 0)
   };
+}
+
+function emptyEnergies(){
+  const out = {};
+  MP_TYPES.forEach(function(t){ out[t] = 0; });
+  return out;
+}
+
+function inferTypesFromCards(side){
+  const out = [];
+  [side.active].concat(side.bench || [], side.hand || []).forEach(function(c){
+    if(c && MP_TYPES.includes(c.type) && !out.includes(c.type)) out.push(c.type);
+  });
+  return out;
+}
+
+function openArena(){
+  window.UTCG_ONLINE_MODE = true;
+  document.body.classList.remove('mp-online-playing');
+  document.body.classList.add('mp-active');
+
+  const oldBattle = q('mp-battle-screen');
+  if(oldBattle) oldBattle.style.display = 'none';
+
+  const gameUi = q('game-ui');
+  const alreadyOpen = !!(gameUi && gameUi.style.display && gameUi.style.display !== 'none');
+  if(!alreadyOpen){
+    if(typeof showScreen === 'function') showScreen('game-ui');
+    else if(gameUi) gameUi.style.display = window.innerWidth <= 850 ? 'flex' : 'grid';
+  }else if(gameUi){
+    gameUi.style.display = window.innerWidth <= 850 ? 'flex' : 'grid';
+  }
+
+  const mf = q('musicaFundo');
+  const mb = q('musicaBatalha');
+  if(mf) mf.pause();
+  if(mb && mb.paused){ mb.currentTime = mb.currentTime || 0; mb.play().catch(function(){}); }
+}
+
+function renderGame(state){
+  if(!state) return;
+  openArena();
+  mapStateToNormalGame(state);
+
+  try{ if(typeof updateUI === 'function') updateUI(); }catch(e){ console.warn('[MP V6 updateUI]', e); }
+
+  renderServerLogs(state);
+  decorateOnlineArena(state);
+  startOnlineTimer(state);
+
+  if(state.winner && !mpResultShown){
+    mpResultShown = true;
+    clearInterval(mpTimer);
+    setTimeout(function(){ showOnlineResult(state); }, 850);
+  }
+}
+
+function mapStateToNormalGame(state){
+  if(typeof game === 'undefined') return;
+  const you = state.you;
+  const enemy = state.enemy;
+
+  game.online = true;
+  game.mode = 'normal';
+  game.battleEnded = !!state.winner;
+  game.turn = state.isYourTurn ? 'player' : 'enemy';
+  game.currentReward = 0;
+  game.roundCount = Number(state.round || 1);
+  game.player = {
+    name: you.name,
+    active: you.active,
+    bench: you.bench || [],
+    hand: you.hand || [],
+    deck: [],
+    energy: Number(you.energyPool || you.energy || 0)
+  };
+  game.enemy = {
+    name: enemy.name,
+    active: enemy.active,
+    bench: enemy.bench || [],
+    hand: [],
+    deck: [],
+    energy: Number(enemy.energyPool || enemy.energy || 0)
+  };
+  game.energies = Object.assign(emptyEnergies(), you.energies || {});
+  game.deckTypes = (you.deckTypes && you.deckTypes.length) ? you.deckTypes.slice() : inferTypesFromCards(you);
+  game.discard = you.discard || [];
+  game.energyUsed = !!you.energyUsed;
+  game.hasSwapped = !!you.hasSwapped;
+  game.hasAttacked = !!you.hasAttacked;
+  game.evolutionsThisTurn = Number(you.evolutionsThisTurn || 0);
+  game._storyMode = false;
+  game._roundStarted = true;
+
+  if(q('round-num')) q('round-num').textContent = game.roundCount;
+}
+
+function decorateOnlineArena(state){
+  const you = state.you || {};
+  const enemy = state.enemy || {};
+
+  const end = q('end-turn-btn');
+  if(end){
+    end.disabled = !state.isYourTurn || !!state.winner;
+    end.textContent = state.isYourTurn ? 'Passar Turno Online ▶' : 'Aguardando oponente...';
+  }
+
+  const turnBox = q('turn-timer');
+  if(turnBox){
+    turnBox.className = 'timer-box' + (!state.isYourTurn ? ' enemy' : '');
+    if(state.winner) turnBox.textContent = state.winner === state.youSide ? 'WIN' : 'LOSE';
+  }
+
+  const labels = document.querySelectorAll('.arena-label');
+  labels.forEach(function(el){
+    if(el.classList.contains('enemy')) el.textContent = enemy.name || 'OPONENTE';
+    if(el.classList.contains('player')) el.textContent = you.name || 'VOCÊ';
+  });
+
+  if(q('mp-game-room')) q('mp-game-room').textContent = 'Sala: ' + (state.roomCode || (mpRoom && mpRoom.code) || '—');
+  if(q('mp-game-turn')) q('mp-game-turn').textContent = state.winner ? (state.winner === state.youSide ? 'Vitória' : 'Derrota') : (state.isYourTurn ? 'Seu turno' : 'Turno do oponente');
+
+  if(!state.isYourTurn || state.winner){
+    document.querySelectorAll('#p-active .btn-skill, #p-bench .btn-skill').forEach(function(btn){ btn.disabled = true; });
+    document.querySelectorAll('#p-hand .card').forEach(function(card){ card.style.opacity = '.62'; });
+  }
+
+  if(you.energyUsed){
+    document.querySelectorAll('#p-bench .btn-skill, #p-active .card').forEach(function(el){
+      if(el.textContent && el.textContent.indexOf('+Energia') >= 0) el.disabled = true;
+    });
+  }
+
+  const ins = q('ins-name');
+  if(ins && state.isYourTurn && !state.winner) ins.textContent = 'Seu turno online';
+}
+
+function renderServerLogs(state){
+  const term = q('log');
+  if(!term) return;
+  const logs = state.log || [];
+  const hash = logs.map(function(l){ return l.text + l.color; }).join('|');
+  if(hash === mpLogHash) return;
+  mpLogHash = hash;
+  term.innerHTML = logs.slice(-28).reverse().map(function(l){
+    return '<div style="color:' + (l.color || '#4ade80') + ';border-bottom:1px solid #0f172a;padding-bottom:2px;margin-bottom:2px;">&gt; ' + escHTML(l.text || '') + '</div>';
+  }).join('');
+}
+
+function appendOnlineLog(text, color){
+  const term = q('log');
+  if(!term) return;
+  term.innerHTML = '<div style="color:' + (color || '#38bdf8') + ';border-bottom:1px solid #0f172a;padding-bottom:2px;margin-bottom:2px;">&gt; ' + escHTML(text) + '</div>' + term.innerHTML;
+}
+
+function startOnlineTimer(state){
+  clearInterval(mpTimer);
+  if(state.winner) return;
+
+  const turnKey = String(state.turn || '') + ':' + String(state.round || '') + ':' + String(state.isYourTurn);
+  if(turnKey !== mpLastTurnKey){
+    mpLastTurnKey = turnKey;
+    mpTimeLeft = 30;
+    try{ if(typeof showTurnIndicator === 'function') showTurnIndicator(state.isYourTurn ? 'player' : 'enemy'); }catch(e){}
+  }
+
+  const timerBox = q('turn-timer');
+  if(timerBox){
+    timerBox.textContent = mpTimeLeft + 's';
+    timerBox.className = 'timer-box' + (!state.isYourTurn ? ' enemy' : '') + (mpTimeLeft <= 5 ? ' warning' : '');
+  }
+
+  mpTimer = setInterval(function(){
+    if(!onlineActive() || !mpGame || mpGame.winner){ clearInterval(mpTimer); return; }
+    mpTimeLeft -= 1;
+    const box = q('turn-timer');
+    if(box){
+      box.textContent = mpTimeLeft + 's';
+      if(mpTimeLeft <= 5) box.classList.add('warning');
+    }
+    if(mpTimeLeft <= 0){
+      clearInterval(mpTimer);
+      if(mpGame.isYourTurn) passTurn();
+    }
+  }, 1000);
+}
+
+function animateOnlineAttack(ev, state){
+  const fromMe = ev.source === state.youSide;
+  const atkId = fromMe ? 'p-card-active' : 'e-card-active';
+  const defId = fromMe ? 'e-card-active' : 'p-card-active';
+  const attacker = fromMe ? (game && game.player && game.player.active) : (game && game.enemy && game.enemy.active);
+
+  if(ev.skill && ev.skill.vid) playOnlineUlt(ev.skill.vid);
+
+  const done = function(){
+    const pos = getCenter(defId);
+    const label = ev.blocked ? 'BLOQUEIO' : (ev.dodged ? 'ESQUIVA' : '-' + (ev.damage || 0));
+    try{ if(typeof spawnFloat === 'function') spawnFloat(pos.x, pos.y, label, ev.damage >= 100 ? 'critical' : 'dmg', ev.damage >= 100); }catch(e){ floatFallback(label, pos.x, pos.y); }
+    try{ if(typeof flashCard === 'function') flashCard(defId, 0); }catch(e){}
+  };
+
+  try{
+    if(typeof flyCardTo === 'function' && attacker){
+      flyCardTo(atkId, defId, attacker, fromMe ? 'player' : 'enemy', done);
+    }else{
+      const target = q(defId);
+      if(target){ target.classList.add('hit-flash'); setTimeout(function(){ target.classList.remove('hit-flash'); }, 450); }
+      done();
+    }
+  }catch(e){
+    console.warn('[MP V6 attack animation]', e);
+    done();
+  }
+}
+
+function getCenter(elId){
+  const el = q(elId);
+  if(!el) return {x:window.innerWidth/2, y:window.innerHeight/2};
+  const r = el.getBoundingClientRect();
+  return {x:r.left + r.width/2, y:r.top + r.height/2};
+}
+
+function floatFallback(text,x,y){
+  const el = document.createElement('div');
+  el.className = 'dmg-float dmg';
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 1200);
+}
+
+function playOnlineUlt(src){
+  const v = q('ult-video');
+  const screen = q('ult-screen');
+  const overlay = q('ult-play-overlay');
+  if(!v || !screen || !src) return;
+
+  try{ if(typeof pauseAllBackgroundMusicForVideo === 'function') pauseAllBackgroundMusicForVideo(); }catch(e){}
+
+  if(overlay) overlay.style.display = 'none';
+  v.onended = function(){
+    screen.style.display = 'none';
+    v.pause();
+    v.src = '';
+    try{ if(typeof restoreBackgroundMusicAfterVideo === 'function') restoreBackgroundMusicAfterVideo(true); }catch(e){}
+  };
+  v.onerror = v.onended;
+  v.src = src;
+  v.load();
+  screen.style.display = 'flex';
+  const p = v.play();
+  if(p && p.catch) p.catch(function(){ if(overlay) overlay.style.display = 'flex'; });
+}
+
+function bestCard(side){
+  const cards = [];
+  if(side && side.active) cards.push(side.active);
+  if(side && side.bench) cards.push.apply(cards, side.bench);
+  if(side && side.discard) cards.push.apply(cards, side.discard);
+  return cards.reduce(function(best, c){
+    if(!best) return c;
+    if(Number(c._damageDealt || 0) > Number(best._damageDealt || 0)) return c;
+    return best;
+  }, null);
+}
+
+function resultCard(card, role, loser){
+  const img = card && card.img ? card.img : 'https://i.imgur.com/HWERuem.png';
+  const name = card && card.name ? card.name : 'Sem carta';
+  const dmg = card ? Number(card._damageDealt || 0) : 0;
+  const color = card ? typeColor(card.type) : '#94a3b8';
+  return '<div class="result-card-shell revealed"><div class="result-card-stage" style="transform:rotateY(180deg)">' +
+    '<div class="result-card-card result-card-back"><img src="https://i.imgur.com/HWERuem.png" alt="Verso"><div class="result-card-back-badge">UTCG</div></div>' +
+    '<div class="result-card-card result-card-front"><img src="' + escHTML(img) + '" alt="' + escHTML(name) + '"><div class="result-card-front-glow ' + (loser ? 'loser' : '') + '"></div>' +
+    '<div class="result-card-caption"><div class="result-card-role">' + escHTML(role) + '</div><div class="result-card-name" style="color:' + color + '">' + escHTML(name) + '</div>' +
+    '<div class="result-card-dmg">Dano total: ' + dmg + '</div><div class="result-card-sub">Partida online finalizada</div></div></div>' +
+    '</div></div>';
+}
+
+function showOnlineResult(state){
+  const win = state.winner === state.youSide;
+  const rs = q('result-screen');
+  const rt = q('result-title');
+  const rc = q('result-coins');
+  const wh = q('result-card-winner');
+  const lh = q('result-card-loser');
+
+  document.querySelectorAll('.screen, #coin-screen').forEach(function(el){ el.style.display = 'none'; });
+  if(q('game-ui')) q('game-ui').style.display = 'none';
+  if(q('mp-battle-screen')) q('mp-battle-screen').style.display = 'none';
+
+  if(rt){
+    rt.className = 'result-title ' + (win ? 'win' : 'lose');
+    rt.textContent = win ? '🏆 VITÓRIA ONLINE!' : '💀 DERROTA ONLINE!';
+  }
+  if(rc) rc.textContent = win ? 'Você venceu a batalha online.' : 'O oponente venceu a batalha online.';
+
+  const winnerSide = win ? state.you : state.enemy;
+  const loserSide = win ? state.enemy : state.you;
+  if(wh) wh.innerHTML = resultCard(bestCard(winnerSide), 'MVP - Vencedor', false);
+  if(lh) lh.innerHTML = resultCard(bestCard(loserSide), 'SVP - Derrotado', true);
+
+  const btn = document.querySelector('#result-screen .btn');
+  if(btn){
+    btn.textContent = '← VOLTAR AO MENU';
+    btn.onclick = function(){
+      try{ if(typeof playClick === 'function') playClick(); }catch(e){}
+      leaveRoom();
+      document.body.classList.remove('mp-active');
+      window.UTCG_ONLINE_MODE = false;
+      if(typeof showScreen === 'function') showScreen('main-menu');
+    };
+  }
+
+  if(rs){
+    rs.classList.add('reveal');
+    rs.style.display = 'flex';
+  }
 }
 
 function getName(){
@@ -6918,22 +7265,14 @@ function getDeckPayload(){
   try{ if(typeof CARDS_DB !== 'undefined') db = CARDS_DB; }catch(e){}
   try{ if(window.CARDS_DB) db = window.CARDS_DB; }catch(e){}
 
-  try{
-    if(typeof user !== 'undefined' && user && Array.isArray(user.deck)) ids = user.deck.slice(0,20);
-  }catch(e){}
-
-  if(!ids.length){
-    try{ if(window.user && Array.isArray(window.user.deck)) ids = window.user.deck.slice(0,20); }catch(e){}
-  }
-
+  try{ if(typeof user !== 'undefined' && user && Array.isArray(user.deck)) ids = user.deck.slice(0,20); }catch(e){}
+  if(!ids.length){ try{ if(window.user && Array.isArray(window.user.deck)) ids = window.user.deck.slice(0,20); }catch(e){} }
   if(!ids.length) ids = ['n1','g1','j1','bl1','op1'];
 
   const cards = [];
-
   ids.forEach(function(id){
     const c = db[id];
     if(!c) return;
-
     cards.push({
       id: c.id || id,
       name: c.name || 'Carta',
@@ -6946,82 +7285,58 @@ function getDeckPayload(){
       desc: c.desc || '',
       effect: c.effect || null,
       skills: (c.skills || []).slice(0,3).map(function(s){
-        return {
-          n: s.n || s.name || 'Ataque',
-          d: Number(s.d || s.dmg || 0),
-          c: Number(s.c || s.cost || 0),
-          desc: s.desc || '',
-          status: s.status || null,
-          special: s.special || null,
-          vid: s.vid || ''
-        };
+        return { n:s.n || s.name || 'Ataque', d:Number(s.d || s.dmg || 0), c:Number(s.c || s.cost || 0), desc:s.desc || '', status:s.status || null, special:s.special || null, vid:s.vid || '' };
       })
     });
   });
 
-  if(cards.length < 5){
-    while(cards.length < 5){
-      cards.push({
-        id:'fallback_' + cards.length,
-        name:'Lutador Online',
-        type:'Neutro',
-        hp:100,
-        img:'',
-        isEx:false,
-        isSupport:false,
-        evolvesFrom:null,
-        skills:[{n:'Ataque Básico',d:30,c:1,desc:'Ataque padrão.'}]
-      });
-    }
+  while(cards.length < 5){
+    cards.push({ id:'fallback_' + cards.length, name:'Lutador Online', type:'Neutro', hp:100, img:'', isEx:false, isSupport:false, evolvesFrom:null, skills:[{n:'Ataque Básico',d:30,c:1,desc:'Ataque padrão.'}] });
   }
-
   return cards;
 }
 
 function createRoom(){
   const s = connect();
   if(!s) return;
-
   s.emit('room:create', {name:getName()}, function(res){
     if(!res || !res.ok) return alert((res && res.error) || 'Erro ao criar sala.');
-    mp5Room = res.room;
-    mp5Side = canonicalSide(res.side) || 'p1';
-    window.mpRoom = mp5Room;
-    window.mpMySide = mp5Side;
-    renderRoom(mp5Room);
+    mpRoom = res.room;
+    mpSide = canonicalSide(res.side) || 'p1';
+    window.mpRoom = mpRoom;
+    window.mpMySide = mpSide;
+    renderRoom(mpRoom);
     if(res.state || res.game) ingestGameState(res.state || res.game);
-    localLog('✅ Sala criada: ' + mp5Room.code, '#4ade80');
+    localLog('✅ Sala criada: ' + mpRoom.code, '#4ade80');
   });
 }
 
 function joinRoom(){
   const s = connect();
   if(!s) return;
-
   const code = ((q('mp-code') && q('mp-code').value) || '').trim().toUpperCase();
   if(!code) return alert('Digite o código da sala.');
 
   s.emit('room:join', {code:code, name:getName()}, function(res){
     if(!res || !res.ok) return alert((res && res.error) || 'Erro ao entrar na sala.');
-    mp5Room = res.room;
-    mp5Side = canonicalSide(res.side) || (res.spectator ? 'spectator' : 'p2');
-    window.mpRoom = mp5Room;
-    window.mpMySide = mp5Side;
-    renderRoom(mp5Room);
+    mpRoom = res.room;
+    mpSide = canonicalSide(res.side) || (res.spectator ? 'spectator' : 'p2');
+    window.mpRoom = mpRoom;
+    window.mpMySide = mpSide;
+    renderRoom(mpRoom);
     if(res.state || res.game) ingestGameState(res.state || res.game);
-    localLog('✅ Entrou na sala: ' + mp5Room.code, '#4ade80');
+    localLog('✅ Entrou na sala: ' + (mpRoom && mpRoom.code ? mpRoom.code : code), '#4ade80');
   });
 }
 
 function ready(){
   const s = connect();
   if(!s) return;
-  if(!mp5Room) return alert('Crie ou entre em uma sala primeiro.');
+  if(!mpRoom) return alert('Crie ou entre em uma sala primeiro.');
+  if(mpSide === 'spectator') return alert('Espectador não pode ficar pronto.');
 
   const deck = getDeckPayload();
-
   if(deck.length < 5) return alert('Seu deck precisa ter pelo menos 5 cartas.');
-
   localLog('📤 Enviando deck online com ' + deck.length + ' cartas...', '#fbbf24');
 
   s.emit('room:ready', {deck:deck}, function(res){
@@ -7029,44 +7344,43 @@ function ready(){
     if(res.room) ingestRoom(res.room);
     if(res.state || res.game) ingestGameState(res.state || res.game);
     localLog(isPlayingStatus(res.status || (res.room && res.room.status)) ? '⚔️ Partida liberada pelo servidor.' : '✅ Você está pronto. Aguardando o outro jogador...', '#4ade80');
-
     const btn = document.querySelector('#mp-room-panel .btn-gold');
-    if(btn){
-      btn.disabled = true;
-      btn.textContent = '✅ PRONTO';
-    }
+    if(btn){ btn.disabled = true; btn.textContent = '✅ PRONTO'; }
   });
 }
 
 function leaveRoom(){
-  if(mp5Socket && mp5Room){
-    mp5Socket.emit('room:leave', {}, function(){});
-  }
-  mp5Room = null;
-  mp5Game = null;
-  mp5Side = null;
+  if(mpSocket && mpRoom){ mpSocket.emit('room:leave', {}, function(){}); }
+  mpRoom = null;
+  mpGame = null;
+  mpSide = null;
+  mpLastEvent = null;
+  mpResultShown = false;
+  mpLogHash = '';
+  clearInterval(mpTimer);
+  clearTimeout(mpRenderDelay);
   window.mpRoom = null;
   window.mpGame = null;
   window.mpMySide = null;
   window.UTCG_ONLINE_MODE = false;
   document.body.classList.remove('mp-online-playing');
-
+  document.body.classList.remove('mp-active');
   const panel = q('mp-room-panel');
   if(panel) panel.classList.add('hidden');
+  const btn = document.querySelector('#mp-room-panel .btn-gold');
+  if(btn){ btn.disabled = false; btn.textContent = 'Estou pronto'; }
 }
 
 function quick(message){
   const s = connect();
-  if(!s || !mp5Room) return alert('Entre em uma sala primeiro.');
+  if(!s || !mpRoom) return alert('Entre em uma sala primeiro.');
   s.emit('chat:quick', {message:message});
 }
 
 function renderRoom(room){
   if(!room) return;
-
   const panel = q('mp-room-panel');
   if(panel) panel.classList.remove('hidden');
-
   if(q('mp-room-code')) q('mp-room-code').textContent = room.code || '------';
   if(q('mp-room-status')) q('mp-room-status').textContent = String(room.status || 'waiting').toUpperCase();
 
@@ -7075,216 +7389,85 @@ function renderRoom(room){
     let html = (room.players || []).map(function(p){
       return '<div class="mp-player-row"><b>' + (p.ready ? '✅ ' : '⏳ ') + escHTML(p.name || 'Jogador') + '</b><br><small>' + escHTML(String(p.side || '').toUpperCase()) + '</small></div>';
     }).join('');
-
-    if((room.players || []).length < 2){
-      html += '<div class="mp-player-row"><b style="color:#fbbf24">Aguardando outro jogador...</b><br><small>Compartilhe o código da sala.</small></div>';
-    }
-
+    if((room.players || []).length < 2){ html += '<div class="mp-player-row"><b style="color:#fbbf24">Aguardando outro jogador...</b><br><small>Compartilhe o código da sala.</small></div>'; }
     list.innerHTML = html;
   }
 }
 
-function cardHTML(card, owner, zone, index, state){
-  if(!card) return '<div class="mp5-card active" style="border-style:dashed;background:rgba(0,0,0,.25)"></div>';
-
-  const mine = owner === 'player';
-  const canAct = mine && state.isYourTurn && !state.winner;
-  const hp = Number(card.curHP == null ? card.hp : card.curHP);
-  const max = Number(card.maxHp || card.hp || 1);
-  const pct = Math.max(0, Math.min(100, Math.round((hp / max) * 100)));
-  const color = typeColor(card.type);
-  const attached = Number(card.attached || 0);
-
-  const skills = (mine && zone === 'active')
-    ? '<div class="mp5-skills">' + (card.skills || []).map(function(s,i){
-        const ok = attached >= Number(s.c || 0);
-        return '<button class="mp5-skill ' + (ok ? 'ok' : '') + '" ' + (canAct ? '' : 'disabled') + ' onclick="mp5Attack(' + i + ')">' +
-          escHTML(s.n || 'Ataque') + '<br><small>' + (s.d || 0) + 'DMG • ' + (s.c || 0) + 'EN</small></button>';
-      }).join('') + '</div>'
-    : '';
-
-  const tools = mine && canAct
-    ? '<div class="mp5-tools"><button onclick="mp5Attach(\'' + zone + '\',' + (index || 0) + ')">+EN</button>' +
-      (zone === 'bench' ? '<button onclick="mp5Promote(' + index + ')">ATIVO</button>' : '') + '</div>'
-    : '';
-
-  const status = (card.statuses || []).length
-    ? '<div class="mp5-status">' + (card.statuses || []).map(function(s){ return '<span>' + escHTML(s.type) + '(' + escHTML(s.turns) + ')</span>'; }).join('') + '</div>'
-    : '<div class="mp5-status"></div>';
-
-  return '<div id="mp5-' + owner + '-' + zone + '-' + index + '" class="mp5-card ' + (zone === 'active' ? 'active ' : '') + (card.isEx ? 'ex ' : '') + (card.isSupport ? 'support' : '') + '">' +
-    '<div class="mp5-hp">' + hp + '/' + max + '</div>' +
-    '<div class="mp5-en" style="background:' + color + '">' + attached + '</div>' +
-    '<img src="' + escHTML(card.img || '') + '" alt="">' +
-    '<div class="mp5-card-body">' +
-      '<div class="mp5-card-name" style="color:' + color + '">' + escHTML(card.name || 'Carta') + '</div>' +
-      '<div class="mp5-hpbar"><span style="width:' + pct + '%;background:' + (pct <= 30 ? '#ef4444' : pct <= 55 ? '#f59e0b' : '#4ade80') + '"></span></div>' +
-      status + skills + tools +
-    '</div>' +
-  '</div>';
-}
-
-function handHTML(card, index, state){
-  if(!card) return '';
-  const can = state.isYourTurn && !state.winner;
-  const color = typeColor(card.type);
-  const label = card.isSupport ? 'USAR' : (card.evolvesFrom ? 'EVOLUIR' : 'JOGAR');
-
-  return '<div class="mp5-card ' + (card.isEx ? 'ex ' : '') + (card.isSupport ? 'support' : '') + '">' +
-    '<div class="mp5-hp">' + (card.hp || 0) + '</div>' +
-    '<img src="' + escHTML(card.img || '') + '" alt="">' +
-    '<div class="mp5-card-body">' +
-      '<div class="mp5-card-name" style="color:' + color + '">' + escHTML(card.name || 'Carta') + '</div>' +
-      '<button class="mp5-skill" ' + (can ? '' : 'disabled') + ' onclick="mp5PlayCard(' + index + ')">' + label + '</button>' +
-    '</div>' +
-  '</div>';
-}
-
-function renderGame(state){
-  const you = normalizeSide(state.you || {});
-  const enemy = normalizeSide(state.enemy || {});
-
-  if(q('mp5-room')) q('mp5-room').textContent = 'SALA: ' + (state.roomCode || (mp5Room && mp5Room.code) || '—');
-
-  const turnText = state.winner
-    ? (state.winner === state.youSide ? 'VITÓRIA' : 'DERROTA')
-    : (state.isYourTurn ? 'SEU TURNO' : 'TURNO DO OPONENTE');
-
-  if(q('mp5-turn')){
-    q('mp5-turn').textContent = turnText;
-    q('mp5-turn').className = 'mp5-pill ' + (state.isYourTurn ? 'gold' : '');
-  }
-
-  if(q('mp5-energy')) q('mp5-energy').textContent = 'ENERGIA: ' + (you.energyPool == null ? you.energy || 0 : you.energyPool);
-  if(q('mp5-side')) q('mp5-side').textContent = 'Você é ' + String(state.youSide || mp5Side || '').toUpperCase();
-
-  if(q('mp5-player-meta')) q('mp5-player-meta').textContent = 'Deck: ' + (you.deckCount || 0) + ' | Descarte: ' + (you.discardCount || 0);
-  if(q('mp5-enemy-meta')) q('mp5-enemy-meta').textContent = 'Deck: ' + (enemy.deckCount || 0) + ' | Descarte: ' + (enemy.discardCount || 0);
-  if(q('mp5-hand-count')) q('mp5-hand-count').textContent = (you.hand || []).length + ' cartas';
-
-  if(q('mp5-player-active')) q('mp5-player-active').innerHTML = cardHTML(you.active, 'player', 'active', 0, state);
-  if(q('mp5-enemy-active')) q('mp5-enemy-active').innerHTML = cardHTML(enemy.active, 'enemy', 'active', 0, state);
-
-  if(q('mp5-player-bench')) q('mp5-player-bench').innerHTML = (you.bench || []).map(function(c,i){ return cardHTML(c,'player','bench',i,state); }).join('');
-  if(q('mp5-enemy-bench')) q('mp5-enemy-bench').innerHTML = (enemy.bench || []).map(function(c,i){ return cardHTML(c,'enemy','bench',i,state); }).join('');
-  if(q('mp5-hand')) q('mp5-hand').innerHTML = (you.hand || []).map(function(c,i){ return handHTML(c,i,state); }).join('');
-
-  const pass = q('mp5-pass');
-  if(pass){
-    pass.disabled = !state.isYourTurn || !!state.winner;
-    pass.textContent = state.isYourTurn ? 'PASSAR' : 'AGUARDAR';
-  }
-
-  renderLogs(state);
-  handleLastEvent(state);
-
-  if(state.winner && !mp5ResultShown){
-    mp5ResultShown = true;
-    setTimeout(function(){
-      alert(state.winner === state.youSide ? 'VITÓRIA ONLINE!' : 'DERROTA ONLINE!');
-      document.body.classList.remove('mp-online-playing');
-      window.UTCG_ONLINE_MODE = false;
-      showOnly('main-menu');
-    }, 650);
-  }
-}
-
-function renderLogs(state){
-  const el = q('mp5-log');
-  if(!el) return;
-  el.innerHTML = (state.log || []).slice(-16).reverse().map(function(l){
-    const text = typeof l === 'string' ? l : (l.text || '');
-    const color = typeof l === 'string' ? '#4ade80' : (l.color || '#4ade80');
-    return '<div style="color:' + color + '">&gt; ' + escHTML(text) + '</div>';
-  }).join('');
-}
-
-function addBattleLog(text, color){
-  const el = q('mp5-log');
-  if(!el) return;
-  el.innerHTML = '<div style="color:' + (color || '#38bdf8') + '">&gt; ' + escHTML(text) + '</div>' + el.innerHTML;
-}
-
 function action(payload){
-  if(!mp5Socket || !mp5Game) return alert('Partida online não está conectada.');
-
-  mp5Socket.emit('game:action', {action:payload}, function(res){
-    if(!res || !res.ok){
-      alert((res && res.error) || 'Ação recusada pelo servidor.');
-    }
+  if(!mpSocket || !mpGame) return alert('Partida online não está conectada.');
+  if(mpSide === 'spectator') return alert('Você está como espectador.');
+  mpSocket.emit('game:action', {action:payload}, function(res){
+    if(!res || !res.ok){ alert((res && res.error) || 'Ação recusada pelo servidor.'); }
   });
 }
 
-function playCard(i){ action({type:'playCard', handIndex:i}); }
-function attach(zone,index){ action({type:'attachEnergy', target:{zone:zone,index:index}}); }
-function promote(i){ action({type:'promote', benchIndex:i}); }
-function attack(i){ action({type:'attack', skillIndex:i}); }
-function passTurn(){ action({type:'pass'}); }
+function playCardOnline(i){
+  if(!onlineActive()) return offline.playCard ? offline.playCard.apply(this, arguments) : undefined;
+  if(!mpGame.isYourTurn || mpGame.winner) return;
+  action({type:'playCard', handIndex:i});
+}
+
+function attachCardOnline(card){
+  if(!onlineActive()) return offline.attachEnergyTyped ? offline.attachEnergyTyped.apply(this, arguments) : undefined;
+  if(!mpGame.isYourTurn || mpGame.winner) return;
+  if(mpGame.you && mpGame.you.energyUsed) return alert('Você já anexou energia neste turno.');
+  let zone = 'active';
+  let index = 0;
+  if(game && game.player && game.player.active !== card){
+    const bi = (game.player.bench || []).indexOf(card);
+    if(bi >= 0){ zone = 'bench'; index = bi; }
+  }
+  action({type:'attachEnergy', target:{zone:zone,index:index}});
+}
+
+function attachBenchOnline(i){
+  if(!onlineActive()) return offline.attachEnergyToBench ? offline.attachEnergyToBench.apply(this, arguments) : undefined;
+  if(!mpGame.isYourTurn || mpGame.winner) return;
+  action({type:'attachEnergy', target:{zone:'bench',index:i}});
+}
+
+function swapOnline(i){
+  if(!onlineActive()) return offline.swapCard ? offline.swapCard.apply(this, arguments) : undefined;
+  if(!mpGame.isYourTurn || mpGame.winner) return;
+  action({type:'promote', benchIndex:i});
+}
+
+function attackOnline(i, source){
+  if(!onlineActive()) return offline.triggerAttack ? offline.triggerAttack.apply(this, arguments) : undefined;
+  if(source && source !== 'player') return;
+  if(!mpGame.isYourTurn || mpGame.winner) return;
+  action({type:'attack', skillIndex:i});
+}
+
+function passTurn(){
+  if(!onlineActive()) return offline.endTurn ? offline.endTurn.apply(this, arguments) : undefined;
+  if(!mpGame.isYourTurn || mpGame.winner) return;
+  action({type:'pass'});
+}
+
 function concede(){
+  if(!onlineActive() && !mpRoom) return;
   if(confirm('Atenção: se você sair, perderá a batalha automaticamente.')){
-    action({type:'concede'});
+    if(mpGame) action({type:'concede'});
+    else leaveRoom();
   }
 }
 
-function handleLastEvent(state){
-  const ev = state.lastEvent;
-  if(!ev || ev.id === mp5LastEvent) return;
-  mp5LastEvent = ev.id;
+window.endTurn = function(){ return onlineActive() ? passTurn() : (offline.endTurn ? offline.endTurn.apply(this, arguments) : undefined); };
+window.playCard = playCardOnline;
+window.triggerAttack = attackOnline;
+window.attachEnergyTyped = attachCardOnline;
+window.attachEnergyToBench = attachBenchOnline;
+window.swapCard = swapOnline;
 
-  if(ev.type === 'attack'){
-    const target = ev.source === state.youSide ? q('mp5-enemy-active').querySelector('.mp5-card') : q('mp5-player-active').querySelector('.mp5-card');
-    if(target){
-      target.classList.add('mp5-hit');
-      const r = target.getBoundingClientRect();
-      floatText('-' + (ev.damage || 0), r.left + r.width/2, r.top + r.height/2);
-      setTimeout(function(){ target.classList.remove('mp5-hit'); }, 500);
-    }
+try{ endTurn = window.endTurn; }catch(e){}
+try{ playCard = playCardOnline; }catch(e){}
+try{ triggerAttack = attackOnline; }catch(e){}
+try{ attachEnergyTyped = attachCardOnline; }catch(e){}
+try{ attachEnergyToBench = attachBenchOnline; }catch(e){}
+try{ swapCard = swapOnline; }catch(e){}
 
-    if(ev.skill && ev.skill.vid) playUlt(ev.skill.vid);
-  }
-}
-
-function floatText(text,x,y){
-  const el = document.createElement('div');
-  el.className = 'mp5-float';
-  el.textContent = text;
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  document.body.appendChild(el);
-  setTimeout(function(){ el.remove(); }, 1100);
-}
-
-function playUlt(src){
-  const v = q('ult-video');
-  const screen = q('ult-screen');
-  const overlay = q('ult-play-overlay');
-  if(!v || !screen || !src) return;
-
-  try{ if(typeof pauseAllBackgroundMusicForVideo === 'function') pauseAllBackgroundMusicForVideo(); }catch(e){}
-
-  v.src = src;
-  v.load();
-  if(overlay) overlay.style.display = 'none';
-  screen.style.display = 'flex';
-
-  v.onended = function(){
-    screen.style.display = 'none';
-    v.pause();
-    v.src = '';
-    try{ if(typeof restoreBackgroundMusicAfterVideo === 'function') restoreBackgroundMusicAfterVideo(true); }catch(e){}
-  };
-
-  v.play().catch(function(){});
-}
-
-// Intercepta endTurn antigo quando estiver online.
-const oldEndTurn = window.endTurn;
-window.endTurn = function(){
-  if(window.UTCG_ONLINE_MODE && mp5Game) return passTurn();
-  if(typeof oldEndTurn === 'function') return oldEndTurn.apply(this, arguments);
-};
-
-// Exporta para botões existentes.
 window.mpOpenMultiplayer = openMultiplayer;
 window.mpCreateRoom = createRoom;
 window.mpJoinRoom = joinRoom;
@@ -7292,21 +7475,18 @@ window.mpReady = ready;
 window.mpLeaveRoom = leaveRoom;
 window.mpQuick = quick;
 window.mpConcede = concede;
-
-window.mp5PlayCard = playCard;
-window.mp5Attach = attach;
-window.mp5Promote = promote;
-window.mp5Attack = attack;
+window.mp5PlayCard = playCardOnline;
+window.mp5Attach = function(zone,index){ action({type:'attachEnergy', target:{zone:zone,index:index}}); };
+window.mp5Promote = swapOnline;
+window.mp5Attack = attackOnline;
 window.mp5PassTurn = passTurn;
 window.mp5Concede = concede;
 
-window.addEventListener('load', function(){
-  try{ connect(); }catch(e){}
-});
-
-console.log('UTCG Multiplayer V5 carregado.');
+window.addEventListener('load', function(){ try{ connect(); }catch(e){} });
+console.log('UTCG Multiplayer V6 carregado na arena normal.');
 })();
 </script>
+
 
 </body>
 </html>
