@@ -640,6 +640,365 @@ function handleAction(room, player, action){
   return { ok:false, error:"Tipo de ação não reconhecido." };
 }
 
+
+
+/* =========================================================
+   UTCG V11 — ONLINE EVENT RAID / CO-OP BOSS
+   Mantém o X1 existente e adiciona salas de evento 1-4 jogadores.
+========================================================= */
+const eventRooms = new Map();
+
+const EVENT_DIFFICULTIES = {
+  facil:  { label:"Fácil",  hp: 850,  bossEnergyGain:1, bossDamage:25, rareChance:0.25, itemChance:18, extraChance:34 },
+  medio:  { label:"Médio",  hp:1150,  bossEnergyGain:2, bossDamage:35, rareChance:0.50, itemChance:24, extraChance:42 },
+  normal: { label:"Normal", hp:1450,  bossEnergyGain:2, bossDamage:45, rareChance:0.75, itemChance:32, extraChance:52 },
+  dificil:{ label:"Difícil",hp:1850,  bossEnergyGain:3, bossDamage:60, rareChance:1.25, itemChance:45, extraChance:66 }
+};
+
+const EVENT_YUTA = {
+  id:"yuta_mega_x",
+  name:"Evento do Yuta",
+  title:"Raid: Yuta Mega X",
+  boosterName:"Booster do Evento Yuta",
+  boss:{
+    id:"event_boss_yuta_mega_x",
+    name:"Yuta Mega X",
+    type:"Amaldiçoada",
+    hp:1000,
+    img:"https://i.imgur.com/HWERuem.png",
+    isEx:true,
+    isEventBoss:true,
+    skills:[
+      { n:"Corte da Rika", d:45, c:0, desc:"Dano em todos os jogadores." },
+      { n:"Energia Amaldiçoada Infinita", d:70, c:0, desc:"Ataque carregado pela energia do boss." }
+    ]
+  },
+  rewards:{
+    item:{ id:"event_item_rika_pendant", name:"Pingente da Rika", type:"Amaldiçoada", hp:0, img:"https://i.imgur.com/HWERuem.png", isSupport:true, eventItem:true, rarity:"Evento", price:0, effect:{type:"energyBoost", value:2}, desc:"Item exclusivo do Evento Yuta. Gera +2 energia." },
+    extras:[
+      { id:"event_yuta_student", name:"Yuta — Estudante Especial", type:"Amaldiçoada", hp:120, img:"https://i.imgur.com/HWERuem.png", isEx:true, rarity:"Evento", price:0, skills:[{n:"Katana Reversa", d:55, c:2, desc:"Golpe de energia amaldiçoada."},{n:"Vínculo Parcial", d:75, c:3, desc:"Ataque com Rika parcial."}] },
+      { id:"event_rika_fragment", name:"Rika Fragmentada", type:"Amaldiçoada", hp:110, img:"https://i.imgur.com/HWERuem.png", isEx:true, rarity:"Evento", price:0, skills:[{n:"Garra Protetora", d:45, c:2, desc:"Ataque de suporte."},{n:"Maldição Presente", d:70, c:3, desc:"Pode aplicar medo."}] }
+    ],
+    mega:{ id:"event_yuta_mega_x", name:"Yuta Mega X", type:"Amaldiçoada", hp:180, img:"https://i.imgur.com/HWERuem.png", isEx:true, isMegaEvent:true, rarity:"Mega Evento", price:0, skills:[{n:"Cópia Absoluta", d:90, c:3, desc:"Ataque premium do evento."},{n:"Rika Total", d:140, c:5, desc:"Ultimate raríssima do Evento Yuta."}] }
+  }
+};
+
+function eventRoomBySocket(id){
+  for(const room of eventRooms.values()){
+    if(room.players.some(p => p.id === id)) return room;
+    if(room.spectators.includes(id)) return room;
+  }
+  return null;
+}
+
+function eventPlayerBySocket(room,id){ return room.players.find(p => p.id === id) || null; }
+
+function publicEventRoom(room){
+  return {
+    code:room.code,
+    status:room.status,
+    eventId:room.eventId,
+    eventTitle:EVENT_YUTA.title,
+    difficulty:room.difficulty,
+    difficultyLabel:(EVENT_DIFFICULTIES[room.difficulty] || EVENT_DIFFICULTIES.normal).label,
+    hostId:room.hostId,
+    maxPlayers:4,
+    players:room.players.map(p => ({ name:p.name, side:p.side, ready:p.ready, connected:p.connected !== false })),
+    spectatorCount:room.spectators.length
+  };
+}
+
+function raidPubPlayer(game, playerSide, viewerSide){
+  const side = game.sides[playerSide];
+  if(!side) return null;
+  return {
+    side:playerSide,
+    name:side.name,
+    eliminated:!!side.eliminated,
+    isYou:playerSide === viewerSide,
+    energyPool:Number(side.energyPool || 0),
+    energy:Number(side.energyPool || 0),
+    energies:side.energies || emptyEnergies(),
+    active:pubCard(side.active),
+    bench:(side.bench || []).map(c => pubCard(c)),
+    hand:playerSide === viewerSide ? (side.hand || []).map(c => pubCard(c)) : (side.hand || []).map(() => pubCard({}, true)),
+    deckCount:(side.deck || []).length,
+    discardCount:(side.discard || []).length,
+    energyUsed:!!side.energyUsed,
+    hasSwapped:!!side.hasSwapped,
+    hasAttacked:!!side.hasAttacked,
+    actedThisRound:(game.acted || []).includes(playerSide)
+  };
+}
+
+function raidGameFor(room, viewerSide){
+  const g = room.game;
+  const sides = g.playersOrder.map(side => raidPubPlayer(g, side, viewerSide)).filter(Boolean);
+  return {
+    mode:"eventRaid",
+    eventId:room.eventId,
+    eventTitle:EVENT_YUTA.title,
+    roomCode:room.code,
+    difficulty:room.difficulty,
+    difficultyLabel:(EVENT_DIFFICULTIES[room.difficulty] || EVENT_DIFFICULTIES.normal).label,
+    youSide:viewerSide || "spectator",
+    turn:g.turn,
+    isYourTurn:g.turn === viewerSide && !g.winner,
+    winner:g.winner,
+    round:g.round,
+    log:g.log,
+    lastEvent:g.lastEvent,
+    boss:pubCard(g.boss),
+    bossEnergy:g.bossEnergy || 0,
+    players:sides,
+    reward: g.winner && viewerSide && room.rewards ? room.rewards[viewerSide] || null : null
+  };
+}
+
+function emitEventRoom(room){
+  io.to(room.code).emit("event:room:update", publicEventRoom(room));
+  if(room.game){
+    for(const p of room.players){
+      const state = raidGameFor(room, p.side);
+      io.to(p.id).emit("event:state", state);
+      if(room.game.winner){
+        io.to(p.id).emit("event:ended", state);
+        if(state.reward) io.to(p.id).emit("event:reward", state.reward);
+      }
+    }
+    for(const sid of room.spectators){
+      io.to(sid).emit("event:state", raidGameFor(room, "spectator"));
+    }
+  }
+}
+
+function rollRaidReward(room, won){
+  const diff = EVENT_DIFFICULTIES[room.difficulty] || EVENT_DIFFICULTIES.normal;
+  if(!won){
+    return { won:false, eventId:EVENT_YUTA.id, boosterName:EVENT_YUTA.boosterName, coins:100, items:[], cards:[], message:"Derrota na raid: recompensa de participação." };
+  }
+  const out = { won:true, eventId:EVENT_YUTA.id, boosterName:EVENT_YUTA.boosterName, coins:500, items:[], cards:[], rolls:{ rareChance:diff.rareChance } };
+  const pct = () => Math.random() * 100;
+  if(pct() < diff.itemChance) out.items.push(clone(EVENT_YUTA.rewards.item));
+  for(const c of EVENT_YUTA.rewards.extras){ if(pct() < diff.extraChance) out.cards.push(clone(c)); }
+  if(pct() < diff.rareChance) out.cards.push(clone(EVENT_YUTA.rewards.mega));
+  if(!out.cards.length && !out.items.length){
+    out.cards.push(clone(EVENT_YUTA.rewards.extras[Math.floor(Math.random() * EVENT_YUTA.rewards.extras.length)]));
+  }
+  return out;
+}
+
+function finishRaid(room, winner){
+  const g = room.game;
+  if(!g || g.winner) return;
+  g.winner = winner;
+  room.status = "ended";
+  const won = winner === "players";
+  addLog(g, won ? "Raid vencida! Boosters liberados para todos." : "O boss venceu a raid.", won ? "#fbbf24" : "#ef4444");
+  addPublicEvent(g, "raidEnd", winner, { winner });
+  room.rewards = room.rewards || {};
+  for(const p of room.players){ const reward = rollRaidReward(room, won); reward.claimId = `${room.code}:${p.side}:${winner}`; room.rewards[p.side] = reward; }
+}
+
+function createRaidGame(room){
+  const diff = EVENT_DIFFICULTIES[room.difficulty] || EVENT_DIFFICULTIES.normal;
+  const order = room.players.map(p => p.side);
+  const sides = {};
+  for(const p of room.players){ sides[p.side] = setupSide(p); }
+  const boss = clone(EVENT_YUTA.boss);
+  boss.maxHp = diff.hp * Math.max(1, room.players.length);
+  boss.hp = boss.maxHp;
+  boss.curHP = boss.maxHp;
+  boss.attached = 0;
+  boss.statuses = [];
+  boss._damageDealt = 0;
+  const game = {
+    mode:"eventRaid",
+    eventId:EVENT_YUTA.id,
+    roomCode:room.code,
+    difficulty:room.difficulty,
+    playersOrder:order,
+    turn:order[0],
+    round:0,
+    acted:[],
+    sides,
+    boss,
+    bossEnergy:0,
+    winner:null,
+    lastEvent:null,
+    log:[]
+  };
+  room.game = game;
+  addLog(game, `${EVENT_YUTA.title} iniciado em ${diff.label}.`, "#38bdf8");
+  startRaidRound(room);
+  return game;
+}
+
+function aliveRaidSides(game){
+  return game.playersOrder.filter(side => {
+    const s = game.sides[side];
+    return s && !s.eliminated && s.active;
+  });
+}
+
+function startRaidRound(room){
+  const g = room.game;
+  const diff = EVENT_DIFFICULTIES[room.difficulty] || EVENT_DIFFICULTIES.normal;
+  if(!g || g.winner) return;
+  g.round += 1;
+  g.acted = [];
+  g.bossEnergy = Number(g.bossEnergy || 0) + diff.bossEnergyGain;
+  for(const sideName of g.playersOrder){
+    const side = g.sides[sideName];
+    if(!side || side.eliminated) continue;
+    resetTurnFlags(side);
+    gainEnergy(side);
+    draw(side);
+  }
+  const alive = aliveRaidSides(g);
+  g.turn = alive[0] || null;
+  addLog(g, `Rodada ${g.round}: boss recebeu +${diff.bossEnergyGain} energia.`, "#fbbf24");
+  addPublicEvent(g, "raidRound", "boss", { round:g.round, bossEnergy:g.bossEnergy });
+}
+
+function raidCheckPlayerKO(room, sideName){
+  const g = room.game;
+  const side = g.sides[sideName];
+  if(!side || !side.active || side.active.curHP > 0) return false;
+  addLog(g, `${side.active.name} de ${side.name} caiu.`, "#ef4444");
+  side.discard.push(side.active);
+  if(side.bench.length){
+    side.active = side.bench.shift();
+    addLog(g, `${side.active.name} entrou como novo ativo de ${side.name}.`, "#fbbf24");
+  }else{
+    side.active = null;
+    side.eliminated = true;
+    addLog(g, `${side.name} foi eliminado da raid.`, "#ef4444");
+  }
+  if(!aliveRaidSides(g).length) finishRaid(room, "boss");
+  return true;
+}
+
+function raidBossTurn(room){
+  const g = room.game;
+  const diff = EVENT_DIFFICULTIES[room.difficulty] || EVENT_DIFFICULTIES.normal;
+  if(!g || g.winner) return;
+  const targets = aliveRaidSides(g);
+  if(!targets.length) return finishRaid(room, "boss");
+  const damage = diff.bossDamage + Math.floor(Number(g.bossEnergy || 0) * 8);
+  addLog(g, `${g.boss.name} atacou todos os jogadores causando ${damage} de dano.`, "#ef4444");
+  for(const sideName of targets){
+    const side = g.sides[sideName];
+    if(side && side.active){
+      side.active.curHP -= damage;
+      g.boss._damageDealt = Number(g.boss._damageDealt || 0) + damage;
+      raidCheckPlayerKO(room, sideName);
+    }
+  }
+  addPublicEvent(g, "bossAttack", "boss", { damage, targets });
+  if(!g.winner) startRaidRound(room);
+}
+
+function advanceRaidTurn(room, sideName){
+  const g = room.game;
+  if(!g || g.winner) return;
+  if(!g.acted.includes(sideName)) g.acted.push(sideName);
+  const alive = aliveRaidSides(g);
+  const next = alive.find(side => !g.acted.includes(side));
+  if(next){
+    g.turn = next;
+    addLog(g, `Turno de ${g.sides[next].name}.`, "#38bdf8");
+    addPublicEvent(g, "raidTurn", next, { round:g.round });
+  }else{
+    g.turn = "boss";
+    raidBossTurn(room);
+  }
+}
+
+function handleRaidAction(room, player, action){
+  const g = room.game;
+  const sideName = player.side;
+  const side = g.sides[sideName];
+  if(!action || !action.type) return { ok:false, error:"Ação inválida." };
+  const type = String(action.type);
+  if(type === "concede" || type === "surrender"){
+    if(side && !side.eliminated){ side.eliminated = true; side.active = null; }
+    addLog(g, `${player.name} desistiu da raid.`, "#ef4444");
+    addPublicEvent(g, "raidConcede", sideName, {});
+    if(!aliveRaidSides(g).length) finishRaid(room, "boss");
+    else if(g.turn === sideName) advanceRaidTurn(room, sideName);
+    return { ok:true };
+  }
+  if(g.winner) return { ok:false, error:"A raid já terminou." };
+  if(!side || side.eliminated) return { ok:false, error:"Você está eliminado." };
+  if(g.turn !== sideName) return { ok:false, error:"Não é seu turno." };
+
+  if(["playCard","play-card","play_card"].includes(type)){
+    const r = playCard(side, action.handIndex);
+    if(r.ok){ addLog(g, `${player.name}: ${r.message}`, "#a7f3d0"); addPublicEvent(g, "raidPlayCard", sideName, r.event || {}); }
+    return r;
+  }
+  if(["attachEnergy","attach-energy","attach_energy"].includes(type)){
+    const r = attachEnergy(side, action);
+    if(r.ok){ addLog(g, `${player.name}: ${r.message}`, "#38bdf8"); addPublicEvent(g, "raidEnergy", sideName, r.event || {}); }
+    return r;
+  }
+  if(["promote","switchActive","switch-active","switch_active"].includes(type)){
+    const r = promote(side, action.benchIndex);
+    if(r.ok){ addLog(g, `${player.name}: ${r.message}`, "#fbbf24"); addPublicEvent(g, "raidPromote", sideName, r.event || {}); }
+    return r;
+  }
+  if(type === "attack"){
+    if(!side.active || !g.boss) return { ok:false, error:"Sem atacante ou boss." };
+    if(side.hasSwapped) return { ok:false, error:"Troca recente: não pode atacar neste turno." };
+    if(side.hasAttacked) return { ok:false, error:"Você já atacou neste turno." };
+    const skillIndex = Number(action.skillIndex || 0);
+    const skill = side.active.skills[skillIndex];
+    if(!skill) return { ok:false, error:"Ataque inválido." };
+    if(Number(side.active.attached || 0) < Number(skill.c || 0)) return { ok:false, error:"Energia anexada insuficiente." };
+    side.hasAttacked = true;
+    let damage = Math.max(0, Number(skill.d || 0));
+    if(hasStatus(side.active, "rage")) damage = Math.ceil(damage * 1.35);
+    g.boss.curHP -= damage;
+    side.active._damageDealt = Number(side.active._damageDealt || 0) + damage;
+    addLog(g, `${player.name} causou ${damage} no boss com ${skill.n}.`, "#ef4444");
+    if(g.boss.curHP <= 0){
+      g.boss.curHP = 0;
+      addPublicEvent(g, "raidAttack", sideName, { skill, damage, boss:true, winner:"players" });
+      finishRaid(room, "players");
+      return { ok:true };
+    }
+    addPublicEvent(g, "raidAttack", sideName, { skill, damage, boss:true });
+    advanceRaidTurn(room, sideName);
+    return { ok:true };
+  }
+  if(type === "pass"){
+    addLog(g, `${player.name} passou a vez na raid.`, "#94a3b8");
+    advanceRaidTurn(room, sideName);
+    return { ok:true };
+  }
+  return { ok:false, error:"Tipo de ação não reconhecido." };
+}
+
+function handleEventDisconnect(socket){
+  const room = eventRoomBySocket(socket.id);
+  if(!room) return false;
+  const leaving = eventPlayerBySocket(room, socket.id);
+  if(leaving) leaving.connected = false;
+  room.players = room.players.filter(p => p.id !== socket.id);
+  room.spectators = room.spectators.filter(id => id !== socket.id);
+  socket.leave(room.code);
+  if(!room.players.length){ eventRooms.delete(room.code); return true; }
+  if(room.status === "playing" && room.game && leaving && !room.game.winner){
+    const side = room.game.sides[leaving.side];
+    if(side){ side.eliminated = true; side.active = null; }
+    addLog(room.game, `${leaving.name} saiu da raid.`, "#ef4444");
+    if(!aliveRaidSides(room.game).length) finishRaid(room, "boss");
+  }
+  emitEventRoom(room);
+  return true;
+}
+
 io.on("connection", socket => {
   console.log("Jogador conectado:", socket.id);
 
@@ -746,6 +1105,101 @@ io.on("connection", socket => {
     emitRoom(room);
   });
 
+
+
+  /* ===================== EVENTO ONLINE — RAID CO-OP ===================== */
+  socket.on("event:info", (payload={}, callback) => {
+    cb(callback, { ok:true, event:EVENT_YUTA, difficulties:EVENT_DIFFICULTIES });
+  });
+
+  socket.on("event:create", (payload={}, callback) => {
+    let code;
+    do { code = makeCode(); } while(eventRooms.has(code) || rooms.has(code));
+    const diffKey = String(payload.difficulty || "normal").toLowerCase();
+    const difficulty = EVENT_DIFFICULTIES[diffKey] ? diffKey : "normal";
+    const room = {
+      code,
+      type:"eventRaid",
+      eventId:EVENT_YUTA.id,
+      difficulty,
+      status:"waiting",
+      hostId:socket.id,
+      players:[{ id:socket.id, name:String(payload.name || "Jogador 1").slice(0,18), side:"r1", ready:false, deck:[], connected:true }],
+      spectators:[],
+      game:null,
+      rewards:{},
+      createdAt:Date.now()
+    };
+    eventRooms.set(code, room);
+    socket.join(code);
+    cb(callback, { ok:true, room:publicEventRoom(room), side:"r1" });
+    emitEventRoom(room);
+  });
+
+  socket.on("event:join", (payload={}, callback) => {
+    const code = String(payload.code || "").trim().toUpperCase();
+    const room = eventRooms.get(code);
+    if(!room) return cb(callback, { ok:false, error:"Sala de evento não encontrada." });
+    socket.join(code);
+    if(room.status !== "waiting" || room.players.length >= 4){
+      if(!room.spectators.includes(socket.id)) room.spectators.push(socket.id);
+      return cb(callback, { ok:true, room:publicEventRoom(room), side:"spectator", spectator:true, state:room.game ? raidGameFor(room, "spectator") : null });
+    }
+    const side = `r${room.players.length + 1}`;
+    room.players.push({ id:socket.id, name:String(payload.name || `Jogador ${room.players.length + 1}`).slice(0,18), side, ready:false, deck:[], connected:true });
+    cb(callback, { ok:true, room:publicEventRoom(room), side });
+    emitEventRoom(room);
+  });
+
+  socket.on("event:leave", (payload={}, callback) => {
+    const room = eventRoomBySocket(socket.id);
+    if(!room) return cb(callback, { ok:true });
+    const leaving = eventPlayerBySocket(room, socket.id);
+    if(room.status === "playing" && room.game && leaving && !room.game.winner){
+      const side = room.game.sides[leaving.side];
+      if(side){ side.eliminated = true; side.active = null; }
+      addLog(room.game, `${leaving.name} saiu da raid.`, "#ef4444");
+      if(!aliveRaidSides(room.game).length) finishRaid(room, "boss");
+    }
+    room.players = room.players.filter(p => p.id !== socket.id);
+    room.spectators = room.spectators.filter(id => id !== socket.id);
+    socket.leave(room.code);
+    if(!room.players.length) eventRooms.delete(room.code);
+    else emitEventRoom(room);
+    cb(callback, { ok:true });
+  });
+
+  socket.on("event:ready", (payload={}, callback) => {
+    if(typeof payload === "function"){ callback = payload; payload = {}; }
+    const room = eventRoomBySocket(socket.id);
+    if(!room) return cb(callback, { ok:false, error:"Você não está em uma sala de evento." });
+    const player = eventPlayerBySocket(room, socket.id);
+    if(!player) return cb(callback, { ok:false, error:"Espectadores não podem ficar prontos." });
+    if(room.status !== "waiting") return cb(callback, { ok:false, error:"A raid já começou." });
+    const deck = sanitizeDeck(payload.deck || payload.userDeck || []);
+    if(deck.length < 5) return cb(callback, { ok:false, error:"Seu deck online precisa ter pelo menos 5 cartas." });
+    player.deck = deck;
+    player.ready = true;
+    if(room.players.length >= 1 && room.players.every(p => p.ready && p.deck.length >= 5)){
+      room.status = "playing";
+      createRaidGame(room);
+      console.log(`Raid de evento iniciada na sala ${room.code}`);
+    }
+    cb(callback, { ok:true, room:publicEventRoom(room), state:room.game ? raidGameFor(room, player.side) : null });
+    emitEventRoom(room);
+  });
+
+  socket.on("event:action", (payload={}, callback) => {
+    const room = eventRoomBySocket(socket.id);
+    if(!room || !room.game) return cb(callback, { ok:false, error:"Raid não encontrada." });
+    if(room.status !== "playing") return cb(callback, { ok:false, error:"A raid não está ativa." });
+    const player = eventPlayerBySocket(room, socket.id);
+    if(!player) return cb(callback, { ok:false, error:"Espectador não pode jogar." });
+    const result = handleRaidAction(room, player, payload.action || payload);
+    cb(callback, result);
+    emitEventRoom(room);
+  });
+
   socket.on("chat:quick", (payload={}) => {
     const room = roomBySocket(socket.id);
     if(!room) return;
@@ -755,6 +1209,7 @@ io.on("connection", socket => {
   });
 
   socket.on("disconnect", () => {
+    if(handleEventDisconnect(socket)) return;
     const room = roomBySocket(socket.id);
     if(!room) return;
 
