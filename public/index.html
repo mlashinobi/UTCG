@@ -3496,7 +3496,7 @@ body.mp-online-playing #mp-battle-screen{display:flex;}
 <body>
 
     <!-- ===================== COPYRIGHT ===================== -->
-    <div id="copyright-badge" style="position:fixed;bottom:10px;left:12px;z-index:99999;font-family:'Rajdhani',sans-serif;font-size:10px;color:rgba(255,255,255,0.28);letter-spacing:0.5px;pointer-events:none;user-select:none;text-shadow:0 1px 4px rgba(0,0,0,0.9);line-height:1.4;">© Todos os direitos reservados<br>Daniel Ribeiro — Criador do Jogo</div>
+    <div id="copyright-badge" style="position:fixed;bottom:10px;left:12px;z-index:99999;font-family:'Rajdhani',sans-serif;font-size:10px;color:rgba(255,255,255,0.34);letter-spacing:0.5px;pointer-events:none;user-select:none;text-shadow:0 1px 4px rgba(0,0,0,0.9);line-height:1.45;"><span style="color:rgba(251,191,36,0.86);font-weight:800;">Contato: @dancostx</span><br>© Todos os direitos reservados<br>Daniel Ribeiro — Criador do Jogo</div>
 
     <!-- ===================== SPLASH SCREEN ===================== -->
     <div id="splash-screen">
@@ -3543,19 +3543,21 @@ body.mp-online-playing #mp-battle-screen{display:flex;}
             <button class="btn btn-sec" onclick="playClick();document.getElementById('load-input').click()">📂 Carregar Dados</button>
             <input type="file" id="load-input" style="display:none" onchange="loadGame(this)">
         </div>
-        <div id="update-notes">
-            <h4>🗒 UTCG — Update Notes v3.0</h4>
+        <div id="update-notes" tabindex="0" aria-label="Notepad de atualizações UTCG">
+            <h4>🗒 UTCG — Notepad v18</h4>
             <ul>
-                <li>Animações de status: Queimado🔥, Atordoado💫, Escudo🛡, Esquiva💨</li>
-                <li>Partículas flutuantes na arena durante a batalha</li>
-                <li>Efeito crítico para danos > 100</li>
-                <li>Animações de carta refinadas: hit-flash, shake, death</li>
-                <li>UI aprimorada com glows pulsantes e transições suaves</li>
-                <li>Pilha de descarte com animação de pulsação</li>
-                <li>Timer visual melhorado com alerta de urgência</li>
-                <li>Modo História com cenas cinematográficas</li>
-                <li>Pucci 3-stage evolution: White Snake → C-Moon → Made in Heaven</li>
-                <li>Sistema de energia por tipo de deck</li>
+                <li><b>Zoom interno 90%</b> aplicado nas batalhas normais, X1 online e modos offline de batalha, sem alterar o zoom real do navegador.</li>
+                <li><b>Eventos/Raid</b> mantidos sem zoom 90%, para preservar o layout próprio do boss.</li>
+                <li><b>Eventos Online</b>: Raid Yuta Mega X, salas cooperativas de 1 a 4 jogadores, dificuldade e recompensa por booster.</li>
+                <li><b>Recompensas de evento</b>: vitória abre booster com 500 moedas garantidas; derrota/desistência entrega recompensa de participação.</li>
+                <li><b>Sincronização online</b>: vitória, derrota e desistência forçam a tela correta nos dois aparelhos.</li>
+                <li><b>Cartas cortadas</b>: áreas de arena revisadas para permitir cartas completas.</li>
+                <li><b>Menu Multiplayer</b>: Ranqueada em breve, X1 e Eventos.</li>
+                <li><b>Deck Editor</b>: slots de deck, deck ativo para offline e online, filtros e ordenação.</li>
+                <li><b>Loja</b>: rotação a cada 12 horas com ETH/EX, cartas normais e itens aleatórios.</li>
+                <li><b>Mobile</b>: arena reorganizada para leitura vertical, zonas separadas e cartas mais fáceis de tocar.</li>
+                <li><b>Status e efeitos</b>: queimado, veneno, stun, freeze, escudo, esquiva, rage e eventos visuais de dano.</li>
+                <li><b>Contato</b>: @dancostx</li>
             </ul>
         </div>
     </div>
@@ -11850,6 +11852,162 @@ body.ultra-desktop-ready #game-ui{
   window.addEventListener('load',function(){ setTimeout(install,120); setTimeout(install,900); });
   setTimeout(install,120);
   setTimeout(install,900);
+})();
+</script>
+
+
+
+<!-- =========================================================
+     UTCG V18 — ZOOM INTERNO 90% + NOTEPAD FUNCIONAL + CONTATO
+     ========================================================= -->
+<style id="utcg-v18-battle-zoom-notepad">
+/*
+   Zoom interno: só no tabuleiro de batalha normal/offline/X1.
+   O modo Eventos/Raid não usa #game-ui como tela principal, então fica preservado.
+*/
+#game-ui{
+  zoom:90%!important;
+  width:111.111vw!important;
+  height:111.111dvh!important;
+  min-height:111.111dvh!important;
+  max-height:none!important;
+  transform-origin:top left!important;
+}
+@supports not (zoom: 1){
+  #game-ui{
+    zoom:1!important;
+    width:111.111vw!important;
+    height:111.111dvh!important;
+    min-height:111.111dvh!important;
+    transform:scale(.9)!important;
+    transform-origin:top left!important;
+  }
+}
+#event-raid-screen,
+#event-raid-screen.v12-raid{
+  zoom:1!important;
+  transform:none!important;
+  width:100vw!important;
+}
+
+/* Mantém o copyright/contact visível, mas sem atrapalhar clique. */
+#copyright-badge{
+  backdrop-filter:blur(5px)!important;
+  padding:5px 8px!important;
+  border-radius:8px!important;
+  background:rgba(0,0,0,.22)!important;
+  border:1px solid rgba(255,255,255,.06)!important;
+}
+
+/* Notepad rolável de verdade. Antes estava com pointer-events:none, bloqueando scroll. */
+#update-notes{
+  pointer-events:auto!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain!important;
+  touch-action:pan-y!important;
+  user-select:text!important;
+  cursor:default!important;
+  width:min(340px,32vw)!important;
+  max-height:min(54vh,460px)!important;
+  padding:14px 16px!important;
+  line-height:1.55!important;
+  background:linear-gradient(180deg,rgba(8,13,28,.98),rgba(2,6,23,.96))!important;
+  border:1px solid rgba(251,191,36,.55)!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.75), inset 0 0 28px rgba(251,191,36,.04)!important;
+}
+#update-notes h4{
+  position:sticky!important;
+  top:0!important;
+  z-index:2!important;
+  padding:0 0 8px!important;
+  margin:0 0 8px!important;
+  background:linear-gradient(180deg,rgba(8,13,28,.98),rgba(8,13,28,.88))!important;
+  border-bottom:1px solid rgba(251,191,36,.22)!important;
+}
+#update-notes ul{padding-left:16px!important;}
+#update-notes li{margin-bottom:7px!important;}
+#update-notes b{color:#fbbf24!important;}
+#update-notes::-webkit-scrollbar{width:8px!important;}
+#update-notes::-webkit-scrollbar-track{background:rgba(15,23,42,.85)!important;border-radius:999px!important;}
+#update-notes::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#fbbf24,#38bdf8)!important;border-radius:999px!important;}
+
+@media screen and (max-width: 850px){
+  #main-menu #update-notes{
+    display:block!important;
+    position:relative!important;
+    inset:auto!important;
+    width:min(92vw,420px)!important;
+    max-height:190px!important;
+    margin:12px auto 0!important;
+    font-size:10.5px!important;
+    padding:10px 12px!important;
+    border-radius:12px!important;
+  }
+  #main-menu .menu-buttons{margin-right:0!important;}
+  #copyright-badge{
+    bottom:6px!important;
+    left:6px!important;
+    font-size:9px!important;
+    max-width:54vw!important;
+  }
+}
+
+@media screen and (min-width: 851px){
+  #main-menu #update-notes{
+    right:18px!important;
+    bottom:18px!important;
+  }
+}
+</style>
+<script id="utcg-v18-notepad-and-zoom-script">
+(function(){
+  'use strict';
+  function $(id){ return document.getElementById(id); }
+  function refreshNotepad(){
+    var n = $('update-notes');
+    if(!n) return;
+    n.setAttribute('tabindex','0');
+    n.setAttribute('aria-label','Notepad de atualizações UTCG');
+    n.style.pointerEvents = 'auto';
+    n.style.overflowY = 'auto';
+    n.style.touchAction = 'pan-y';
+  }
+  function markBattleZoom(){
+    var g = $('game-ui');
+    if(g){
+      g.setAttribute('data-battle-zoom','90');
+      g.classList.add('utcg-zoom-90-battle');
+    }
+    var r = $('event-raid-screen');
+    if(r){
+      r.setAttribute('data-battle-zoom','100');
+      r.classList.add('utcg-no-zoom-event');
+    }
+  }
+  var oldShow = window.showScreen;
+  if(typeof oldShow === 'function' && !oldShow.__utcgV18Wrapped){
+    var wrapped = function(id, modeParam){
+      var ret = oldShow.apply(this, arguments);
+      setTimeout(function(){
+        refreshNotepad();
+        markBattleZoom();
+        if(id === 'main-menu'){
+          var n = $('update-notes');
+          if(n) n.scrollTop = 0;
+        }
+      }, 0);
+      return ret;
+    };
+    wrapped.__utcgV18Wrapped = true;
+    window.showScreen = wrapped;
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    refreshNotepad();
+    markBattleZoom();
+  });
+  setTimeout(function(){ refreshNotepad(); markBattleZoom(); }, 600);
+  setTimeout(function(){ refreshNotepad(); markBattleZoom(); }, 1600);
 })();
 </script>
 
