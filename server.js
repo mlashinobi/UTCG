@@ -1135,6 +1135,10 @@ io.on("connection", socket => {
     if(!player) return cb(callback, { ok:false, error:"Espectador não pode jogar." });
 
     const result = handleAction(room, player, payload.action || payload);
+    if(result && result.ok){
+      result.state = room.game ? gameFor(room, player.side) : null;
+      if(room.game && room.game.winner) result.ended = true;
+    }
     cb(callback, result);
     emitRoom(room);
   });
@@ -1241,9 +1245,9 @@ io.on("connection", socket => {
     const result = handleRaidAction(room, player, payload.action || payload);
     if(result && result.ok){
       if(result.reward) io.to(socket.id).emit("event:reward", result.reward);
+      result.state = room.game ? raidGameFor(room, player.side) : null;
       if(room.game && room.game.winner){
         result.ended = true;
-        result.state = raidGameFor(room, player.side);
         result.reward = room.rewards ? room.rewards[player.side] || result.reward || null : result.reward || null;
       }
     }
