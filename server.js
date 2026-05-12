@@ -316,12 +316,22 @@ function emitRoom(room){
     for(const p of room.players){
       const state = gameFor(room, p.side);
       io.to(p.id).emit("game:state", state);
-      if(room.game.winner) io.to(p.id).emit("game:ended", state);
+      if(room.game.winner){
+        io.to(p.id).emit("game:ended", state);
+        io.to(p.id).emit("battle:ended", state);
+        io.to(p.id).emit("match:ended", state);
+        io.to(p.id).emit("game:forceEnded", state);
+      }
     }
     for(const sid of room.spectators){
       const state = gameFor(room, "spectator");
       io.to(sid).emit("game:state", state);
-      if(room.game.winner) io.to(sid).emit("game:ended", state);
+      if(room.game.winner){
+        io.to(sid).emit("game:ended", state);
+        io.to(sid).emit("battle:ended", state);
+        io.to(sid).emit("match:ended", state);
+        io.to(sid).emit("game:forceEnded", state);
+      }
     }
   }
 }
@@ -820,6 +830,15 @@ function finishRaid(room, winner){
       room.rewards[p.side] = reward;
     }
   }
+
+  // Empurra o encerramento imediatamente para todos os clientes conectados.
+  // O emitRoom normal ainda roda depois das ações, mas esse reforço evita tela presa.
+  for(const p of room.players){
+    const state = raidGameFor(room, p.side);
+    io.to(p.id).emit("event:state", state);
+    io.to(p.id).emit("event:ended", state);
+    if(room.rewards[p.side]) io.to(p.id).emit("event:reward", room.rewards[p.side]);
+  }
 }
 
 function createRaidGame(room){
@@ -1129,10 +1148,16 @@ io.on("connection", socket => {
   socket.on("game:action", (payload={}, callback) => {
     const room = roomBySocket(socket.id);
     if(!room || !room.game) return cb(callback, { ok:false, error:"Partida não encontrada." });
-    if(room.status !== "playing") return cb(callback, { ok:false, error:"A partida não está ativa." });
 
     const player = playerBySocket(room, socket.id);
     if(!player) return cb(callback, { ok:false, error:"Espectador não pode jogar." });
+
+    if(room.status !== "playing"){
+      const endedState = gameFor(room, player.side);
+      cb(callback, { ok:false, error:"A partida não está ativa.", state:endedState, ended:!!(room.game && room.game.winner) });
+      emitRoom(room);
+      return;
+    }
 
     const result = handleAction(room, player, payload.action || payload);
     if(result && result.ok){
@@ -1194,20 +1219,38 @@ io.on("connection", socket => {
     if(!room) return cb(callback, { ok:true });
     const leaving = eventPlayerBySocket(room, socket.id);
     let leavingReward = null;
-    if(room.status === "playing" && room.game && leaving && !room.game.winner){
-      const side = room.game.sides[leaving.side];
-      if(side){ side.eliminated = true; side.active = null; }
+
+    if(room.game && leaving){
       room.rewards = room.rewards || {};
-      if(!room.rewards[leaving.side]){
-        leavingReward = rollRaidReward(room, false);
-        leavingReward.claimId = `${room.code}:${leaving.side}:leave:${Date.now()}`;
-        room.rewards[leaving.side] = leavingReward;
-      }else leavingReward = room.rewards[leaving.side];
-      addLog(room.game, `${leaving.name} saiu da raid.`, "#ef4444");
-      addPublicEvent(room.game, "raidConcede", leaving.side, { reward:leavingReward });
-      if(!aliveRaidSides(room.game).length) finishRaid(room, "boss");
-      io.to(socket.id).emit("event:reward", leavingReward);
+
+      // Se a raid já terminou, o jogador ainda precisa conseguir coletar a recompensa
+      // antes de ser removido da sala.
+      if(room.game.winner){
+        const won = room.game.winner === "players";
+        if(!room.rewards[leaving.side]){
+          leavingReward = rollRaidReward(room, won);
+          leavingReward.claimId = `${room.code}:${leaving.side}:leave-after-end:${room.game.winner}`;
+          room.rewards[leaving.side] = leavingReward;
+        }else leavingReward = room.rewards[leaving.side];
+        io.to(socket.id).emit("event:reward", leavingReward);
+      }
+
+      // Se sair durante a raid, conta como desistência individual e dá recompensa de derrota.
+      if(room.status === "playing" && !room.game.winner){
+        const side = room.game.sides[leaving.side];
+        if(side){ side.eliminated = true; side.active = null; }
+        if(!room.rewards[leaving.side]){
+          leavingReward = rollRaidReward(room, false);
+          leavingReward.claimId = `${room.code}:${leaving.side}:leave:${Date.now()}`;
+          room.rewards[leaving.side] = leavingReward;
+        }else leavingReward = room.rewards[leaving.side];
+        addLog(room.game, `${leaving.name} saiu da raid.`, "#ef4444");
+        addPublicEvent(room.game, "raidConcede", leaving.side, { reward:leavingReward });
+        if(!aliveRaidSides(room.game).length) finishRaid(room, "boss");
+        io.to(socket.id).emit("event:reward", leavingReward);
+      }
     }
+
     room.players = room.players.filter(p => p.id !== socket.id);
     room.spectators = room.spectators.filter(id => id !== socket.id);
     socket.leave(room.code);
@@ -1239,9 +1282,20 @@ io.on("connection", socket => {
   socket.on("event:action", (payload={}, callback) => {
     const room = eventRoomBySocket(socket.id);
     if(!room || !room.game) return cb(callback, { ok:false, error:"Raid não encontrada." });
-    if(room.status !== "playing") return cb(callback, { ok:false, error:"A raid não está ativa." });
     const player = eventPlayerBySocket(room, socket.id);
     if(!player) return cb(callback, { ok:false, error:"Espectador não pode jogar." });
+
+    // Se o cliente clicar em algo depois do fim, não deixa ele preso em erro:
+    // reenvia o estado final e a recompensa correta.
+    if(room.status !== "playing"){
+      const state = raidGameFor(room, player.side);
+      const reward = room.rewards ? room.rewards[player.side] || null : null;
+      if(reward) io.to(socket.id).emit("event:reward", reward);
+      cb(callback, { ok:true, ended:!!(room.game && room.game.winner), state, reward });
+      emitEventRoom(room);
+      return;
+    }
+
     const result = handleRaidAction(room, player, payload.action || payload);
     if(result && result.ok){
       if(result.reward) io.to(socket.id).emit("event:reward", result.reward);
