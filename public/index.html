@@ -6791,10 +6791,17 @@ function connect(){
     if(payload && (payload.state || payload.game)) ingestGameState(payload.state || payload.game);
   });
 
-  ['game:state','game:update','state:update','game:start','battle:start','match:start','game:ended','battle:ended','match:ended'].forEach(function(eventName){
+  ['game:state','game:update','state:update','game:start','battle:start','match:start'].forEach(function(eventName){
     mpSocket.on(eventName, function(payload){
       if(payload && payload.room) ingestRoom(payload.room);
       ingestGameState(payload && (payload.state || payload.game || payload.match) ? (payload.state || payload.game || payload.match) : payload);
+    });
+  });
+
+  ['game:ended','battle:ended','match:ended','game:forceEnded'].forEach(function(eventName){
+    mpSocket.on(eventName, function(payload){
+      if(payload && payload.room) ingestRoom(payload.room);
+      forceOnlineConclusion(payload && (payload.state || payload.game || payload.match) ? (payload.state || payload.game || payload.match) : payload);
     });
   });
 
@@ -6843,6 +6850,33 @@ function ingestGameState(raw){
   }
 
   if(freshEvent) mpLastEvent = ev.id;
+}
+
+function forceOnlineConclusion(raw){
+  const state = normalizeState(raw);
+  if(!state || !state.you || !state.enemy || !state.winner) return;
+
+  mpGame = state;
+  mpSide = canonicalSide(state.youSide || mpSide) || mpSide || state.youSide;
+  state.youSide = mpSide || state.youSide;
+  window.mpGame = state;
+  window.mpMySide = mpSide;
+  window.UTCG_ONLINE_MODE = true;
+
+  clearTimeout(mpRenderDelay);
+  clearInterval(mpTimer);
+  mpResultShown = true;
+
+  document.body.classList.remove('mp-online-playing');
+  document.body.classList.add('mp-active');
+
+  try{ mapStateToNormalGame(state); }catch(e){}
+  showOnlineResult(state);
+
+  setTimeout(function(){
+    const rs = q('result-screen');
+    if(rs && rs.style.display !== 'flex') showOnlineResult(state);
+  }, 250);
 }
 
 function normalizeState(state){
@@ -6965,6 +6999,12 @@ function openArena(){
 
 function renderGame(state){
   if(!state) return;
+
+  if(state.winner){
+    forceOnlineConclusion(state);
+    return;
+  }
+
   openArena();
   mapStateToNormalGame(state);
 
@@ -6973,12 +7013,6 @@ function renderGame(state){
   renderServerLogs(state);
   decorateOnlineArena(state);
   startOnlineTimer(state);
-
-  if(state.winner && !mpResultShown){
-    mpResultShown = true;
-    clearInterval(mpTimer);
-    setTimeout(function(){ showOnlineResult(state); }, 850);
-  }
 }
 
 function mapStateToNormalGame(state){
@@ -7216,7 +7250,8 @@ function resultCard(card, role, loser){
 }
 
 function showOnlineResult(state){
-  const win = state.winner === state.youSide;
+  state = normalizeState(state) || state;
+  const win = canonicalSide(state.winner) === canonicalSide(state.youSide);
   const rs = q('result-screen');
   const rt = q('result-title');
   const rc = q('result-coins');
@@ -7243,10 +7278,16 @@ function showOnlineResult(state){
     btn.textContent = '← VOLTAR AO MENU';
     btn.onclick = function(){
       try{ if(typeof playClick === 'function') playClick(); }catch(e){}
-      leaveRoom();
-      document.body.classList.remove('mp-active');
+      try{ leaveRoom(); }catch(e){}
+      mpGame = null;
+      mpResultShown = false;
+      clearInterval(mpTimer);
+      clearTimeout(mpRenderDelay);
+      document.body.classList.remove('mp-active','mp-online-playing');
       window.UTCG_ONLINE_MODE = false;
+      if(q('result-screen')) q('result-screen').style.display = 'none';
       if(typeof showScreen === 'function') showScreen('main-menu');
+      else showOnly('main-menu');
     };
   }
 
@@ -10064,8 +10105,34 @@ body.mp-active #mp-game-panel{
   function eventCreateRoom(){ const s=connectEvent(); if(!s) return; const difficulty=(($('event-difficulty-v12')&&$('event-difficulty-v12').value)||'normal'); s.emit('event:create',{name:getName(),difficulty:difficulty},function(res){ if(!res||!res.ok) return alert((res&&res.error)||'Erro ao criar evento.'); eventRoom=res.room; eventSide=res.side; renderEventRoom(eventRoom); }); }
   function eventJoinRoom(){ const s=connectEvent(); if(!s) return; const code=(($('event-code-v12')&&$('event-code-v12').value)||'').trim().toUpperCase(); if(!code) return alert('Digite o código da sala.'); s.emit('event:join',{code:code,name:getName()},function(res){ if(!res||!res.ok) return alert((res&&res.error)||'Erro ao entrar no evento.'); eventRoom=res.room; eventSide=res.side; renderEventRoom(eventRoom); if(res.state) renderRaid(res.state); }); }
   function eventReady(){ const s=connectEvent(); if(!s||!eventRoom) return alert('Crie ou entre em uma sala de evento primeiro.'); const deck=getDeckPayload(); s.emit('event:ready',{deck:deck},function(res){ if(!res||!res.ok) return alert((res&&res.error)||'Erro ao ficar pronto.'); if(res.room){ eventRoom=res.room; renderEventRoom(eventRoom); } if(res.state) renderRaid(res.state); }); }
-  function eventLeaveRoom(cb){ if(eventSocket&&eventRoom) eventSocket.emit('event:leave',{},function(res){ if(res && res.reward) showRaidReward(res.reward); if(typeof cb==='function') cb(res); }); eventRoom=null; eventSide=null; eventState=null; }
-  function eventAction(a, done){ if(!eventSocket||!eventState) return alert('Raid não conectada.'); eventSocket.emit('event:action',{action:a},function(res){ if(!res||!res.ok){ alert((res&&res.error)||'Ação recusada.'); return; } if(res.reward) showRaidReward(res.reward); if(res.state) renderRaid(res.state); if(typeof done==='function') done(res); }); }
+  function eventLeaveRoom(cb){
+    let finished=false;
+    function done(res){
+      if(finished) return;
+      finished=true;
+      if(res && res.reward) showRaidReward(res.reward);
+      eventRoom=null; eventSide=null; eventState=null;
+      if(typeof cb==='function') cb(res || {ok:true});
+    }
+    if(eventSocket && eventRoom){
+      try{
+        eventSocket.emit('event:leave',{},done);
+        setTimeout(function(){ done({ok:true, timeout:true}); },1200);
+      }catch(e){ done({ok:false,error:String(e)}); }
+    }else{
+      done({ok:true,noRoom:true});
+    }
+  }
+  function eventAction(a, done){
+    if(!eventSocket||!eventState) return alert('Raid não conectada.');
+    eventSocket.emit('event:action',{action:a},function(res){
+      if(!res){ alert('Ação recusada.'); return; }
+      if(res.state) renderRaid(res.state);
+      if(res.reward) showRaidReward(res.reward);
+      if(!res.ok && !res.ended){ alert(res.error||'Ação recusada.'); return; }
+      if(typeof done==='function') done(res);
+    });
+  }
 
   function ensureRaidScreen(){
     let screen=$('event-raid-screen');
@@ -10206,7 +10273,19 @@ body.mp-active #mp-game-panel{
     overlay.innerHTML='<div class="v12-reward-box"><div class="v11-online-kicker">'+html(reward.boosterName||'Evento')+'</div><h2 style="font-family:Orbitron,monospace;color:#fbbf24;margin:6px 0">'+title+'</h2><div class="v12-booster-pack">UTCG<br>EVENT</div><div style="font-size:20px;color:#4ade80;font-weight:900">+'+Number(reward.coins||0)+' moedas</div><div class="v12-reward-grid">'+(drops.length?drops.map(function(c){ return '<div class="v12-reward-result '+(c.isMegaEvent?'mega':'')+'"><img src="'+html(c.img||'https://i.imgur.com/HWERuem.png')+'"><b>'+html(c.name||'Item')+'</b></div>'; }).join(''):'<div class="v12-reward-result"><b>Nenhuma carta extra desta vez.</b></div>')+'</div><button class="btn btn-gold" onclick="eventCollectReward('+(reward.won?'true':'false')+')">COLETAR</button></div>';
     overlay.style.display='flex';
   }
-  function eventCollectReward(won){ const o=$('v12-reward-overlay'); if(o) o.style.display='none'; eventLeaveRoom(function(){ if(won) v12OnlineEvents(); else show('main-menu'); }); }
+  function eventCollectReward(won){
+    const o=$('v12-reward-overlay'); if(o) o.style.display='none';
+    let moved=false;
+    function go(){
+      if(moved) return;
+      moved=true;
+      eventRoom=null; eventSide=null; eventState=null;
+      const raid=$('event-raid-screen'); if(raid) raid.style.display='none';
+      if(won) v12OnlineEvents(); else show('main-menu');
+    }
+    try{ eventLeaveRoom(function(){ setTimeout(go,80); }); }catch(e){ go(); }
+    setTimeout(go,1500);
+  }
 
   function eventPass(){ if(eventState&&eventState.isYourTurn) eventAction({type:'pass'}); }
   function eventConcede(){ if(confirm('Sair/desistir encerra sua participação e dá recompensa de derrota. Continuar?')) eventAction({type:'concede'},function(res){ if(res && res.reward) showRaidReward(res.reward); }); }
@@ -11322,6 +11401,455 @@ body.ultra-desktop-ready #game-ui{
   window.addEventListener('load',function(){ setTimeout(init,80); setTimeout(init,600); });
   setTimeout(init,80);
   setTimeout(init,700);
+})();
+</script>
+
+
+
+<!-- =========================================================
+     UTCG V15 — CORREÇÃO DEFINITIVA DE CARTAS CORTADAS
+     Foco: raid/eventos no celular + cartas normais/online sem clipping.
+========================================================= -->
+<style id="utcg-v15-no-card-cut-final">
+/* Base anti-corte: a carta pode ser grande, mas a zona deve mostrar a carta inteira. */
+#game-ui *,
+#event-raid-screen *{
+  box-sizing:border-box!important;
+}
+#game-ui .zone-row,
+#game-ui #e-active,
+#game-ui #p-active,
+#game-ui #e-bench,
+#game-ui #p-bench,
+#event-raid-screen .v12-field-row,
+#event-raid-screen .v12-player,
+#event-raid-screen .v12-players{
+  overflow-y:visible!important;
+}
+#game-ui .card,
+#event-raid-screen .v12-card,
+#event-raid-screen .raid-card{
+  overflow:hidden!important;
+  transform-origin:center center!important;
+}
+#game-ui .card img,
+#event-raid-screen .v12-card img,
+#event-raid-screen .raid-card img{
+  display:block!important;
+  max-width:100%!important;
+}
+
+/* RAID / EVENTOS: o bug da foto era o boss dentro de um wrap com overflow hidden.
+   Agora o palco do boss reserva altura suficiente e permite o card completo. */
+#event-raid-screen.v12-raid .v12-boss-wrap,
+#event-raid-screen .raid-boss-area{
+  overflow:visible!important;
+}
+#event-raid-screen.v12-raid .v12-boss-stage,
+#event-raid-screen .raid-boss-stack{
+  overflow:visible!important;
+  position:relative!important;
+  z-index:2!important;
+}
+#event-raid-screen.v12-raid .v12-card.boss,
+#event-raid-screen .raid-card.boss{
+  margin-left:auto!important;
+  margin-right:auto!important;
+  margin-bottom:14px!important;
+  flex:0 0 auto!important;
+}
+#event-raid-screen.v12-raid .v12-card-body,
+#event-raid-screen .raid-card-body{
+  overflow:hidden!important;
+}
+#event-raid-screen.v12-raid .v12-card-actions,
+#event-raid-screen .raid-card-actions{
+  bottom:10px!important;
+}
+
+/* Desktop: mantém boss grande, mas sem cortar. */
+@media screen and (min-width:981px){
+  #event-raid-screen.v12-raid .v12-raid-main{
+    overflow:hidden!important;
+  }
+  #event-raid-screen.v12-raid .v12-boss-wrap{
+    min-height:390px!important;
+    padding:12px 0 22px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card.boss{
+    width:220px!important;
+    height:304px!important;
+  }
+  #event-raid-screen.v12-raid .v12-panel{
+    overflow:auto!important;
+  }
+}
+
+/* Celular: layout do evento mais baixo e rolável. A carta boss fica inteira na tela. */
+@media screen and (max-width:980px), screen and (pointer:coarse) and (max-width:1100px){
+  html,body{
+    width:100vw!important;
+    min-height:100svh!important;
+    min-height:100dvh!important;
+    overflow:hidden!important;
+  }
+  #event-raid-screen.v12-raid{
+    height:100svh!important;
+    height:100dvh!important;
+    overflow:hidden!important;
+  }
+  #event-raid-screen.v12-raid .v12-raid-shell{
+    height:100svh!important;
+    height:100dvh!important;
+    width:100vw!important;
+    grid-template-rows:50px 46px minmax(0,1fr) 132px!important;
+    overflow:hidden!important;
+  }
+  #event-raid-screen.v12-raid .v12-raid-top{
+    min-height:50px!important;
+    max-height:50px!important;
+    padding:5px 7px!important;
+  }
+  #event-raid-screen.v12-raid .v12-turnbar{
+    min-height:46px!important;
+    max-height:46px!important;
+    padding:5px 7px!important;
+  }
+  #event-raid-screen.v12-raid .v12-pill,
+  #event-raid-screen.v12-raid .v12-turn-chip{
+    padding:5px 8px!important;
+    font-size:9px!important;
+  }
+  #event-raid-screen.v12-raid .v12-raid-main{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    grid-template-rows:auto auto auto!important;
+    align-content:start!important;
+    gap:8px!important;
+    padding:8px!important;
+    min-height:0!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  #event-raid-screen.v12-raid .v12-panel.players,
+  #event-raid-screen.v12-raid .v12-panel.actions{
+    max-height:none!important;
+    overflow:visible!important;
+    padding:8px!important;
+  }
+  #event-raid-screen.v12-raid .v12-players{
+    display:flex!important;
+    flex-direction:row!important;
+    gap:8px!important;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    padding:4px 2px 10px!important;
+  }
+  #event-raid-screen.v12-raid .v12-player{
+    min-width:206px!important;
+    overflow:visible!important;
+    padding:7px!important;
+  }
+  #event-raid-screen.v12-raid .v12-field-row{
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    align-items:center!important;
+    padding:8px 4px 14px!important;
+  }
+  #event-raid-screen.v12-raid .v12-boss-wrap{
+    min-height:324px!important;
+    height:auto!important;
+    overflow:visible!important;
+    padding:8px 0 26px!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+  }
+  #event-raid-screen.v12-raid .v12-boss-stage{
+    width:min(330px,96vw)!important;
+    overflow:visible!important;
+    padding:0 0 16px!important;
+  }
+  #event-raid-screen.v12-raid .v12-boss-kicker{
+    font-size:8px!important;
+    margin-bottom:3px!important;
+  }
+  #event-raid-screen.v12-raid .v12-boss-name{
+    font-size:18px!important;
+    line-height:1.05!important;
+    margin-bottom:5px!important;
+  }
+  #event-raid-screen.v12-raid .v12-boss-hp-shell{
+    height:17px!important;
+    margin-bottom:5px!important;
+  }
+  #event-raid-screen.v12-raid .v12-boss-hp-text{
+    font-size:8.5px!important;
+  }
+  #event-raid-screen.v12-raid .v12-boss-energy{
+    font-size:10px!important;
+    margin-bottom:5px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card.boss{
+    width:168px!important;
+    height:232px!important;
+    border-radius:15px!important;
+    margin-bottom:10px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card.boss img{
+    height:58%!important;
+  }
+  #event-raid-screen.v12-raid .v12-card.boss .v12-card-body{
+    height:42%!important;
+    padding:5px!important;
+    font-size:9px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card.boss .v12-card-name{
+    font-size:12px!important;
+    line-height:1.05!important;
+  }
+  #event-raid-screen.v12-raid .v12-card.boss .v12-hp-badge{
+    font-size:10px!important;
+    padding:1px 4px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card-actions{
+    left:5px!important;
+    right:5px!important;
+    bottom:8px!important;
+    gap:3px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card-actions button{
+    min-height:18px!important;
+    font-size:7px!important;
+    padding:2px 3px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card.active{
+    width:100px!important;
+    height:140px!important;
+    flex:0 0 100px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card{
+    width:76px!important;
+    height:108px!important;
+    flex:0 0 76px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card img{
+    height:49%!important;
+  }
+  #event-raid-screen.v12-raid .v12-card-body{
+    height:51%!important;
+    font-size:7.2px!important;
+    padding:4px!important;
+  }
+  #event-raid-screen.v12-raid .v12-actions{
+    gap:6px!important;
+  }
+  #event-raid-screen.v12-raid .v12-log{
+    max-height:96px!important;
+  }
+  #event-raid-screen.v12-raid .v12-hand{
+    height:132px!important;
+    min-height:132px!important;
+    max-height:132px!important;
+    padding:7px 9px!important;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    gap:8px!important;
+  }
+  #event-raid-screen.v12-raid .v12-hand .v12-card{
+    width:84px!important;
+    height:118px!important;
+    flex:0 0 84px!important;
+  }
+}
+
+/* Celulares estreitos: mantém tudo inteiro mesmo com barra do navegador ocupando espaço. */
+@media screen and (max-width:430px){
+  #event-raid-screen.v12-raid .v12-raid-shell{
+    grid-template-rows:48px 44px minmax(0,1fr) 124px!important;
+  }
+  #event-raid-screen.v12-raid .v12-boss-wrap{
+    min-height:298px!important;
+    padding-bottom:22px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card.boss{
+    width:154px!important;
+    height:214px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card.active{
+    width:92px!important;
+    height:128px!important;
+    flex-basis:92px!important;
+  }
+  #event-raid-screen.v12-raid .v12-card{
+    width:70px!important;
+    height:100px!important;
+    flex-basis:70px!important;
+  }
+  #event-raid-screen.v12-raid .v12-hand{
+    height:124px!important;
+    min-height:124px!important;
+    max-height:124px!important;
+  }
+  #event-raid-screen.v12-raid .v12-hand .v12-card{
+    width:76px!important;
+    height:108px!important;
+    flex-basis:76px!important;
+  }
+}
+
+/* Batalha normal/X1 no celular: aumenta zona ativa sem cortar as cartas. */
+@media screen and (max-width:980px), screen and (pointer:coarse) and (max-width:1100px){
+  #game-ui,
+  body.ultra-desktop-ready #game-ui{
+    height:100svh!important;
+    height:100dvh!important;
+    grid-template-rows:52px 30px minmax(0,1fr) 146px!important;
+    overflow:hidden!important;
+  }
+  #game-ui main.arena,
+  body.ultra-desktop-ready #game-ui main.arena{
+    overflow:hidden!important;
+    grid-template-columns:122px minmax(0,1fr)!important;
+    grid-template-rows:minmax(92px,.85fr) minmax(136px,1.15fr) 42px minmax(136px,1.15fr) minmax(92px,.85fr)!important;
+    gap:3px!important;
+    padding:7px 6px 7px!important;
+  }
+  #game-ui #e-active,
+  #game-ui #p-active,
+  #game-ui #e-bench,
+  #game-ui #p-bench{
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    padding-top:8px!important;
+    padding-bottom:10px!important;
+  }
+  #game-ui #e-active .card,
+  #game-ui #p-active .card,
+  #game-ui .card.active{
+    width:110px!important;
+    height:154px!important;
+    flex:0 0 110px!important;
+  }
+  #game-ui #e-bench .card,
+  #game-ui #p-bench .card{
+    width:78px!important;
+    height:110px!important;
+    flex:0 0 78px!important;
+  }
+  #game-ui footer#p-hand{
+    height:146px!important;
+    min-height:146px!important;
+    max-height:146px!important;
+    padding:8px 9px!important;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+  }
+  #game-ui footer#p-hand .card{
+    width:86px!important;
+    height:120px!important;
+    flex:0 0 86px!important;
+  }
+}
+@media screen and (max-width:430px){
+  #game-ui,
+  body.ultra-desktop-ready #game-ui{
+    grid-template-rows:50px 28px minmax(0,1fr) 134px!important;
+  }
+  #game-ui main.arena,
+  body.ultra-desktop-ready #game-ui main.arena{
+    grid-template-columns:112px minmax(0,1fr)!important;
+    grid-template-rows:minmax(78px,.75fr) minmax(122px,1.1fr) 38px minmax(122px,1.1fr) minmax(78px,.75fr)!important;
+  }
+  #game-ui #e-active .card,
+  #game-ui #p-active .card,
+  #game-ui .card.active{
+    width:100px!important;
+    height:140px!important;
+    flex-basis:100px!important;
+  }
+  #game-ui #e-bench .card,
+  #game-ui #p-bench .card{
+    width:72px!important;
+    height:102px!important;
+    flex-basis:72px!important;
+  }
+  #game-ui footer#p-hand{
+    height:134px!important;
+    min-height:134px!important;
+    max-height:134px!important;
+  }
+  #game-ui footer#p-hand .card{
+    width:78px!important;
+    height:110px!important;
+    flex-basis:78px!important;
+  }
+}
+</style>
+
+
+
+<!-- =========================================================
+     UTCG V17 — ENDURECIMENTO DO MODO EVENTOS
+     Corrige coleta/saída após vitória, derrota, desistência e estado final.
+========================================================= -->
+<style id="utcg-v17-event-hardening-css">
+#v12-reward-overlay{z-index:99999!important;}
+#event-raid-screen.v12-raid .v12-card,
+#event-raid-screen.v12-raid .v12-card.boss{contain:none!important;}
+#event-raid-screen.v12-raid .v12-raid-main{scroll-behavior:smooth!important;}
+#event-raid-screen.v12-raid .v12-skill-btn:disabled{opacity:.45!important;filter:grayscale(.35)!important;}
+#event-raid-screen.v12-raid .v12-player.dead{opacity:.58!important;filter:grayscale(.5)!important;}
+</style>
+<script id="utcg-v17-event-hardening-js">
+(function(){
+  'use strict';
+  function $(id){ return document.getElementById(id); }
+  function hideRaid(){ var r=$('event-raid-screen'); if(r) r.style.display='none'; }
+  function goAfterReward(won){
+    try{ window.eventRoom=null; window.eventSide=null; window.eventState=null; }catch(e){}
+    hideRaid();
+    try{
+      if(won && typeof window.v12OnlineEvents==='function') window.v12OnlineEvents();
+      else if(typeof window.showScreen==='function') window.showScreen('main-menu');
+      else if(typeof show==='function') show('main-menu');
+    }catch(e){ try{ location.hash=''; }catch(_){} }
+  }
+
+  function install(){
+    if(window._v17EventHardeningInstalled) return;
+    window._v17EventHardeningInstalled=true;
+
+    var oldCollect=window.eventCollectReward;
+    window.eventCollectReward=function(won){
+      var o=$('v12-reward-overlay'); if(o) o.style.display='none';
+      var moved=false;
+      function finish(){ if(moved) return; moved=true; goAfterReward(!!won); }
+      try{
+        if(typeof window.eventLeaveRoom==='function'){
+          window.eventLeaveRoom(function(){ setTimeout(finish,80); });
+        }else finish();
+      }catch(e){ finish(); }
+      setTimeout(finish,1500);
+    };
+
+    var oldLeave=window.eventLeaveRoom;
+    if(typeof oldLeave==='function'){
+      window.eventLeaveRoom=function(cb){
+        var called=false;
+        function done(res){ if(called) return; called=true; if(typeof cb==='function') cb(res||{ok:true}); }
+        try{
+          oldLeave(function(res){ done(res); });
+          setTimeout(function(){ done({ok:true,timeout:true}); },1400);
+        }catch(e){ done({ok:false,error:String(e)}); }
+      };
+    }
+  }
+
+  window.addEventListener('load',function(){ setTimeout(install,120); setTimeout(install,900); });
+  setTimeout(install,120);
+  setTimeout(install,900);
 })();
 </script>
 
